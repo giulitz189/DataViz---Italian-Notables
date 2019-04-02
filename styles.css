@@ -1,18 +1,5 @@
-.bar text {
-	fill: none;
-}
-
-.axis text {
-	font: 10px sans-serif;
-}
-
-.axis path,
-.axis line {
-	fill: none;
-	stroke: #000;
-	shape-rendering: crispEdges;
-}
-
-.x.axis path {
-	display: none;
+.region {
+	fill: #ffffff;
+	stroke: #a9a9a9;
+	stroke-width: 1;
 }
