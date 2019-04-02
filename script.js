@@ -14,8 +14,8 @@ var projection = d3.geoMercator()
 var path = d3.geoPath()
 	.projection(projection);
 	
-var mapData = d3.json("http://127.0.0.1:8765/geodata/italy_reg.json");
-var queryData = d3.tsv("http://127.0.0.1:8765/query.tsv", type);
+var mapData = d3.json("http://giulitz189.github.io/geodata/italy_reg.json");
+var queryData = d3.tsv("http://giulitz189.github.io/query.tsv", type);
 
 Promise.all([mapData, queryData]).then(function(data) {
 	function stringToPoint(str) {
