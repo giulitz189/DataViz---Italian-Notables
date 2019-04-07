@@ -1,10 +1,9 @@
 var width = 1000,
 	height = 500;
 	
-var map = d3.select(".map")
+var svg = d3.select(".map")
 	.attr("preserveAspectRatio", "xMinYMin meet")
-	.attr("viewBox", "0 0 " + width + " " + height)
-	.append("g");
+	.attr("viewBox", "0 0 " + width + " " + height);
 	
 var projection = d3.geoMercator()
 	.translate([width/2, height/2])
@@ -26,6 +25,18 @@ Promise.all([mapData, queryData]).then(function(data) {
 		var y = +y_str[0];
 		return [x, y];
 	};
+	
+	// map clipping
+	svg.append("defs")
+		.append("clipPath")
+			.attr("id", "italy-borders")
+		.selectAll("path")
+		.data(topojson.feature(data[0], data[0].objects.sub).features)
+		.enter()
+		.append("path")
+			.attr("d", path);
+			
+	var map = svg.append("g");
 	
 	// draw map
 	map.selectAll("path")
@@ -56,7 +67,8 @@ Promise.all([mapData, queryData]).then(function(data) {
 					case "femmina": return "#FF00FF";
 					default: return "#66FF66";
 				}
-			});
+			})
+			.attr("clip-path", "url(#italy-borders)");
 });
 
 function type(d) {
