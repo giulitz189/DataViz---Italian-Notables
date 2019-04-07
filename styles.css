@@ -1,3 +1,8 @@
+.map {
+	border-style: groove;
+	border-color: #a9a9a9;
+}
+
 .region {
 	fill: #ffffff;
 	stroke: #a9a9a9;

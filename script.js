@@ -1,13 +1,18 @@
-var width = 1000,
-	height = 500;
+var viewBox = {
+	x: 0,
+	y: 0,
+	width: 1000,
+	height: 500
+};
 	
 var svg = d3.select(".map")
 	.attr("preserveAspectRatio", "xMinYMin meet")
-	.attr("viewBox", "0 0 " + width + " " + height);
+	.attr("viewBox", viewBox.x + " " + viewBox.y + " " +
+					+ viewBox.width + " " + viewBox.height);
 	
 var projection = d3.geoMercator()
-	.translate([width/2, height/2])
-	.center([12, 42.3])
+	.translate([viewBox.width/2, viewBox.height/2])
+	.center([12, 42.1])
 	.scale(1950);
 	
 var path = d3.geoPath()
@@ -75,3 +80,72 @@ function type(d) {
 	d.age = +d.age;
 	return d;
 }
+
+// event handling
+var isPointerDown = false;
+
+var newViewBox = {
+	x: 0,
+	y: 0
+};
+
+var pointerOrigin = {
+	x: 0,
+	y: 0
+};
+
+function onMouseDown() {
+	isPointerDown = true;
+	
+	pointerOrigin.x = d3.mouse(this)[0];
+	pointerOrigin.y = d3.mouse(this)[1];
+}
+
+function onMouseUp() {
+	isPointerDown = false;
+	
+	viewBox.x = newViewBox.x;
+	viewBox.y = newViewBox.y;
+}
+
+function onMouseMove() {
+	if (!isPointerDown) {
+		return;
+	}
+	
+	newViewBox.x = viewBox.x - (d3.mouse(this)[0] - pointerOrigin.x);
+	newViewBox.y = viewBox.y - (d3.mouse(this)[1] - pointerOrigin.y);
+	
+	var viewBoxString = newViewBox.x + " " + newViewBox.y + " " +
+						+ viewBox.width + " " + viewBox.height;
+	svg.attr("viewBox", viewBoxString);
+}
+
+function onTouchStart() {
+	isPointerDown = true;
+	
+	pointerOrigin.x = d3.touch(this)[0];
+	pointerOrigin.y = d3.touch(this)[1];
+}
+
+function onTouchMove() {
+	if (!isPointerDown) {
+		return;
+	}
+	
+	newViewBox.x = viewBox.x - (d3.touch(this)[0] - pointerOrigin.x);
+	newViewBox.y = viewBox.y - (d3.touch(this)[1] - pointerOrigin.y);
+	
+	var viewBoxString = newViewBox.x + " " + newViewBox.y + " " +
+						+ viewBox.width + " " + viewBox.height;
+	svg.attr("viewBox", viewBoxString);
+}
+
+svg.on("mousedown", onMouseDown)
+	.on("mouseup", onMouseUp)
+	.on("mouseleave", onMouseUp)
+	.on("mousemove", onMouseMove),
+		
+svg.on("touchstart", onTouchStart)
+	.on("touchend", onMouseUp)
+	.on("touchmove", onTouchMove);
