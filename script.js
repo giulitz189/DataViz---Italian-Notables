@@ -9,6 +9,8 @@ var svg = d3.select(".map")
 	.attr("preserveAspectRatio", "xMinYMin meet")
 	.attr("viewBox", viewBox.x + " " + viewBox.y + " " +
 					+ viewBox.width + " " + viewBox.height);
+
+var map = svg.append("g");
 	
 var projection = d3.geoMercator()
 	.translate([viewBox.width/2, viewBox.height/2])
@@ -19,18 +21,9 @@ var path = d3.geoPath()
 	.projection(projection);
 	
 var mapData = d3.json("https://giulitz189.github.io/geodata/italy_reg.json");
-var queryData = d3.tsv("https://giulitz189.github.io/query.tsv", type);
+var queryData = d3.json("https://giulitz189.github.io/query_records/query_results.json");
 
 Promise.all([mapData, queryData]).then(function(data) {
-	function stringToPoint(str) {
-		var res = str.split(" ");
-		var x_str = res[0].split("Point(");
-		var y_str = res[1].split(")");
-		var x = +x_str[1];
-		var y = +y_str[0];
-		return [x, y];
-	};
-	
 	// map clipping
 	svg.append("defs")
 		.append("clipPath")
@@ -40,8 +33,6 @@ Promise.all([mapData, queryData]).then(function(data) {
 		.enter()
 		.append("path")
 			.attr("d", path);
-			
-	var map = svg.append("g");
 	
 	// draw map
 	map.selectAll("path")
@@ -53,33 +44,38 @@ Promise.all([mapData, queryData]).then(function(data) {
 		
 	// draw point
 	map.selectAll("circle")
-		.data(data[1])
+		.data(data[1].results)
 		.enter()
 		.append("circle")
 			.attr("class", "circles")
 			.attr("cx", function(d) {
-				var point = stringToPoint(d.coord);
-				return projection(point)[0];
+				var pt = d.coords;
+				return projection([pt.x, pt.y])[0];
 			})
 			.attr("cy", function(d) {
-				var point = stringToPoint(d.coord);
-				return projection(point)[1];
+				var pt = d.coords;
+				return projection([pt.x, pt.y])[1];
 			})
 			.attr("r", "1px")
 			.attr("fill", function(d) {
-				switch (d.genderLabel) {
-					case "maschio": return "#0099FF";
-					case "femmina": return "#FF00FF";
+				switch (d.gender) {
+					case "male": return "#0099FF";
+					case "female": return "#FF00FF";
 					default: return "#66FF66";
 				}
 			})
 			.attr("clip-path", "url(#italy-borders)");
+			
+	// handlers binding
+	svg.on("mousedown", onMouseDown)
+		.on("mouseup", onMouseUp)
+		.on("mouseleave", onMouseUp)
+		.on("mousemove", onMouseMove),
+		
+	svg.on("touchstart", onTouchStart)
+		.on("touchend", onMouseUp)
+		.on("touchmove", onTouchMove);
 });
-
-function type(d) {
-	d.age = +d.age;
-	return d;
-}
 
 // event handling
 var isPointerDown = false;
@@ -140,12 +136,3 @@ function onTouchMove() {
 						+ viewBox.width + " " + viewBox.height;
 	svg.attr("viewBox", viewBoxString);
 }
-
-svg.on("mousedown", onMouseDown)
-	.on("mouseup", onMouseUp)
-	.on("mouseleave", onMouseUp)
-	.on("mousemove", onMouseMove),
-		
-svg.on("touchstart", onTouchStart)
-	.on("touchend", onMouseUp)
-	.on("touchmove", onTouchMove);
