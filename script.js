@@ -10,7 +10,15 @@ var svg = d3.select(".map")
 	.attr("viewBox", viewBox.x + " " + viewBox.y + " " +
 					+ viewBox.width + " " + viewBox.height);
 
-var map = svg.append("g");
+var map = svg.append("g")
+	.call(d3.zoom().scaleExtent([1, 10]).on("zoom", function() {
+		d3.select(this).attr("transform", "translate(" + d3.event.translate + ")" +
+											+ " scale(" + d3.event.scale + ")");
+	}))
+	.call(d3.drag().on("drag", function() {
+		d3.select(this).attr("transform", "translate(" + d3.event.translate + ")" +
+											+ " scale(" + d3.event.scale + ")");
+	}));
 	
 var projection = d3.geoMercator()
 	.translate([viewBox.width/2, viewBox.height/2])
@@ -32,7 +40,7 @@ Promise.all([mapData, queryData]).then(function(data) {
 		.data(topojson.feature(data[0], data[0].objects.sub).features)
 		.enter()
 		.append("path")
-			.attr("d", path);
+			.attr("d", path),
 	
 	// draw map
 	map.selectAll("path")
@@ -74,75 +82,5 @@ Promise.all([mapData, queryData]).then(function(data) {
 	circles.append("dod")
 		.text(function (d, i) { return data[1].results[i].dod; }),
 	circles.append("article")
-		.text(function (d, i) { return data[1].results[i].article; }),
-			
-	// handlers binding
-	svg.on("mousedown", onMouseDown)
-		.on("mouseup", onMouseUp)
-		.on("mouseleave", onMouseUp)
-		.on("mousemove", onMouseMove),
-		
-	svg.on("touchstart", onTouchStart)
-		.on("touchend", onMouseUp)
-		.on("touchmove", onTouchMove);
+		.text(function (d, i) { return data[1].results[i].article; });
 });
-
-// event handling
-var isPointerDown = false;
-
-var newViewBox = {
-	x: 0,
-	y: 0
-};
-
-var pointerOrigin = {
-	x: 0,
-	y: 0
-};
-
-function onMouseDown() {
-	isPointerDown = true;
-	
-	pointerOrigin.x = d3.mouse(this)[0];
-	pointerOrigin.y = d3.mouse(this)[1];
-}
-
-function onMouseUp() {
-	isPointerDown = false;
-	
-	viewBox.x = newViewBox.x;
-	viewBox.y = newViewBox.y;
-}
-
-function onMouseMove() {
-	if (!isPointerDown) {
-		return;
-	}
-	
-	newViewBox.x = viewBox.x - (d3.mouse(this)[0] - pointerOrigin.x);
-	newViewBox.y = viewBox.y - (d3.mouse(this)[1] - pointerOrigin.y);
-	
-	var viewBoxString = newViewBox.x + " " + newViewBox.y + " " +
-						+ viewBox.width + " " + viewBox.height;
-	svg.attr("viewBox", viewBoxString);
-}
-
-function onTouchStart() {
-	isPointerDown = true;
-	
-	pointerOrigin.x = d3.touch(this)[0];
-	pointerOrigin.y = d3.touch(this)[1];
-}
-
-function onTouchMove() {
-	if (!isPointerDown) {
-		return;
-	}
-	
-	newViewBox.x = viewBox.x - (d3.touch(this)[0] - pointerOrigin.x);
-	newViewBox.y = viewBox.y - (d3.touch(this)[1] - pointerOrigin.y);
-	
-	var viewBoxString = newViewBox.x + " " + newViewBox.y + " " +
-						+ viewBox.width + " " + viewBox.height;
-	svg.attr("viewBox", viewBoxString);
-}
