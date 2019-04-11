@@ -66,6 +66,16 @@ Promise.all([mapData, queryData]).then(function(data) {
 			})
 			.attr("clip-path", "url(#italy-borders)");
 			
+	var circles = map.selectAll(".circles");
+	circles.append("name")
+		.text(function (d, i) { return data[1].results[i].name; }),
+	circles.append("dob")
+		.text(function (d, i) { return data[1].results[i].dob; }),
+	circles.append("dod")
+		.text(function (d, i) { return data[1].results[i].dod; }),
+	circles.append("article")
+		.text(function (d, i) { return data[1].results[i].article; }),
+			
 	// handlers binding
 	svg.on("mousedown", onMouseDown)
 		.on("mouseup", onMouseUp)
