@@ -1,39 +1,105 @@
-var viewBox = {
+// PRELOAD PHASE
+// Map box
+var viewBox_map = {
 	x: 0,
 	y: 0,
 	width: 1000,
 	height: 500
 };
-	
-var svg = d3.select(".map")
-	.attr("preserveAspectRatio", "xMinYMin meet")
-	.attr("viewBox", viewBox.x + " " + viewBox.y + " " +
-					+ viewBox.width + " " + viewBox.height);
 
-var map = svg.append("g")
-	.call(d3.zoom().scaleExtent([1, 10]).on("zoom", function() {
-		d3.select(this).attr("transform", "translate(" + d3.event.translate + ")" +
-											+ " scale(" + d3.event.scale + ")");
-	}))
-	.call(d3.drag().on("drag", function() {
-		d3.select(this).attr("transform", "translate(" + d3.event.translate + ")" +
-											+ " scale(" + d3.event.scale + ")");
-	}));
+var offset = {
+	x: 0,
+	y: 0
+}
+
+var svg_map = d3.select(".map")
+	.append("svg")
+	.attr("preserveAspectRatio", "xMinYMin meet")
+	.attr("viewBox", viewBox_map.x + " " + viewBox_map.y + " " +
+					+ viewBox_map.width + " " + viewBox_map.height);
+					
+var dragHandler = d3.drag()
+	.on("start", onPointerDown)
+	.on("drag", onPointerMove)
+	.on("end", onPointerUp);
+
+var map = svg_map.append("g");
 	
 var projection = d3.geoMercator()
-	.translate([viewBox.width/2, viewBox.height/2])
+	.translate([viewBox_map.width/2, viewBox_map.height/2])
 	.center([12, 42.1])
 	.scale(1950);
 	
 var path = d3.geoPath()
 	.projection(projection);
 	
+// Slider sector
+var viewBox_slide = {
+	x: 0,
+	y: 0,
+	width: 1000,
+	height: 100
+};
+
+var labels = d3.range(0, 18).map(function(d) {
+	return 1850 + (10 * d);
+});
+
+var svg_sldr = d3.select(".slider-box")
+	.append("svg")
+	.attr("preserveAspectRatio", "xMinYMin meet")
+	.attr("viewBox", viewBox_slide.x + " " + viewBox_slide.y + " " +
+					+ viewBox_slide.width + " " + viewBox_slide.height);
+	
+var x = d3.scaleLinear()
+	.domain([d3.min(labels), d3.max(labels)])
+	.range([0, (viewBox_slide.width - 100)])
+	.clamp(true);
+	
+var slider = svg_sldr.append("g")
+	.attr("class", "slider")
+	.attr("transform", "translate(50, 50)");
+	
+slider.append("line")
+		.attr("class", "track")
+		.attr("x1", x.range()[0])
+		.attr("x2", x.range()[1])
+	.select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
+		.attr("class", "track-inset")
+	.select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
+		.attr("class", "track-overlay")
+		.call(d3.drag()
+			.on("start.interrupt", function() { slider.interrupt(); })
+			.on("start drag", function() { update(x.invert(d3.event.x)); })
+		),
+		
+slider.insert("g", ".track-overlay")
+		.attr("class", "ticks")
+		.attr("transform", "translate(0, " + 18 + ")")
+	.selectAll("text")
+	.data(x.ticks(18))
+	.enter().append("text")
+		.attr("x", x)
+		.attr("text-anchor", "middle")
+		.text(function(d) { return d; });
+		
+var handle = slider.insert("circle", ".track-overlay")
+	.attr("class", "handle")
+	.attr("r", 8);
+	
+function update(v) {
+	handle.attr("cx", x(v));
+}
+
+// UI Selector - Coming soon...
+	
+// DATA LOAD PHASE
 var mapData = d3.json("https://giulitz189.github.io/geodata/italy_reg.json");
 var queryData = d3.json("https://giulitz189.github.io/query_records/query_results.json");
 
 Promise.all([mapData, queryData]).then(function(data) {
 	// map clipping
-	svg.append("defs")
+	svg_map.append("defs")
 		.append("clipPath")
 			.attr("id", "italy-borders")
 		.selectAll("path")
@@ -83,4 +149,51 @@ Promise.all([mapData, queryData]).then(function(data) {
 		.text(function (d, i) { return data[1].results[i].dod; }),
 	circles.append("article")
 		.text(function (d, i) { return data[1].results[i].article; });
+		
+	/**
+	map.call(d3.zoom().scaleExtent([1, 10]).on("zoom", function() {
+		var transform_string = "translate(" + offset.x + ", " + offset.y + ")" +
+								+ " scale(" + d3.event.scale + ")";
+		d3.select(this).attr("transform", transform_string);
+	}));
+	*/
+	map.call(dragHandler);
 });
+
+var isPointerDown = false;
+
+var pointStart = {
+	x: 0,
+	y: 0
+};
+
+var offsetTemp = {
+	width: 0,
+	height: 0
+}
+
+function onPointerDown() {
+	pointStart.x = d3.mouse(this)[0];
+	pointStart.y = d3.mouse(this)[1];
+	isPointerDown = true;
+}
+
+function onPointerMove() {
+	if (isPointerDown) {
+		offsetTemp.x = d3.mouse(this)[0] - pointStart.x;
+		offsetTemp.y = d3.mouse(this)[1] - pointStart.y;
+		var transform_string = "translate(" + (offsetTemp.x + offset.x) + ", " +
+								+ (offsetTemp.y + offset.y) + ")";
+		d3.select(this).attr("transform", transform_string);
+	}
+}
+
+function onPointerUp() {
+	if (isPointerDown) {
+		offset.x = offset.x + (d3.mouse(this)[0] - pointStart.x);
+		offset.x = offset.y + (d3.mouse(this)[1] - pointStart.y);
+		var transform_string = "translate(" + offset.x + ", " + offset.y + ")";
+		d3.select(this).attr("transform", transform_string);
+	}
+	isPointerDown = false;
+}
