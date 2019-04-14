@@ -78,12 +78,26 @@ slider.insert("g", ".track-overlay")
 		.attr("text-anchor", "middle")
 		.text(function(d) { return d; });
 		
-var handle = slider.insert("circle", ".track-overlay")
+var handle_lx = slider.insert("circle", ".track-overlay")
 	.attr("class", "handle")
+	.attr("cx", x(d3.min(labels)))
+	.attr("r", 8);
+	
+var handle_rx = slider.insert("circle", ".track-overlay")
+	.attr("class", "handle")
+	.attr("cx", x(d3.max(labels)))
 	.attr("r", 8);
 	
 function update(v) {
-	handle.attr("cx", x(v));
+	var mouseCoord = x(v);
+	var pos_lx = +handle_lx.attr("cx");
+	var pos_rx = +handle_rx.attr("cx");
+	var mid = pos_lx + ((pos_rx - pos_lx) / 2);
+	if (mouseCoord <= mid) {
+		handle_lx.attr("cx", mouseCoord);
+	} else {
+		handle_rx.attr("cx", mouseCoord);
+	}
 }
 
 // UI Selector - Coming soon...
