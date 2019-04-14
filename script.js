@@ -17,11 +17,6 @@ var svg_map = d3.select(".map")
 	.attr("preserveAspectRatio", "xMinYMin meet")
 	.attr("viewBox", viewBox_map.x + " " + viewBox_map.y + " " +
 					+ viewBox_map.width + " " + viewBox_map.height);
-					
-var dragHandler = d3.drag()
-	.on("start", onPointerDown)
-	.on("drag", onPointerMove)
-	.on("end", onPointerUp);
 
 var map = svg_map.append("g");
 	
@@ -150,50 +145,31 @@ Promise.all([mapData, queryData]).then(function(data) {
 	circles.append("article")
 		.text(function (d, i) { return data[1].results[i].article; });
 		
-	/**
-	map.call(d3.zoom().scaleExtent([1, 10]).on("zoom", function() {
-		var transform_string = "translate(" + offset.x + ", " + offset.y + ")" +
-								+ " scale(" + d3.event.scale + ")";
-		d3.select(this).attr("transform", transform_string);
-	}));
-	*/
-	map.call(dragHandler);
+	// event handling
+	var transform = d3.zoomIdentity;
+	transform.x = projection.translate()[0];
+	transform.y = projection.translate()[1];
+	transform.k = projection.scale();
+	
+	function updateTransform() {
+		transform = d3.event.transform;
+		projection.translate([transform.x, transform.y]).scale(transform.k);
+	
+		// Apply to clip-path and map path
+		svg_map.selectAll("path").attr("d", path),
+	
+		// Apply to points
+		map.selectAll(".circles")
+			.attr("cx", function(d, i) {
+				var pt = data[1].results[i].coords;
+				return projection([pt.x, pt.y])[0];
+			})
+			.attr("cy", function(d, i) {
+				var pt = data[1].results[i].coords;
+				return projection([pt.x, pt.y])[1];
+			});
+	}
+	
+	svg_map.call(d3.zoom().scaleExtent([1, 10]).on("zoom", updateTransform))
+		.call(d3.drag().on("drag", updateTransform));
 });
-
-var isPointerDown = false;
-
-var pointStart = {
-	x: 0,
-	y: 0
-};
-
-var offsetTemp = {
-	width: 0,
-	height: 0
-}
-
-function onPointerDown() {
-	pointStart.x = d3.mouse(this)[0];
-	pointStart.y = d3.mouse(this)[1];
-	isPointerDown = true;
-}
-
-function onPointerMove() {
-	if (isPointerDown) {
-		offsetTemp.x = d3.mouse(this)[0] - pointStart.x;
-		offsetTemp.y = d3.mouse(this)[1] - pointStart.y;
-		var transform_string = "translate(" + (offsetTemp.x + offset.x) + ", " +
-								+ (offsetTemp.y + offset.y) + ")";
-		d3.select(this).attr("transform", transform_string);
-	}
-}
-
-function onPointerUp() {
-	if (isPointerDown) {
-		offset.x = offset.x + (d3.mouse(this)[0] - pointStart.x);
-		offset.x = offset.y + (d3.mouse(this)[1] - pointStart.y);
-		var transform_string = "translate(" + offset.x + ", " + offset.y + ")";
-		d3.select(this).attr("transform", transform_string);
-	}
-	isPointerDown = false;
-}
