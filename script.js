@@ -89,15 +89,24 @@ var handle_rx = slider.insert("circle", ".track-overlay")
 	.attr("r", 8);
 	
 function update(v) {
-	var mouseCoord = x(v);
+	// Update cursor position
+	var rangeVal = (((v % 1) <= 0.5) ? Math.floor(v) : Math.ceil(v));
+	var mouseCoord = x(rangeVal);
 	var pos_lx = +handle_lx.attr("cx");
 	var pos_rx = +handle_rx.attr("cx");
 	var mid = pos_lx + ((pos_rx - pos_lx) / 2);
-	if (mouseCoord <= mid) {
-		handle_lx.attr("cx", mouseCoord);
-	} else {
-		handle_rx.attr("cx", mouseCoord);
-	}
+	if (mouseCoord <= mid) handle_lx.attr("cx", mouseCoord);
+	else handle_rx.attr("cx", mouseCoord);
+	
+	// Apply to points
+	map.selectAll(".circles")
+		.style("display", function() {
+			var dob = +this.getElementsByTagName("dob")[0].innerHTML;
+			var minYear = x.invert(+handle_lx.attr("cx"));
+			var maxYear = x.invert(+handle_rx.attr("cx"));
+			if (dob >= minYear && dob <= maxYear) return "block";
+			else return "none";
+		});
 }
 
 // UI Selector - Coming soon...
@@ -147,7 +156,8 @@ Promise.all([mapData, queryData]).then(function(data) {
 					default: return "#66FF66";
 				}
 			})
-			.attr("clip-path", "url(#italy-borders)");
+			.attr("clip-path", "url(#italy-borders)")
+			.style("display", "block");
 			
 	var circles = map.selectAll(".circles");
 	circles.append("name")
