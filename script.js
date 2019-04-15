@@ -194,6 +194,6 @@ Promise.all([mapData, queryData]).then(function(data) {
 			});
 	}
 	
-	svg_map.call(d3.zoom().scaleExtent([1, 10]).on("zoom", updateTransform))
+	svg_map.call(d3.zoom().on("zoom", updateTransform))
 		.call(d3.drag().on("drag", updateTransform));
 });
