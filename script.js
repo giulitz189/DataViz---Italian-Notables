@@ -175,10 +175,9 @@ Promise.all([mapData, queryData]).then(function(data) {
 	transform.y = projection.translate()[1];
 	transform.k = projection.scale();
 	
-	function updateTransform() {
-		transform = d3.event.transform;
-		projection.translate([transform.x, transform.y]).scale(transform.k);
+	var isPressed = false;
 	
+	function redraw() {
 		// Apply to clip-path and map path
 		svg_map.selectAll("path").attr("d", path),
 	
@@ -194,6 +193,27 @@ Promise.all([mapData, queryData]).then(function(data) {
 			});
 	}
 	
-	svg_map.call(d3.zoom().on("zoom", updateTransform))
-		.call(d3.drag().on("drag", updateTransform));
+	function updateDrag() {
+		if (isPressed) {
+			transform = d3.event.transform;
+			var updatedX = projection.translate()[0] + d3.event.dx,
+				updatedY = projection.translate()[1] + d3.event.dy;
+			projection.translate([updatedX, updatedY]);
+			redraw();
+		}
+	}
+	
+	function updateZoom() {
+		transform = d3.event.transform;
+		projection.scale(transform.k);
+		redraw();
+	}
+	
+	var dragHandler = d3.drag()
+		.on("start", function() { isPressed = true; })
+		.on("drag", updateDrag)
+		.on("end", function() { isPressed = false; });
+	
+	svg_map.call(dragHandler)
+		.call(d3.zoom().on("zoom", updateZoom));
 });
