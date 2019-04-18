@@ -1,0 +1,82 @@
+[
+	{
+		"regionLabel": "Abruzzo",
+		"dimensions": "10831.84"
+	},
+	{
+		"regionLabel": "Basilicata",
+		"dimensions": "9994.61"
+	},
+	{
+		"regionLabel": "Calabria",
+		"dimensions": "15221.9"
+	},
+	{
+		"regionLabel": "Campania",
+		"dimensions": "13670.95"
+	},
+	{
+		"regionLabel": "Emilia-Romagna",
+		"dimensions": "22123.09"
+	},
+	{
+		"regionLabel": "Friuli-Venezia Giulia",
+		"dimensions": "7862.3"
+	},
+	{
+		"regionLabel": "Lazio",
+		"dimensions": "17236"
+	},
+	{
+		"regionLabel": "Liguria",
+		"dimensions": "5422"
+	},
+	{
+		"regionLabel": "Lombardia",
+		"dimensions": "23863.65"
+	},
+	{
+		"regionLabel": "Marche",
+		"dimensions": "9694"
+	},
+	{
+		"regionLabel": "Molise",
+		"dimensions": "4438"
+	},
+	{
+		"regionLabel": "Piemonte",
+		"dimensions": "25402"
+	},
+	{
+		"regionLabel": "Puglia",
+		"dimensions": "19365.8"
+	},
+	{
+		"regionLabel": "Sardegna",
+		"dimensions": "23949"
+	},
+	{
+		"regionLabel": "Sicilia",
+		"dimensions": "25711"
+	},
+	{
+		"regionLabel": "Toscana",
+		"dimensions": "22987.04"
+	},
+	{
+		"regionLabel": "Trentino-Alto Adige",
+		"dimensions": "13606.87"
+	},
+	{
+		"regionLabel": "Umbria",
+		"dimensions": "8456"
+	},
+	{
+		"regionLabel": "Valle d'Aosta",
+		"dimensions": "3263.22"
+	},
+	{
+		"regionLabel": "Veneto",
+		"dimensions": "18339"
+	}
+]
