@@ -12,6 +12,8 @@ var offset = {
 	y: 0
 }
 
+var circle_rad = 1;
+
 var svg_map = d3.select(".map")
 	.append("svg")
 	.attr("preserveAspectRatio", "xMinYMin meet")
@@ -27,6 +29,13 @@ var projection = d3.geoMercator()
 	
 var path = d3.geoPath()
 	.projection(projection);
+	
+var transform = d3.zoomIdentity;
+transform.x = projection.translate()[0];
+transform.y = projection.translate()[1];
+transform.k = projection.scale();
+
+var isDragging = false;
 	
 // Slider sector
 var viewBox_slide = {
@@ -62,11 +71,7 @@ slider.append("line")
 	.select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
 		.attr("class", "track-inset")
 	.select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
-		.attr("class", "track-overlay")
-		.call(d3.drag()
-			.on("start.interrupt", function() { slider.interrupt(); })
-			.on("start drag", function() { update(x.invert(d3.event.x)); })
-		),
+		.attr("class", "track-overlay"),
 		
 slider.insert("g", ".track-overlay")
 		.attr("class", "ticks")
@@ -88,26 +93,8 @@ var handle_rx = slider.insert("circle", ".track-overlay")
 	.attr("cx", x(d3.max(labels)))
 	.attr("r", 8);
 	
-function update(v) {
-	// Update cursor position
-	var rangeVal = (((v % 1) <= 0.5) ? Math.floor(v) : Math.ceil(v));
-	var mouseCoord = x(rangeVal);
-	var pos_lx = +handle_lx.attr("cx");
-	var pos_rx = +handle_rx.attr("cx");
-	var mid = pos_lx + ((pos_rx - pos_lx) / 2);
-	if (mouseCoord <= mid) handle_lx.attr("cx", mouseCoord);
-	else handle_rx.attr("cx", mouseCoord);
-	
-	// Apply to points
-	map.selectAll(".circles")
-		.style("display", function() {
-			var dob = +this.getElementsByTagName("dob")[0].innerHTML;
-			var minYear = x.invert(+handle_lx.attr("cx"));
-			var maxYear = x.invert(+handle_rx.attr("cx"));
-			if (dob >= minYear && dob <= maxYear) return "block";
-			else return "none";
-		});
-}
+var minYear = x.invert(+handle_lx.attr("cx"));
+var maxYear = x.invert(+handle_rx.attr("cx"));
 
 // UI Selector - Coming soon...
 	
@@ -132,88 +119,136 @@ Promise.all([mapData, queryData]).then(function(data) {
 		.enter()
 		.append("path")
 			.attr("class", "region")
-			.attr("d", path),
+			.attr("d", path);
 		
 	// draw point
-	map.selectAll("circle")
-		.data(data[1].results)
-		.enter()
-		.append("circle")
-			.attr("class", "circles")
-			.attr("cx", function(d) {
-				var pt = d.coords;
-				return projection([pt.x, pt.y])[0];
-			})
-			.attr("cy", function(d) {
-				var pt = d.coords;
-				return projection([pt.x, pt.y])[1];
-			})
-			.attr("r", "1px")
-			.attr("fill", function(d) {
-				switch (d.gender) {
-					case "male": return "#0099FF";
-					case "female": return "#FF00FF";
-					default: return "#66FF66";
-				}
-			})
-			.attr("clip-path", "url(#italy-borders)")
-			.style("display", "block");
-			
-	var circles = map.selectAll(".circles");
-	circles.append("name")
-		.text(function (d, i) { return data[1].results[i].name; }),
-	circles.append("dob")
-		.text(function (d, i) { return data[1].results[i].dob; }),
-	circles.append("dod")
-		.text(function (d, i) { return data[1].results[i].dod; }),
-	circles.append("article")
-		.text(function (d, i) { return data[1].results[i].article; });
-		
-	// event handling
-	var transform = d3.zoomIdentity;
-	transform.x = projection.translate()[0];
-	transform.y = projection.translate()[1];
-	transform.k = projection.scale();
+	var male_points = d3.path();
+	var female_points = d3.path();
+	var other_points = d3.path();
 	
-	var isPressed = false;
-	
-	function redraw() {
-		// Apply to clip-path and map path
-		svg_map.selectAll("path").attr("d", path),
-	
-		// Apply to points
-		map.selectAll(".circles")
-			.attr("cx", function(d, i) {
-				var pt = data[1].results[i].coords;
-				return projection([pt.x, pt.y])[0];
-			})
-			.attr("cy", function(d, i) {
-				var pt = data[1].results[i].coords;
-				return projection([pt.x, pt.y])[1];
-			});
-	}
-	
-	function updateDrag() {
-		if (isPressed) {
-			transform = d3.event.transform;
-			var updatedX = projection.translate()[0] + d3.event.dx,
-				updatedY = projection.translate()[1] + d3.event.dy;
-			projection.translate([updatedX, updatedY]);
-			redraw();
+	function drawPoint(record) {
+		var ptx = projection([record.coords.x, record.coords.y])[0];
+		var pty = projection([record.coords.x, record.coords.y])[1];
+		switch (record.gender) {
+			case "male":
+				male_points.moveTo(ptx + circle_rad, pty);
+				male_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
+				break;
+			case "female":
+				female_points.moveTo(ptx + circle_rad, pty);
+				female_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
+				break;
+			default:
+				other_points.moveTo(ptx + circle_rad, pty);
+				other_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
 		}
 	}
 	
-	function updateZoom() {
-		transform = d3.event.transform;
-		projection.scale(transform.k);
-		redraw();
-	}
+	data[1].results.forEach(drawPoint);
 	
+	map.append("path")
+		.attr("class", "male")
+		.attr("d", function() { return male_points.toString(); })
+		.attr("clip-path", "url(#italy-borders)"),
+		
+	map.append("path")
+		.attr("class", "female")
+		.attr("d", function() { return female_points.toString(); })
+		.attr("clip-path", "url(#italy-borders)"),
+		
+	map.append("path")
+		.attr("class", "other")
+		.attr("d", function() { return other_points.toString(); })
+		.attr("clip-path", "url(#italy-borders)");
+		
+	// event handling
 	var dragHandler = d3.drag()
-		.on("start", function() { isPressed = true; })
-		.on("drag", updateDrag)
-		.on("end", function() { isPressed = false; });
+		.on("start", function() { isDragging = true; })
+		.on("drag", function() { updateDrag(data[1].results); })
+		.on("end", function() { isDragging = false; });
 	
 	svg_map.call(dragHandler)
-		.call(d3.zoom().on("zoom", updateZoom));
+		.call(d3.zoom().on("zoom", function() { updateZoom(data[1].results); })),
+		
+	slider.selectAll(".track-overlay")
+		.call(d3.drag()
+			.on("start.interrupt", function() { slider.interrupt(); })
+			.on("start drag", function() {
+				updateCursorPositions(x.invert(d3.event.x), data[1].results);
+			})
+		);
 });
+
+function redrawPoints(points) {
+	var male_points = d3.path();
+	var female_points = d3.path();
+	var other_points = d3.path();
+	
+	points.forEach(function(record) {
+		if (record.dob >= minYear && record.dob <= maxYear) {
+			var ptx = projection([record.coords.x, record.coords.y])[0];
+			var pty = projection([record.coords.x, record.coords.y])[1];
+			switch (record.gender) {
+				case "male":
+					male_points.moveTo(ptx + circle_rad, pty);
+					male_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
+					break;
+				case "female":
+					female_points.moveTo(ptx + circle_rad, pty);
+					female_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
+					break;
+				default:
+					other_points.moveTo(ptx + circle_rad, pty);
+					other_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
+			}
+		}
+	});
+	
+	map.selectAll(".male")
+		.attr("d", male_points.toString()),
+	
+	map.selectAll(".female")
+		.attr("d", female_points.toString()),
+	
+	map.selectAll(".other")
+		.attr("d", other_points.toString());
+}
+
+function updateCursorPositions(v, elems) {
+	// Update cursor position
+	var rangeVal = (((v % 1) <= 0.5) ? Math.floor(v) : Math.ceil(v));
+	var mouseCoord = x(rangeVal);
+	var pos_lx = +handle_lx.attr("cx");
+	var pos_rx = +handle_rx.attr("cx");
+	var mid = pos_lx + ((pos_rx - pos_lx) / 2);
+	if (mouseCoord <= mid) handle_lx.attr("cx", mouseCoord);
+	else handle_rx.attr("cx", mouseCoord);
+	
+	minYear = x.invert(+handle_lx.attr("cx"));
+	maxYear = x.invert(+handle_rx.attr("cx"));
+	
+	// Apply to points
+	redrawPoints(elems);
+}
+
+function updateDrag(elems) {
+	if (isDragging) {
+		transform = d3.event.transform;
+		var updatedX = projection.translate()[0] + d3.event.dx,
+			updatedY = projection.translate()[1] + d3.event.dy;
+		projection.translate([updatedX, updatedY]);
+		
+		// Apply to map
+		svg_map.selectAll("path").attr("d", path);
+		redrawPoints(elems);
+	}
+}
+
+function updateZoom(elems) {
+	transform = d3.event.transform;
+	projection.scale(transform.k);
+	
+	// Apply to map
+	svg_map.selectAll("path").attr("d", path);
+	redrawPoints(elems);
+}

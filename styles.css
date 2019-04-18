@@ -1,3 +1,4 @@
+/* Map */
 .map {
 	border-style: groove;
 	border-color: #a9a9a9;
@@ -9,6 +10,19 @@
 	stroke-width: 1;
 }
 
+.male {
+	fill: #0099FF;
+}
+
+.female {
+	fill: #FF00FF;
+}
+
+.other {
+	fill: #66FF66;
+}
+
+/* Slider */
 .ticks {
 	font: 10px sans-serif;
 }
