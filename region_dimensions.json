@@ -1,82 +1,124 @@
-[
-	{
-		"regionLabel": "Abruzzo",
-		"dimensions": "10831.84"
-	},
-	{
-		"regionLabel": "Basilicata",
-		"dimensions": "9994.61"
-	},
-	{
-		"regionLabel": "Calabria",
-		"dimensions": "15221.9"
-	},
-	{
-		"regionLabel": "Campania",
-		"dimensions": "13670.95"
-	},
-	{
-		"regionLabel": "Emilia-Romagna",
-		"dimensions": "22123.09"
-	},
-	{
-		"regionLabel": "Friuli-Venezia Giulia",
-		"dimensions": "7862.3"
-	},
-	{
-		"regionLabel": "Lazio",
-		"dimensions": "17236"
-	},
-	{
-		"regionLabel": "Liguria",
-		"dimensions": "5422"
-	},
-	{
-		"regionLabel": "Lombardia",
-		"dimensions": "23863.65"
-	},
-	{
-		"regionLabel": "Marche",
-		"dimensions": "9694"
-	},
-	{
-		"regionLabel": "Molise",
-		"dimensions": "4438"
-	},
-	{
-		"regionLabel": "Piemonte",
-		"dimensions": "25402"
-	},
-	{
-		"regionLabel": "Puglia",
-		"dimensions": "19365.8"
-	},
-	{
-		"regionLabel": "Sardegna",
-		"dimensions": "23949"
-	},
-	{
-		"regionLabel": "Sicilia",
-		"dimensions": "25711"
-	},
-	{
-		"regionLabel": "Toscana",
-		"dimensions": "22987.04"
-	},
-	{
-		"regionLabel": "Trentino-Alto Adige",
-		"dimensions": "13606.87"
-	},
-	{
-		"regionLabel": "Umbria",
-		"dimensions": "8456"
-	},
-	{
-		"regionLabel": "Valle d'Aosta",
-		"dimensions": "3263.22"
-	},
-	{
-		"regionLabel": "Veneto",
-		"dimensions": "18339"
-	}
-]
+{
+	"regions": [
+		{
+			"regionLabel": "Abruzzo",
+			"FID": 13,
+			"dimensions": "10831.84",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Basilicata",
+			"FID": 17,
+			"dimensions": "9994.61",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Calabria",
+			"FID": 18,
+			"dimensions": "15221.9",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Campania",
+			"FID": 15,
+			"dimensions": "13670.95",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Emilia-Romagna",
+			"FID": 8,
+			"dimensions": "22123.09",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Friuli-Venezia Giulia",
+			"FID": 6,
+			"dimensions": "7862.3",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Lazio",
+			"FID": 12,
+			"dimensions": "17236",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Liguria",
+			"FID": 7,
+			"dimensions": "5422",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Lombardia",
+			"FID": 3,
+			"dimensions": "23863.65",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Marche",
+			"FID": 11,
+			"dimensions": "9694",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Molise",
+			"FID": 14,
+			"dimensions": "4438",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Piemonte",
+			"FID": 1,
+			"dimensions": "25402",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Puglia",
+			"FID": 16,
+			"dimensions": "19365.8",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Sardegna",
+			"FID": 20,
+			"dimensions": "23949",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Sicilia",
+			"FID": 19,
+			"dimensions": "25711",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Toscana",
+			"FID": 9,
+			"dimensions": "22987.04",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Trentino-Alto Adige",
+			"FID": 4,
+			"dimensions": "13606.87",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Umbria",
+			"FID": 10,
+			"dimensions": "8456",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Valle d'Aosta",
+			"FID": 2,
+			"dimensions": "3263.22",
+			"number_of_people": [0, 0]
+		},
+		{
+			"regionLabel": "Veneto",
+			"FID": 5,
+			"dimensions": "18339",
+			"number_of_people": [0, 0]
+		}
+	]
+}

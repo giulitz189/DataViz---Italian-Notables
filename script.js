@@ -1,4 +1,6 @@
-// PRELOAD PHASE
+// const pointInSvgPath = require('point-in-svg-path');
+
+// INITIALIZATION PHASE
 // Map box
 var viewBox_map = {
 	x: 0,
@@ -101,8 +103,17 @@ var maxYear = x.invert(+handle_rx.attr("cx"));
 // DATA LOAD PHASE
 var mapData = d3.json("https://giulitz189.github.io/geodata/italy_reg.json");
 var queryData = d3.json("https://giulitz189.github.io/query_records/query_results.json");
+var heatmapData = d3.json("https://giulitz189.github.io/region_dimensions.json");
 
-Promise.all([mapData, queryData]).then(function(data) {
+Promise.all([mapData, queryData, heatmapData]).then(function(data) {
+	/**
+	var htd = data[2].regions.sort(function (a, b) {
+		a = a.FID;
+		b = b.FID;
+		return a < b ? -1 : a > b ? 1 : 0;
+	});
+	 */
+	
 	// map clipping
 	svg_map.append("defs")
 		.append("clipPath")
@@ -126,25 +137,41 @@ Promise.all([mapData, queryData]).then(function(data) {
 	var female_points = d3.path();
 	var other_points = d3.path();
 	
-	function drawPoint(record) {
-		var ptx = projection([record.coords.x, record.coords.y])[0];
-		var pty = projection([record.coords.x, record.coords.y])[1];
-		switch (record.gender) {
+	/**
+	function assignPointToRegion(x, y, gender) {
+		var regionElems = map.selectAll(".region")
+		
+		var isAssigned = false;
+		var idx = 0;
+		while (!isAssigned && idx < regionElems.length) {
+			if (pointInSvgPath(regionElems[idx].attr("d"), x, y)) {
+				if (gender == "male") htd[idx].number_of_people[0]++;
+				else if (gender == "female") htd[idx].number_of_people[1]++;
+				isAssigned = true;
+			} else idx++;
+		}
+	}
+	 */
+	
+	data[1].results.forEach(function (r) {
+		var ptx = projection([r.coords.x, r.coords.y])[0];
+		var pty = projection([r.coords.x, r.coords.y])[1];
+		switch (r.gender) {
 			case "male":
 				male_points.moveTo(ptx + circle_rad, pty);
 				male_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
+				// assignPointToRegion(ptx, pty, r.gender);
 				break;
 			case "female":
 				female_points.moveTo(ptx + circle_rad, pty);
 				female_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
+				// assignPointToRegion(ptx, pty, r.gender);
 				break;
 			default:
 				other_points.moveTo(ptx + circle_rad, pty);
 				other_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
 		}
-	}
-	
-	data[1].results.forEach(drawPoint);
+	});
 	
 	map.append("path")
 		.attr("class", "male")
@@ -161,7 +188,19 @@ Promise.all([mapData, queryData]).then(function(data) {
 		.attr("d", function() { return other_points.toString(); })
 		.attr("clip-path", "url(#italy-borders)");
 		
-	// event handling
+	/**
+	// generate heatmap by region
+	map.selectAll(".region")
+		.style("fill", function(d, i) {
+			var total = htd[i].number_of_people[0] + htd[i].number_of_people[1];
+			var dim = stringToFloat(htd[i].dimensions);
+			var h = 240 + (60 * (htd[i].number_of_people[1] / total));
+			var v = Math.floor(100 - (50 * (total / dim)));
+			return "hsl(" + h + ", 100%, " + v + "%)";
+		})
+	 */
+		
+	// Associate event handlers to page elements
 	var dragHandler = d3.drag()
 		.on("start", function() { isDragging = true; })
 		.on("drag", function() { updateDrag(data[1].results); })
@@ -179,6 +218,13 @@ Promise.all([mapData, queryData]).then(function(data) {
 		);
 });
 
+// UTILITY FUNCTIONS AND EVENT HANDLERS
+// Utilities
+function stringToFloat(str) {
+	return +str;
+}
+
+// Event handlers
 function redrawPoints(points) {
 	var male_points = d3.path();
 	var female_points = d3.path();

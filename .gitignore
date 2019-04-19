@@ -1,2 +1,2 @@
-query_records/node_modules/
-query_records/package-lock.json
+node_modules/
+package-lock.json
