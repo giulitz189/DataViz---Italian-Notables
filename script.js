@@ -10,7 +10,7 @@ var viewBox_map = {
 var offset = {
 	x: 0,
 	y: 0
-}
+};
 
 var circle_rad = 1;
 
@@ -96,7 +96,7 @@ var handle_rx = slider.insert("circle", ".track-overlay")
 var minYear = x.invert(+handle_lx.attr("cx"));
 var maxYear = x.invert(+handle_rx.attr("cx"));
 
-// UI Selector - Coming soon...
+// UI Selector
 	
 // DATA LOAD PHASE
 var mapData = d3.json("https://giulitz189.github.io/geodata/italy_reg.json");
@@ -151,7 +151,7 @@ Promise.all([mapData, queryData, heatmapData]).then(function(data) {
 				other_points.moveTo(ptx + circle_rad, pty);
 				other_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
 		}
-	});
+	}),
 	
 	map.append("path")
 		.attr("class", "male")
@@ -166,7 +166,7 @@ Promise.all([mapData, queryData, heatmapData]).then(function(data) {
 	map.append("path")
 		.attr("class", "other")
 		.attr("d", other_points.toString())
-		.attr("clip-path", "url(#italy-borders)");
+		.attr("clip-path", "url(#italy-borders)"),
 		
 	// generate heatmap by region
 	map.selectAll(".region")
@@ -176,7 +176,7 @@ Promise.all([mapData, queryData, heatmapData]).then(function(data) {
 			var h = 240 + (60 * (htd[i].number_of_people[1] / total));
 			var v = Math.floor(100 - (50 * (total / dim)));
 			return "hsl(" + h + ", 100%, " + v + "%)";
-		})
+		});
 		
 	// Associate event handlers to page elements
 	var dragHandler = d3.drag()
@@ -259,7 +259,7 @@ function redrawPoints(points, htd, isNOPModified) {
 					other_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
 			}
 		}
-	});
+	}),
 	
 	map.selectAll(".male")
 		.attr("d", male_points.toString()),
@@ -310,16 +310,6 @@ function updateDrag(elems, htd) {
 		
 		// Apply to points
 		redrawPoints(elems, htd, false);
-		
-		// generate heatmap by region
-		map.selectAll(".region")
-			.style("fill", function(d, i) {
-				var total = htd[i].number_of_people[0] + htd[i].number_of_people[1];
-				var dim = stringToFloat(htd[i].dimensions);
-				var h = 240 + (60 * (htd[i].number_of_people[1] / total));
-				var v = Math.floor(100 - (50 * (total / dim)));
-				return "hsl(" + h + ", 100%, " + v + "%)";
-			});
 	}
 }
 
@@ -332,14 +322,4 @@ function updateZoom(elems, htd) {
 	
 	// Apply to points
 	redrawPoints(elems, htd, false);
-	
-	// generate heatmap by region
-	map.selectAll(".region")
-		.style("fill", function(d, i) {
-			var total = htd[i].number_of_people[0] + htd[i].number_of_people[1];
-			var dim = stringToFloat(htd[i].dimensions);
-			var h = 240 + (60 * (htd[i].number_of_people[1] / total));
-			var v = Math.floor(100 - (50 * (total / dim)));
-			return "hsl(" + h + ", 100%, " + v + "%)";
-		});
 }
