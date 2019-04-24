@@ -97,6 +97,69 @@ var minYear = x.invert(+handle_lx.attr("cx"));
 var maxYear = x.invert(+handle_rx.attr("cx"));
 
 // UI Selector
+var sf_mapviz = d3.select(".selector")
+	.append("div")
+		.text("Tipo visualizzazione:")
+	.append("div")
+		.attr("class", "switch-field");
+		
+sf_mapviz.append("input")
+	.attr("type", "radio")
+	.attr("id", "dotmap-btn")
+	.attr("name", "mapviz")
+	.attr("value", "dotmap"),
+	
+sf_mapviz.append("label")
+	.attr("for", "dotmap-btn")
+	.text("A punti"),
+	
+sf_mapviz.append("input")
+	.attr("type", "radio")
+	.attr("id", "heatmap-btn")
+	.attr("name", "mapviz")
+	.attr("value", "heatmap")
+	.property("checked", true),
+	
+sf_mapviz.append("label")
+	.attr("for", "heatmap-btn")
+	.text("Densità");
+
+var sf_gender = d3.select(".selector")
+	.append("div")
+		.text("Sesso:")
+	.append("div")
+		.attr("class", "switch-field")
+		
+sf_gender.append("input")
+	.attr("type", "radio")
+	.attr("id", "male-btn")
+	.attr("name", "gender")
+	.attr("value", "male"),
+	
+sf_gender.append("label")
+	.attr("for", "male-btn")
+	.text("Uomini"),
+	
+sf_gender.append("input")
+	.attr("type", "radio")
+	.attr("id", "all-btn")
+	.attr("name", "gender")
+	.attr("value", "all")
+	.property("checked", true),
+	
+sf_gender.append("label")
+	.attr("for", "all-btn")
+	.text("Tutti"),
+	
+sf_gender.append("input")
+	.attr("type", "radio")
+	.attr("id", "female-btn")
+	.attr("name", "gender")
+	.attr("value", "female"),
+	
+sf_gender.append("label")
+	.attr("for", "female-btn")
+	.text("Donne");
 	
 // DATA LOAD PHASE
 var mapData = d3.json("https://giulitz189.github.io/geodata/italy_reg.json");

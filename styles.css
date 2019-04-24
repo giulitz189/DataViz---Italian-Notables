@@ -75,6 +75,7 @@ div#content {
 
 .switch-field {
 	display: flex;
+	justify-content: center;
 	overflow: hidden;
 }
 
@@ -100,7 +101,7 @@ div#content {
 	transition: all 0.1s ease-in-out;
 }
 
-.swicth-field input:checked + label {
+.switch-field input:checked + label {
 	background-color: #00CCCC;
 	box-shadow: none;
 }
