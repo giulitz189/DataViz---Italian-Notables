@@ -73,6 +73,10 @@ div#content {
 	padding: 2px;
 }
 
+.section {
+	margin: 2px 2px 2px 2px;
+}
+
 .switch-field {
 	display: flex;
 	justify-content: center;

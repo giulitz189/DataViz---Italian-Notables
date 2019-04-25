@@ -99,6 +99,7 @@ var maxYear = x.invert(+handle_rx.attr("cx"));
 // UI Selector
 var sf_mapviz = d3.select(".selector")
 	.append("div")
+		.attr("class", "section")
 		.text("Tipo visualizzazione:")
 	.append("div")
 		.attr("class", "switch-field");
@@ -126,9 +127,10 @@ sf_mapviz.append("label")
 
 var sf_gender = d3.select(".selector")
 	.append("div")
+		.attr("class", "section")
 		.text("Sesso:")
 	.append("div")
-		.attr("class", "switch-field")
+		.attr("class", "switch-field");
 		
 sf_gender.append("input")
 	.attr("type", "radio")
