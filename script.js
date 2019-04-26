@@ -108,7 +108,8 @@ sf_mapviz.append("input")
 	.attr("type", "radio")
 	.attr("id", "dotmap-btn")
 	.attr("name", "mapviz")
-	.attr("value", "dotmap"),
+	.attr("value", "dotmap")
+	.property("checked", true),
 	
 sf_mapviz.append("label")
 	.attr("for", "dotmap-btn")
@@ -118,8 +119,7 @@ sf_mapviz.append("input")
 	.attr("type", "radio")
 	.attr("id", "heatmap-btn")
 	.attr("name", "mapviz")
-	.attr("value", "heatmap")
-	.property("checked", true),
+	.attr("value", "heatmap"),
 	
 sf_mapviz.append("label")
 	.attr("for", "heatmap-btn")
@@ -162,6 +162,9 @@ sf_gender.append("input")
 sf_gender.append("label")
 	.attr("for", "female-btn")
 	.text("Donne");
+
+var vval = "dotmap";
+var gval = "all";
 	
 // DATA LOAD PHASE
 var mapData = d3.json("https://giulitz189.github.io/geodata/italy_reg.json");
@@ -169,6 +172,8 @@ var queryData = d3.json("https://giulitz189.github.io/query_records/query_result
 var heatmapData = d3.json("https://giulitz189.github.io/region_dimensions.json");
 
 Promise.all([mapData, queryData, heatmapData]).then(function(data) {
+	var md = data[0];
+	var qd = data[1].results;
 	var htd = data[2].regions.sort(function (a, b) {
 		a = a.FID;
 		b = b.FID;
@@ -180,17 +185,20 @@ Promise.all([mapData, queryData, heatmapData]).then(function(data) {
 		.append("clipPath")
 			.attr("id", "italy-borders")
 		.selectAll("path")
-		.data(topojson.feature(data[0], data[0].objects.sub).features)
+		.data(topojson.feature(md, md.objects.sub).features)
 		.enter()
 		.append("path")
 			.attr("d", path),
 	
 	// draw map
 	map.selectAll("path")
-		.data(topojson.feature(data[0], data[0].objects.sub).features)
+		.data(topojson.feature(md, md.objects.sub).features)
 		.enter()
 		.append("path")
 			.attr("class", "region")
+			.attr("id", function (d, i) {
+				return htd[i].regionLabel;
+			})
 			.attr("d", path);
 		
 	// draw point
@@ -198,7 +206,7 @@ Promise.all([mapData, queryData, heatmapData]).then(function(data) {
 	var female_points = d3.path();
 	var other_points = d3.path();
 	
-	data[1].results.forEach(function (r) {
+	qd.forEach(function (r) {
 		var ptx = projection([r.coords.x, r.coords.y])[0];
 		var pty = projection([r.coords.x, r.coords.y])[1];
 		switch (r.gender) {
@@ -221,16 +229,19 @@ Promise.all([mapData, queryData, heatmapData]).then(function(data) {
 	map.append("path")
 		.attr("class", "male")
 		.attr("d", male_points.toString())
+		.attr("display", "block")
 		.attr("clip-path", "url(#italy-borders)"),
 		
 	map.append("path")
 		.attr("class", "female")
 		.attr("d", female_points.toString())
+		.attr("display", "block")
 		.attr("clip-path", "url(#italy-borders)"),
 		
 	map.append("path")
 		.attr("class", "other")
 		.attr("d", other_points.toString())
+		.attr("display", "block")
 		.attr("clip-path", "url(#italy-borders)"),
 		
 	// generate heatmap by region
@@ -246,19 +257,31 @@ Promise.all([mapData, queryData, heatmapData]).then(function(data) {
 	// Associate event handlers to page elements
 	var dragHandler = d3.drag()
 		.on("start", function() { isDragging = true; })
-		.on("drag", function() { updateDrag(data[1].results, htd); })
+		.on("drag", function() { updateDrag(qd, htd); })
 		.on("end", function() { isDragging = false; });
 	
 	svg_map.call(dragHandler)
-		.call(d3.zoom().on("zoom", function() { updateZoom(data[1].results, htd); })),
+		.call(d3.zoom().on("zoom", function() { updateZoom(qd, htd); })),
 		
 	slider.selectAll(".track-overlay")
 		.call(d3.drag()
 			.on("start.interrupt", function() { slider.interrupt(); })
 			.on("start drag", function() {
-				updateCursorPositions(x.invert(d3.event.x), data[1].results, htd);
+				updateCursorPositions(x.invert(d3.event.x), qd, htd);
 			})
-		);
+		),
+		
+	sf_mapviz.selectAll("input")
+		.on("change", function(d) {
+			vval = this.value;
+			updateVisualization();
+		}),
+		
+	sf_gender.selectAll("input")
+		.on("change", function(d) {
+			gval = this.value;
+			updateVisualization();
+		});
 });
 
 // UTILITY FUNCTIONS AND EVENT HANDLERS
@@ -267,25 +290,26 @@ function stringToFloat(str) {
 	return +str;
 }
 
-function pointInSvgPath(ps, x, y) {
-	var elem = document.elementFromPoint(x, y);
-	if (elem != null) return elem.getAttribute("d") == ps;
-	else return false;
-}
-
 // Event handlers
 function assignPointToRegion(htd, x, y, gender) {
-	var isAssigned = false;
-	var idx = 0;
-	while (!isAssigned && idx < htd.length) {
-		var regionElem = map.selectAll(".region").select(function (d, i) {
-			return i == idx ? this : null;
-		});
-		if (pointInSvgPath(regionElem.attr("d"), x, y)) {
-			if (gender == "male") htd[idx].number_of_people[0]++;
-			else if (gender == "female") htd[idx].number_of_people[1]++;
-			isAssigned = true;
-		} else idx++;
+	var elem = document.elementFromPoint(x, y);
+	if (elem != null) {
+		var regionElem = map.selectAll(".region")
+			.select(function (d) {
+				return (this.id == elem.id) ? this : null;
+			})
+			.node();
+		if (regionElem != null) {
+			var isAssigned = false;
+			var idx = 0;
+			while (!isAssigned && idx < htd.length) {
+				if (htd[idx].regionLabel == regionElem.id) {
+					if (gender == "male") htd[idx].number_of_people[0]++;
+					else if (gender == "female") htd[idx].number_of_people[1]++;
+					isAssigned = true;
+				} else idx++;
+			}
+		}
 	}
 }
 
@@ -387,4 +411,26 @@ function updateZoom(elems, htd) {
 	
 	// Apply to points
 	redrawPoints(elems, htd, false);
+}
+
+function updateVisualization() {
+	map.select(".male")
+		.attr("display", function(d) {
+			if (vval == "dotmap" && (gval == "male" || gval == "all"))
+				return "block";
+			else return "none";
+		}),
+		
+	map.select(".female")
+		.attr("display", function(d) {
+			if (vval == "dotmap" && (gval == "female" || gval == "all"))
+				return "block";
+			else return "none";
+		}),
+	
+	map.select(".other")
+		.attr("display", function(d) {
+			if (vval == "dotmap" && gval == "all") return "block";
+			else return "none";
+		});
 }
