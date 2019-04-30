@@ -188,7 +188,8 @@ Promise.all([mapData, queryData, heatmapData]).then(function(data) {
 		.data(topojson.feature(md, md.objects.sub).features)
 		.enter()
 		.append("path")
-			.attr("d", path),
+			.attr("d", path)
+			.style("pointer-events", "none"),
 	
 	// draw map
 	map.selectAll("path")
@@ -290,9 +291,19 @@ function stringToFloat(str) {
 	return +str;
 }
 
+function svgNodeFromCoordinates(x, y) {
+	var root = document.getElementsByClassName("map")[0]
+						.getElementsByTagName("svg")[0];
+	var rpos = root.createSVGPoint();
+	rpos.x = x;
+	rpos.y = y;
+	var position = rpos.matrixTransform(root.getScreenCTM());
+	return document.elementFromPoint(position.x, position.y);
+}
+
 // Event handlers
 function assignPointToRegion(htd, x, y, gender) {
-	var elem = document.elementFromPoint(x, y);
+	var elem = svgNodeFromCoordinates(x, y);
 	if (elem != null) {
 		var regionElem = map.selectAll(".region")
 			.select(function (d) {
@@ -318,6 +329,15 @@ function redrawPoints(points, htd, isNOPModified) {
 	var female_points = d3.path();
 	var other_points = d3.path();
 	
+	map.selectAll(".male")
+		.style("pointer-events", "none"),
+		
+	map.selectAll(".female")
+		.style("pointer-events", "none"),
+		
+	map.selectAll(".other")
+		.style("pointer-events", "none");
+	
 	// reset point count per region
 	if (isNOPModified) {
 		for (i = 0; i < htd.length; i++) {
@@ -326,22 +346,20 @@ function redrawPoints(points, htd, isNOPModified) {
 		}
 	}
 	
-	points.forEach(function(record) {
-		if (record.dob >= minYear && record.dob <= maxYear) {
-			var ptx = projection([record.coords.x, record.coords.y])[0];
-			var pty = projection([record.coords.x, record.coords.y])[1];
-			switch (record.gender) {
+	points.forEach(function (r) {
+		if (r.dob >= minYear && r.dob <= maxYear) {
+			var ptx = projection([r.coords.x, r.coords.y])[0];
+			var pty = projection([r.coords.x, r.coords.y])[1];
+			switch (r.gender) {
 				case "male":
 					male_points.moveTo(ptx + circle_rad, pty);
 					male_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
-					if (isNOPModified)
-						assignPointToRegion(htd, ptx, pty, record.gender);
+					if (isNOPModified) assignPointToRegion(htd, ptx, pty, r.gender);
 					break;
 				case "female":
 					female_points.moveTo(ptx + circle_rad, pty);
 					female_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
-					if (isNOPModified)
-						assignPointToRegion(htd, ptx, pty, record.gender);
+					if (isNOPModified) assignPointToRegion(htd, ptx, pty, r.gender);
 					break;
 				default:
 					other_points.moveTo(ptx + circle_rad, pty);
@@ -351,13 +369,28 @@ function redrawPoints(points, htd, isNOPModified) {
 	}),
 	
 	map.selectAll(".male")
-		.attr("d", male_points.toString()),
+		.attr("d", male_points.toString())
+		.style("pointer-events", "auto"),
 	
 	map.selectAll(".female")
-		.attr("d", female_points.toString()),
+		.attr("d", female_points.toString())
+		.style("pointer-events", "auto"),
 	
 	map.selectAll(".other")
-		.attr("d", other_points.toString());
+		.attr("d", other_points.toString())
+		.style("pointer-events", "auto");
+		
+	if (isNOPModified) {
+		// generate heatmap by region
+		map.selectAll(".region")
+			.style("fill", function(d, i) {
+				var total = htd[i].number_of_people[0] + htd[i].number_of_people[1];
+				var dim = stringToFloat(htd[i].dimensions);
+				var h = 240 + (60 * (htd[i].number_of_people[1] / total));
+				var v = Math.floor(100 - (50 * (total / dim)));
+				return "hsl(" + h + ", 100%, " + v + "%)";
+			});
+	}
 }
 
 function updateCursorPositions(v, elems, htd) {
@@ -375,16 +408,6 @@ function updateCursorPositions(v, elems, htd) {
 	
 	// Apply to points
 	redrawPoints(elems, htd, true);
-	
-	// generate heatmap by region
-	map.selectAll(".region")
-		.style("fill", function(d, i) {
-			var total = htd[i].number_of_people[0] + htd[i].number_of_people[1];
-			var dim = stringToFloat(htd[i].dimensions);
-			var h = 240 + (60 * (htd[i].number_of_people[1] / total));
-			var v = Math.floor(100 - (50 * (total / dim)));
-			return "hsl(" + h + ", 100%, " + v + "%)";
-		});
 }
 
 function updateDrag(elems, htd) {
