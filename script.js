@@ -162,6 +162,22 @@ sf_gender.append("input")
 sf_gender.append("label")
 	.attr("for", "female-btn")
 	.text("Donne");
+	
+var sf_occupation = d3.select(".selector")
+	.append("div")
+		.attr("class", "section")
+		.text("Occupazione:")
+	.append("div")
+		.attr("class", "selectbox");
+		
+var opts = sf_occupation.append("form")
+	.append("select")
+		.attr("id", "occ-select")
+		.attr("name", "occupations");
+		
+opts.append("option")
+	.attr("value", "0")
+	.text("All");
 
 var vval = "dotmap";
 var gval = "all";
@@ -224,6 +240,16 @@ Promise.all([mapData, queryData, heatmapData]).then(function(data) {
 			default:
 				other_points.moveTo(ptx + circle_rad, pty);
 				other_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
+		}
+		for (i = 0; i < r.occupation.length; i++) {
+			var sel = opts.selectAll("option").select(function(d) {
+				return this.value === r.occupation[i];
+			}).node();
+			if (sel == null) {
+				opts.append("option")
+					.attr("value", r.occupation[i])
+					.text(r.occupation[i]);
+			}
 		}
 	}),
 	
