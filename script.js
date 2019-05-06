@@ -21,6 +21,10 @@ var svg_map = d3.select(".map")
 					+ viewBox_map.width + " " + viewBox_map.height);
 
 var map = svg_map.append("g");
+
+var clipmap = svg_map.append("defs")
+	.append("clipPath")
+		.attr("id", "italy-borders");
 	
 var projection = d3.geoMercator()
 	.translate([viewBox_map.width/2, viewBox_map.height/2])
@@ -30,11 +34,6 @@ var projection = d3.geoMercator()
 var path = d3.geoPath()
 	.projection(projection);
 	
-var transform = d3.zoomIdentity;
-transform.x = projection.translate()[0];
-transform.y = projection.translate()[1];
-transform.k = projection.scale();
-
 var isDragging = false;
 	
 // Slider sector
@@ -197,10 +196,7 @@ Promise.all([mapData, queryData, heatmapData]).then(function(data) {
 	});
 	
 	// map clipping
-	svg_map.append("defs")
-		.append("clipPath")
-			.attr("id", "italy-borders")
-		.selectAll("path")
+	clipmap.selectAll("path")
 		.data(topojson.feature(md, md.objects.sub).features)
 		.enter()
 		.append("path")
@@ -218,58 +214,53 @@ Promise.all([mapData, queryData, heatmapData]).then(function(data) {
 			})
 			.attr("d", path);
 		
-	// draw point
-	var male_points = d3.path();
-	var female_points = d3.path();
-	var other_points = d3.path();
-	
-	qd.forEach(function (r) {
-		var ptx = projection([r.coords.x, r.coords.y])[0];
-		var pty = projection([r.coords.x, r.coords.y])[1];
-		switch (r.gender) {
-			case "male":
-				male_points.moveTo(ptx + circle_rad, pty);
-				male_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
-				assignPointToRegion(htd, ptx, pty, r.gender);
-				break;
-			case "female":
-				female_points.moveTo(ptx + circle_rad, pty);
-				female_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
-				assignPointToRegion(htd, ptx, pty, r.gender);
-				break;
-			default:
-				other_points.moveTo(ptx + circle_rad, pty);
-				other_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
-		}
-		for (i = 0; i < r.occupation.length; i++) {
-			var sel = opts.selectAll("option").select(function(d) {
-				return this.value === r.occupation[i];
-			}).node();
-			if (sel == null) {
-				opts.append("option")
-					.attr("value", r.occupation[i])
-					.text(r.occupation[i]);
+	// draw point	 
+	var circles = map.selectAll("circle")
+		.data(qd)
+		.enter()
+		.append("circle")
+		.attr("display", "block")
+		.attr("cx", function(d) {
+			var tp = projection([d.coords.x, d.coords.y]);
+			return tp[0];
+		})
+		.attr("cy", function(d) {
+			var tp = projection([d.coords.x, d.coords.y]);
+			return tp[1];
+		})
+		.attr("r", 1)
+		.attr("clip-path", "url(#italy-borders)")
+		.style("fill", function(d) {
+			switch (d.gender) {
+				case "male": return "#000080";
+							 break;
+				case "female": return "#F40041";
+							   break;
+				default: return "#66FF66";
 			}
-		}
-	}),
+		});
+		
+	circles.append("name")
+		.text(function(d, i) { return qd[i].name; }),
+		
+	circles.append("gender")
+		.text(function(d, i) { return qd[i].gender; }),
+		
+	circles.append("occs")
+		.selectAll("occupation")
+		.data(function(d, i) { return qd[i].occupation; })
+		.enter()
+		.append("occupation")
+			.text(function(d) { return d; }),
 	
-	map.append("path")
-		.attr("class", "male")
-		.attr("d", male_points.toString())
-		.attr("display", "block")
-		.attr("clip-path", "url(#italy-borders)"),
+	circles.append("dob")
+		.text(function(d, i) { return qd[i].dob; }),
 		
-	map.append("path")
-		.attr("class", "female")
-		.attr("d", female_points.toString())
-		.attr("display", "block")
-		.attr("clip-path", "url(#italy-borders)"),
+	circles.append("dod")
+		.text(function(d, i) { return qd[i].dod; }),
 		
-	map.append("path")
-		.attr("class", "other")
-		.attr("d", other_points.toString())
-		.attr("display", "block")
-		.attr("clip-path", "url(#italy-borders)"),
+	circles.append("article")
+		.text(function(d, i) { return qd[i].article; }),
 		
 	// generate heatmap by region
 	map.selectAll(".region")
@@ -281,15 +272,9 @@ Promise.all([mapData, queryData, heatmapData]).then(function(data) {
 			return "hsl(" + h + ", 100%, " + v + "%)";
 		});
 		
-	// Associate event handlers to page elements
-	var dragHandler = d3.drag()
-		.on("start", function() { isDragging = true; })
-		.on("drag", function() { updateDrag(qd, htd); })
-		.on("end", function() { isDragging = false; });
+	// Associate event handlers to page elements	
+	svg_map.call(d3.zoom().on("zoom", updateTransform)),
 	
-	svg_map.call(dragHandler)
-		.call(d3.zoom().on("zoom", function() { updateZoom(qd, htd); })),
-		
 	slider.selectAll(".track-overlay")
 		.call(d3.drag()
 			.on("start.interrupt", function() { slider.interrupt(); })
@@ -301,13 +286,13 @@ Promise.all([mapData, queryData, heatmapData]).then(function(data) {
 	sf_mapviz.selectAll("input")
 		.on("change", function(d) {
 			vval = this.value;
-			updateVisualization();
+			updateVisualization(qd);
 		}),
 		
 	sf_gender.selectAll("input")
 		.on("change", function(d) {
 			gval = this.value;
-			updateVisualization();
+			updateVisualization(qd);
 		});
 });
 
@@ -419,6 +404,10 @@ function redrawPoints(points, htd, isNOPModified) {
 	}
 }
 
+function updateTransform() {
+	map.attr("transform", d3.event.transform);
+}
+
 function updateCursorPositions(v, elems, htd) {
 	// Update cursor position
 	var rangeVal = (((v % 1) <= 0.5) ? Math.floor(v) : Math.ceil(v));
@@ -433,53 +422,19 @@ function updateCursorPositions(v, elems, htd) {
 	maxYear = x.invert(+handle_rx.attr("cx"));
 	
 	// Apply to points
-	redrawPoints(elems, htd, true);
-}
-
-function updateDrag(elems, htd) {
-	if (isDragging) {
-		transform = d3.event.transform;
-		var updatedX = projection.translate()[0] + d3.event.dx,
-			updatedY = projection.translate()[1] + d3.event.dy;
-		projection.translate([updatedX, updatedY]);
-		
-		// Apply to map
-		svg_map.selectAll("path").attr("d", path);
-		
-		// Apply to points
-		redrawPoints(elems, htd, false);
-	}
-}
-
-function updateZoom(elems, htd) {
-	transform = d3.event.transform;
-	projection.scale(transform.k);
-	
-	// Apply to map
-	svg_map.selectAll("path").attr("d", path);
-	
-	// Apply to points
-	redrawPoints(elems, htd, false);
-}
-
-function updateVisualization() {
-	map.select(".male")
-		.attr("display", function(d) {
-			if (vval == "dotmap" && (gval == "male" || gval == "all"))
+	map.selectAll("circle")
+		.attr(function(d, i) {
+			if (elems[i].dob >= minYear && elems[i].dob <= maxYear)
 				return "block";
 			else return "none";
-		}),
-		
-	map.select(".female")
-		.attr("display", function(d) {
-			if (vval == "dotmap" && (gval == "female" || gval == "all"))
+		});
+}
+
+function updateVisualization(elems) {
+	map.selectAll("circle")
+		.attr("display", function(d, i) {
+			if (vval == "dotmap" && (gval == "all" || elems[i].gender == gval))
 				return "block";
-			else return "none";
-		}),
-	
-	map.select(".other")
-		.attr("display", function(d) {
-			if (vval == "dotmap" && gval == "all") return "block";
 			else return "none";
 		});
 }
