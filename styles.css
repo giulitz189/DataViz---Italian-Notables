@@ -18,18 +18,6 @@ div#content {
 	stroke-width: 1;
 }
 
-.male {
-	fill: #000080;
-}
-
-.female {
-	fill: #F40041;
-}
-
-.other {
-	fill: #66FF66;
-}
-
 /* Slider */
 .ticks {
 	font: 10px sans-serif;

@@ -1,5 +1,5 @@
-const fs = require('fs');
 const fetch = require('node-fetch');
+const fs = require('fs');
 
 class SPARQLQueryDispatcher {
 	constructor(endpoint) {
@@ -64,10 +64,11 @@ var query_results = {
 };
 
 Promise.all([living_data, dead_data]).then(function(data) {
-	// occupation regrouping
-	console.log("Reorganizing...");
 	var ld = data[0].results.bindings;
 	var dd = data[1].results.bindings;
+	
+	// generating points
+	console.log("Generating records...");
 	
 	var prev_name = '';
 	for (i = 0; i < ld.length; i++) {
@@ -86,7 +87,8 @@ Promise.all([living_data, dead_data]).then(function(data) {
 			prev_name = ld[i].personaLabel.value;
 		} else {
 			var last = query_results.results.length - 1;
-			query_results.results[last].occupation.push(ld[i].occupazioneLabel.value);
+			query_results.results[last]
+				.occupation.push(ld[i].occupazioneLabel.value);
 		}
 	}
 	
@@ -107,7 +109,8 @@ Promise.all([living_data, dead_data]).then(function(data) {
 			prev_name = dd[i].personaLabel.value;
 		} else {
 			var last = query_results.results.length - 1;
-			query_results.results[last].occupation.push(dd[i].occupazioneLabel.value);
+			query_results.results[last]
+				.occupation.push(dd[i].occupazioneLabel.value);
 		}
 	}
 	
@@ -116,7 +119,6 @@ Promise.all([living_data, dead_data]).then(function(data) {
 	query_results.results.sort(function (a, b) {
 		a = a.name.toLowerCase();
 		b = b.name.toLowerCase();
-		
 		return a < b ? -1 : a > b ? 1 : 0;
 	});
 	

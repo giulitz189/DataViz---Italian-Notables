@@ -21,10 +21,6 @@ var svg_map = d3.select(".map")
 					+ viewBox_map.width + " " + viewBox_map.height);
 
 var map = svg_map.append("g");
-
-var clipmap = svg_map.append("defs")
-	.append("clipPath")
-		.attr("id", "italy-borders");
 	
 var projection = d3.geoMercator()
 	.translate([viewBox_map.width/2, viewBox_map.height/2])
@@ -195,14 +191,6 @@ Promise.all([mapData, queryData, heatmapData]).then(function(data) {
 		return a < b ? -1 : a > b ? 1 : 0;
 	});
 	
-	// map clipping
-	clipmap.selectAll("path")
-		.data(topojson.feature(md, md.objects.sub).features)
-		.enter()
-		.append("path")
-			.attr("d", path)
-			.style("pointer-events", "none"),
-	
 	// draw map
 	map.selectAll("path")
 		.data(topojson.feature(md, md.objects.sub).features)
@@ -214,55 +202,67 @@ Promise.all([mapData, queryData, heatmapData]).then(function(data) {
 			})
 			.attr("d", path);
 		
-	// draw point	 
+	// draw point
+	var qd_visible = [];
+	
+	qd.forEach((d) => {
+		var pp = projection([d.coords.x, d.coords.y]);
+		d.coords.x = pp[0];
+		d.coords.y = pp[1];
+		var elem = svgNodeFromCoordinates(d.coords.x, d.coords.y);
+		if (elem != null && elem.classList[0] == "region") {
+			var idx = 0;
+			while (idx < htd.length && htd[idx].regionLabel != elem.id)
+				idx++;
+			if (idx != htd.length) {
+				if (d.gender == "male") htd[idx].number_of_people[0]++;
+				else if (d.gender == "female") htd[idx].number_of_people[1]++;
+			}
+			qd_visible.push(d);
+		}
+	});
+	
 	var circles = map.selectAll("circle")
-		.data(qd)
+		.data(qd_visible)
 		.enter()
 		.append("circle")
-		.attr("display", "block")
-		.attr("cx", function(d) {
-			var tp = projection([d.coords.x, d.coords.y]);
-			return tp[0];
-		})
-		.attr("cy", function(d) {
-			var tp = projection([d.coords.x, d.coords.y]);
-			return tp[1];
-		})
-		.attr("r", 1)
-		.attr("clip-path", "url(#italy-borders)")
-		.style("fill", function(d) {
-			switch (d.gender) {
-				case "male": return "#000080";
-							 break;
-				case "female": return "#F40041";
-							   break;
-				default: return "#66FF66";
-			}
-		});
+			.attr("display", "block")
+			.attr("cx", function(d) { return d.coords.x; })
+			.attr("cy", function(d) { return d.coords.y; })
+			.attr("r", circle_rad)
+			.style("fill", function(d) {
+				switch (d.gender) {
+					case "male": return "#000080";
+								 break;
+					case "female": return "#F40041";
+								   break;
+					default: return "#66FF66";
+				}
+			});
 		
 	circles.append("name")
-		.text(function(d, i) { return qd[i].name; }),
+		.text(function(d, i) { return qd_visible[i].name; }),
 		
 	circles.append("gender")
-		.text(function(d, i) { return qd[i].gender; }),
+		.text(function(d, i) { return qd_visible[i].gender; }),
 		
 	circles.append("occs")
 		.selectAll("occupation")
-		.data(function(d, i) { return qd[i].occupation; })
+		.data(function(d, i) { return qd_visible[i].occupation; })
 		.enter()
 		.append("occupation")
 			.text(function(d) { return d; }),
 	
 	circles.append("dob")
-		.text(function(d, i) { return qd[i].dob; }),
+		.text(function(d, i) { return qd_visible[i].dob; }),
 		
 	circles.append("dod")
-		.text(function(d, i) { return qd[i].dod; }),
+		.text(function(d, i) { return qd_visible[i].dod; }),
 		
 	circles.append("article")
-		.text(function(d, i) { return qd[i].article; }),
+		.text(function(d, i) { return qd_visible[i].article; }),
 		
-	// generate heatmap by region
+	// generate density by region
 	map.selectAll(".region")
 		.style("fill", function(d, i) {
 			var total = htd[i].number_of_people[0] + htd[i].number_of_people[1];
@@ -279,20 +279,20 @@ Promise.all([mapData, queryData, heatmapData]).then(function(data) {
 		.call(d3.drag()
 			.on("start.interrupt", function() { slider.interrupt(); })
 			.on("start drag", function() {
-				updateCursorPositions(x.invert(d3.event.x), qd, htd);
+				updateCursorPositions(x.invert(d3.event.x), qd_visible, htd);
 			})
 		),
 		
 	sf_mapviz.selectAll("input")
 		.on("change", function(d) {
 			vval = this.value;
-			updateVisualization(qd);
+			updateVisualizedPoints(qd_visible);
 		}),
 		
 	sf_gender.selectAll("input")
 		.on("change", function(d) {
 			gval = this.value;
-			updateVisualization(qd);
+			updateVisualizedPoints(qd_visible);
 		});
 });
 
@@ -312,98 +312,23 @@ function svgNodeFromCoordinates(x, y) {
 	return document.elementFromPoint(position.x, position.y);
 }
 
+function updateVisualizedPoints(elems) {
+	map.selectAll("circle")
+		.filter(function(d) {
+			return d3.select(this).attr("display") == "block";
+		})
+		.attr("display", "none"),
+		
+	map.selectAll("circle")
+		.filter(function(d, i) {
+			if (vval == "dotmap" && (gval == "all" || elems[i].gender == gval))
+				return elems[i].dob >= minYear && elems[i].dob <= maxYear;
+			else return false;
+		})
+		.attr("display", "block");
+}
+
 // Event handlers
-function assignPointToRegion(htd, x, y, gender) {
-	var elem = svgNodeFromCoordinates(x, y);
-	if (elem != null) {
-		var regionElem = map.selectAll(".region")
-			.select(function (d) {
-				return (this.id == elem.id) ? this : null;
-			})
-			.node();
-		if (regionElem != null) {
-			var isAssigned = false;
-			var idx = 0;
-			while (!isAssigned && idx < htd.length) {
-				if (htd[idx].regionLabel == regionElem.id) {
-					if (gender == "male") htd[idx].number_of_people[0]++;
-					else if (gender == "female") htd[idx].number_of_people[1]++;
-					isAssigned = true;
-				} else idx++;
-			}
-		}
-	}
-}
-
-function redrawPoints(points, htd, isNOPModified) {
-	var male_points = d3.path();
-	var female_points = d3.path();
-	var other_points = d3.path();
-	
-	map.selectAll(".male")
-		.style("pointer-events", "none"),
-		
-	map.selectAll(".female")
-		.style("pointer-events", "none"),
-		
-	map.selectAll(".other")
-		.style("pointer-events", "none");
-	
-	// reset point count per region
-	if (isNOPModified) {
-		for (i = 0; i < htd.length; i++) {
-			htd[i].number_of_people[0] = 0;
-			htd[i].number_of_people[1] = 0;
-		}
-	}
-	
-	points.forEach(function (r) {
-		if (r.dob >= minYear && r.dob <= maxYear) {
-			var ptx = projection([r.coords.x, r.coords.y])[0];
-			var pty = projection([r.coords.x, r.coords.y])[1];
-			switch (r.gender) {
-				case "male":
-					male_points.moveTo(ptx + circle_rad, pty);
-					male_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
-					if (isNOPModified) assignPointToRegion(htd, ptx, pty, r.gender);
-					break;
-				case "female":
-					female_points.moveTo(ptx + circle_rad, pty);
-					female_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
-					if (isNOPModified) assignPointToRegion(htd, ptx, pty, r.gender);
-					break;
-				default:
-					other_points.moveTo(ptx + circle_rad, pty);
-					other_points.arc(ptx, pty, circle_rad, 0, 2 * Math.PI);
-			}
-		}
-	}),
-	
-	map.selectAll(".male")
-		.attr("d", male_points.toString())
-		.style("pointer-events", "auto"),
-	
-	map.selectAll(".female")
-		.attr("d", female_points.toString())
-		.style("pointer-events", "auto"),
-	
-	map.selectAll(".other")
-		.attr("d", other_points.toString())
-		.style("pointer-events", "auto");
-		
-	if (isNOPModified) {
-		// generate heatmap by region
-		map.selectAll(".region")
-			.style("fill", function(d, i) {
-				var total = htd[i].number_of_people[0] + htd[i].number_of_people[1];
-				var dim = stringToFloat(htd[i].dimensions);
-				var h = 240 + (60 * (htd[i].number_of_people[1] / total));
-				var v = Math.floor(100 - (50 * (total / dim)));
-				return "hsl(" + h + ", 100%, " + v + "%)";
-			});
-	}
-}
-
 function updateTransform() {
 	map.attr("transform", d3.event.transform);
 }
@@ -422,19 +347,5 @@ function updateCursorPositions(v, elems, htd) {
 	maxYear = x.invert(+handle_rx.attr("cx"));
 	
 	// Apply to points
-	map.selectAll("circle")
-		.attr(function(d, i) {
-			if (elems[i].dob >= minYear && elems[i].dob <= maxYear)
-				return "block";
-			else return "none";
-		});
-}
-
-function updateVisualization(elems) {
-	map.selectAll("circle")
-		.attr("display", function(d, i) {
-			if (vval == "dotmap" && (gval == "all" || elems[i].gender == gval))
-				return "block";
-			else return "none";
-		});
+	updateVisualizedPoints(elems);
 }
