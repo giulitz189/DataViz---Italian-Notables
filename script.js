@@ -7,11 +7,6 @@ var viewBox_map = {
 	height: 500
 };
 
-var offset = {
-	x: 0,
-	y: 0
-};
-
 var circle_rad = 1;
 
 var svg_map = d3.select(".map")
@@ -178,128 +173,191 @@ var vval = "dotmap";
 var gval = "all";
 	
 // DATA LOAD PHASE
-var mapData = d3.json("https://giulitz189.github.io/geodata/italy_reg.json");
-var queryData = d3.json("https://giulitz189.github.io/query_records/query_results.json");
-var heatmapData = d3.json("https://giulitz189.github.io/region_dimensions.json");
+var endpoint = "https://giulitz189.github.io/";
 
-Promise.all([mapData, queryData, heatmapData]).then(function(data) {
-	var md = data[0];
-	var qd = data[1].results;
-	var htd = data[2].regions.sort(function (a, b) {
-		a = a.FID;
-		b = b.FID;
-		return a < b ? -1 : a > b ? 1 : 0;
-	});
+var provinceDataFiles = [
+	"abruzzo.json",
+	"basilicata.json",
+	"calabria.json",
+	"campania.json",
+	"emilia.json",
+	"friuli.json",
+	"lazio.json",
+	"liguria.json",
+	"lombardia.json",
+	"marche.json",
+	"molise.json",
+	"piemonte.json",
+	"puglia.json",
+	"sardegna.json",
+	"sicilia.json",
+	"toscana.json",
+	"trentino.json",
+	"umbria.json",
+	"valledaosta.json",
+	"veneto.json"
+];
+
+function loadProvinces() {
+	var provinces = [];
+	for (i = 0; i < provinceDataFiles.length; i++) {
+		var provShape = d3.json(endpoint + "geodata/" + provinceDataFiles[i]);
+		provinces.push(provShape);
+	}
+	return provinces;
+}
+
+var provinceData = loadProvinces();
+var regionData = d3.json(endpoint + "geodata/italy_reg.json");
+var queryData = d3.json(endpoint + "query_records/query_results.json");
+var heatmapData = d3.json(endpoint + "region_dimensions.json");
+
+Promise.all(provinceData).then(function(data_1) {
+	var pd = data_1;
 	
-	// draw map
-	map.selectAll("path")
-		.data(topojson.feature(md, md.objects.sub).features)
-		.enter()
-		.append("path")
-			.attr("class", "region")
-			.attr("id", function (d, i) {
-				return htd[i].regionLabel;
-			})
-			.attr("d", path);
+	Promise.all([regionData, queryData, heatmapData]).then(function(data_2) {
+		var rd = data_2[0];
+		var qd = data_2[1].results;
+		var htd = data_2[2].regions.sort(function (a, b) {
+			a = a.RID;
+			b = b.RID;
+			return a < b ? -1 : a > b ? 1 : 0;
+		});
 		
-	// draw point
-	var qd_visible = [];
-	
-	qd.forEach((d) => {
-		var pp = projection([d.coords.x, d.coords.y]);
-		d.coords.x = pp[0];
-		d.coords.y = pp[1];
-		var elem = svgNodeFromCoordinates(d.coords.x, d.coords.y);
-		if (elem != null && elem.classList[0] == "region") {
-			var idx = 0;
-			while (idx < htd.length && htd[idx].regionLabel != elem.id)
-				idx++;
-			if (idx != htd.length) {
-				if (d.gender == "male") htd[idx].number_of_people[0]++;
-				else if (d.gender == "female") htd[idx].number_of_people[1]++;
-			}
-			qd_visible.push(d);
+		// draw map
+		map.selectAll(".region")
+			.data(topojson.feature(rd, rd.objects.sub).features)
+			.enter()
+			.append("path")
+				.attr("class", "region")
+				.attr("id", function (d, i) { return htd[i].regionLabel; })
+				.attr("d", path);
+				
+		for (i = 0; i < pd.length; i++) {
+			map.selectAll(".prov")
+				.data(topojson.feature(pd[i], pd[i].objects.sub).features)
+				.enter()
+				.append("path")
+					.attr("class", "province")
+					.attr("id", function (d) { return d.id; })
+					.attr("d", path);
 		}
-	});
-	
-	var circles = map.selectAll("circle")
-		.data(qd_visible)
-		.enter()
-		.append("circle")
-			.attr("display", "block")
-			.attr("cx", function(d) { return d.coords.x; })
-			.attr("cy", function(d) { return d.coords.y; })
-			.attr("r", circle_rad)
-			.style("fill", function(d) {
-				switch (d.gender) {
-					case "male": return "#000080";
-								 break;
-					case "female": return "#F40041";
-								   break;
-					default: return "#66FF66";
+			
+		// draw point
+		var qd_visible = [];
+		
+		qd.forEach((d) => {
+			var pp = projection([d.coords.x, d.coords.y]);
+			d.coords.x = pp[0];
+			d.coords.y = pp[1];
+			var elem = svgNodeFromCoordinates(d.coords.x, d.coords.y);
+			if (elem != null && elem.classList[0] == "province") {
+				var pid = +elem.id;
+				var idx = findZoneIndexes(htd, pid);
+				if (idx.r >= 0 && idx.p >= 0) {
+					if (d.gender == "male")
+						htd[idx.r].provinces[idx.p].mf_ratio[0]++;
+					else if (d.gender == "female")
+						htd[idx.r].provinces[idx.p].mf_ratio[1]++;
+					qd_visible.push(d);
 				}
+			}
+		});
+		
+		var circles = map.selectAll("circle")
+			.data(qd_visible)
+			.enter()
+			.append("circle")
+				.attr("display", "block")
+				.attr("cx", function(d) { return d.coords.x; })
+				.attr("cy", function(d) { return d.coords.y; })
+				.attr("r", circle_rad)
+				.style("fill", function(d) {
+					switch (d.gender) {
+						case "male": return "#000080";
+									 break;
+						case "female": return "#F40041";
+									   break;
+						default: return "#66FF66";
+					}
+				});
+			
+		circles.append("name")
+			.text(function(d, i) { return qd_visible[i].name; }),
+			
+		circles.append("gender")
+			.text(function(d, i) { return qd_visible[i].gender; }),
+			
+		circles.append("occs")
+			.selectAll("occupation")
+			.data(function(d, i) { return qd_visible[i].occupation; })
+			.enter()
+			.append("occupation")
+				.text(function(d) { return d; }),
+		
+		circles.append("dob")
+			.text(function(d, i) { return qd_visible[i].dob; }),
+			
+		circles.append("dod")
+			.text(function(d, i) { return qd_visible[i].dod; }),
+			
+		circles.append("article")
+			.text(function(d, i) { return qd_visible[i].article; }),
+			
+		// generate density by region
+		map.selectAll(".province")
+			.style("fill", function(d) {
+				var pid = +d.id;
+				var idx = findZoneIndexes(htd, pid);
+				var prov_obj = htd[idx.r].provinces[idx.p];
+				
+				var total = prov_obj.mf_ratio[0] + prov_obj.mf_ratio[1];
+				var dim = stringToFloat(prov_obj.dimensions);
+				var h = 240 + (60 * (prov_obj.mf_ratio[1] / total));
+				var v = Math.floor(100 - (50 * (total / dim)));
+				return "hsl(" + h + ", 100%, " + v + "%)";
 			});
+			
+		// Associate event handlers to page elements	
+		svg_map.call(d3.zoom().on("zoom", updateTransform)),
 		
-	circles.append("name")
-		.text(function(d, i) { return qd_visible[i].name; }),
-		
-	circles.append("gender")
-		.text(function(d, i) { return qd_visible[i].gender; }),
-		
-	circles.append("occs")
-		.selectAll("occupation")
-		.data(function(d, i) { return qd_visible[i].occupation; })
-		.enter()
-		.append("occupation")
-			.text(function(d) { return d; }),
-	
-	circles.append("dob")
-		.text(function(d, i) { return qd_visible[i].dob; }),
-		
-	circles.append("dod")
-		.text(function(d, i) { return qd_visible[i].dod; }),
-		
-	circles.append("article")
-		.text(function(d, i) { return qd_visible[i].article; }),
-		
-	// generate density by region
-	map.selectAll(".region")
-		.style("fill", function(d, i) {
-			var total = htd[i].number_of_people[0] + htd[i].number_of_people[1];
-			var dim = stringToFloat(htd[i].dimensions);
-			var h = 240 + (60 * (htd[i].number_of_people[1] / total));
-			var v = Math.floor(100 - (50 * (total / dim)));
-			return "hsl(" + h + ", 100%, " + v + "%)";
-		});
-		
-	// Associate event handlers to page elements	
-	svg_map.call(d3.zoom().on("zoom", updateTransform)),
-	
-	slider.selectAll(".track-overlay")
-		.call(d3.drag()
-			.on("start.interrupt", function() { slider.interrupt(); })
-			.on("start drag", function() {
-				updateCursorPositions(x.invert(d3.event.x), qd_visible, htd);
-			})
-		),
-		
-	sf_mapviz.selectAll("input")
-		.on("change", function(d) {
-			vval = this.value;
-			updateVisualizedPoints(qd_visible);
-		}),
-		
-	sf_gender.selectAll("input")
-		.on("change", function(d) {
-			gval = this.value;
-			updateVisualizedPoints(qd_visible);
-		});
+		slider.selectAll(".track-overlay")
+			.call(d3.drag()
+				.on("start.interrupt", function() { slider.interrupt(); })
+				.on("start drag", function() {
+					updateCursorPositions(x.invert(d3.event.x), qd_visible, htd);
+				})
+			),
+			
+		sf_mapviz.selectAll("input")
+			.on("change", function(d) {
+				vval = this.value;
+				updateVisualizedPoints(qd_visible);
+			}),
+			
+		sf_gender.selectAll("input")
+			.on("change", function(d) {
+				gval = this.value;
+				updateVisualizedPoints(qd_visible);
+			});
+	});
 });
 
 // UTILITY FUNCTIONS AND EVENT HANDLERS
 // Utilities
 function stringToFloat(str) {
 	return +str;
+}
+
+function findZoneIndexes(htd, pid) {
+	var idx = 0;
+	while (idx < htd.length) {
+		var prov = htd[idx].provinces;
+		var check = prov.findIndex(p => p.PID == pid);
+		if (check < 0) idx++;
+		else return { r: idx, p: check };
+	}
+	return { r: -1, p: -1 };
 }
 
 function svgNodeFromCoordinates(x, y) {

@@ -18,6 +18,12 @@ div#content {
 	stroke-width: 1;
 }
 
+.province {
+	fill: #ffffff;
+	stroke: #a9a9a9;
+	stroke-width: 0.5;
+}
+
 /* Slider */
 .ticks {
 	font: 10px sans-serif;

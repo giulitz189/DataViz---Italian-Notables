@@ -2,123 +2,783 @@
 	"regions": [
 		{
 			"regionLabel": "Abruzzo",
-			"FID": 13,
-			"dimensions": "10831.84",
-			"number_of_people": [0, 0]
+			"RID": 13,
+			"provinces": [
+				{
+					"provinceLabel": "Chieti",
+					"PID": 69,
+					"dimensions": "2588.35",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "L'Aquila",
+					"PID": 66,
+					"dimensions": "2588.35",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Pescara",
+					"PID": 68,
+					"dimensions": "2588.35",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Teramo",
+					"PID": 67,
+					"dimensions": "2588.35",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Basilicata",
-			"FID": 17,
-			"dimensions": "9994.61",
-			"number_of_people": [0, 0]
+			"RID": 17,
+			"provinces": [
+				{
+					"provinceLabel": "Matera",
+					"PID": 77,
+					"dimensions": "3446.12",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Potenza",
+					"PID": 76,
+					"dimensions": "6548.49",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Calabria",
-			"FID": 18,
-			"dimensions": "15221.9",
-			"number_of_people": [0, 0]
+			"RID": 18,
+			"provinces": [
+				{
+					"provinceLabel": "Vibo Valentia",
+					"PID": 102,
+					"dimensions": "1139.47",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Catanzaro",
+					"PID": 79,
+					"dimensions": "2391.35",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Cosenza",
+					"PID": 78,
+					"dimensions": "6649.96",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Crotone",
+					"PID": 101,
+					"dimensions": "1716.58",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Reggio Calabria",
+					"PID": 80,
+					"dimensions": "3210.37",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Campania",
-			"FID": 15,
-			"dimensions": "13670.95",
-			"number_of_people": [0, 0]
+			"RID": 15,
+			"provinces": [
+				{
+					"provinceLabel": "Napoli",
+					"PID": 63,
+					"dimensions": "1171",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Avellino",
+					"PID": 64,
+					"dimensions": "2791.64",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Benevento",
+					"PID": 62,
+					"dimensions": "2070.63",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Caserta",
+					"PID": 61,
+					"dimensions": "2639",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Salerno",
+					"PID": 65,
+					"dimensions": "4917.47",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Emilia-Romagna",
-			"FID": 8,
-			"dimensions": "22123.09",
-			"number_of_people": [0, 0]
+			"RID": 8,
+			"provinces": [
+				{
+					"provinceLabel": "Bologna",
+					"PID": 37,
+					"dimensions": "3702",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Ferrara",
+					"PID": 38,
+					"dimensions": "2630",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Forlì-Cesena",
+					"PID": 40,
+					"dimensions": "2376.8",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Modena",
+					"PID": 36,
+					"dimensions": "2688",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Parma",
+					"PID": 34,
+					"dimensions": "3449.32",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Piacenza",
+					"PID": 33,
+					"dimensions": "2589.47",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Ravenna",
+					"PID": 39,
+					"dimensions": "1858.49",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Reggio nell'Emilia",
+					"PID": 35,
+					"dimensions": "2292.89",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Rimini",
+					"PID": 99,
+					"dimensions": "863.58",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Friuli-Venezia Giulia",
-			"FID": 6,
-			"dimensions": "7862.3",
-			"number_of_people": [0, 0]
+			"RID": 6,
+			"provinces": [
+				{
+					"provinceLabel": "Trieste",
+					"PID": 32,
+					"dimensions": "211.82",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Udine",
+					"PID": 30,
+					"dimensions": "4905",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Gorizia",
+					"PID": 31,
+					"dimensions": "466.02",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Pordenone",
+					"PID": 93,
+					"dimensions": "2178",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Lazio",
-			"FID": 12,
-			"dimensions": "17236",
-			"number_of_people": [0, 0]
+			"RID": 12,
+			"provinces": [
+				{
+					"provinceLabel": "Viterbo",
+					"PID": 56,
+					"dimensions": "3612.24",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Roma",
+					"PID": 58,
+					"dimensions": "5363.28",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Frosinone",
+					"PID": 60,
+					"dimensions": "3243.95",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Latina",
+					"PID": 59,
+					"dimensions": "2251",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Rieti",
+					"PID": 57,
+					"dimensions": "2749.16",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Liguria",
-			"FID": 7,
-			"dimensions": "5422",
-			"number_of_people": [0, 0]
+			"RID": 7,
+			"provinces": [
+				{
+					"provinceLabel": "Genova",
+					"PID": 10,
+					"dimensions": "1839",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Imperia",
+					"PID": 8,
+					"dimensions": "1156.13",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "La Spezia",
+					"PID": 11,
+					"dimensions": "880.87",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Savona",
+					"PID": 9,
+					"dimensions": "1544.77",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Lombardia",
-			"FID": 3,
-			"dimensions": "23863.65",
-			"number_of_people": [0, 0]
+			"RID": 3,
+			"provinces": [
+				{
+					"provinceLabel": "Varese",
+					"PID": 12,
+					"dimensions": "1198.71",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Milano",
+					"PID": 15,
+					"dimensions": "1575.65",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Bergamo",
+					"PID": 16,
+					"dimensions": "2722.86",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Brescia",
+					"PID": 17,
+					"dimensions": "4784.36",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Como",
+					"PID": 13,
+					"dimensions": "1288.07",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Cremona",
+					"PID": 19,
+					"dimensions": "1770.57",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Lecco",
+					"PID": 97,
+					"dimensions": "816.17",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Lodi",
+					"PID": 98,
+					"dimensions": "782.25",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Mantova",
+					"PID": 20,
+					"dimensions": "2338.84",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Monza e della Brianza",
+					"PID": 108,
+					"dimensions": "405",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Pavia",
+					"PID": 18,
+					"dimensions": "2965",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Sondrio",
+					"PID": 14,
+					"dimensions": "3211.9",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Marche",
-			"FID": 11,
-			"dimensions": "9694",
-			"number_of_people": [0, 0]
+			"RID": 11,
+			"provinces": [
+				{
+					"provinceLabel": "Ancona",
+					"PID": 42,
+					"dimensions": "1940.16",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Ascoli Piceno",
+					"PID": 44,
+					"dimensions": "2087.74",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Fermo",
+					"PID": 109,
+					"dimensions": "860",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Macerata",
+					"PID": 43,
+					"dimensions": "2773.75",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Pesaro e Urbino",
+					"PID": 41,
+					"dimensions": "2564.21",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Molise",
-			"FID": 14,
-			"dimensions": "4438",
-			"number_of_people": [0, 0]
+			"RID": 14,
+			"provinces": [
+				{
+					"provinceLabel": "Campobasso",
+					"PID": 70,
+					"dimensions": "2908.8",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Isernia",
+					"PID": 94,
+					"dimensions": "1528.85",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Piemonte",
-			"FID": 1,
-			"dimensions": "25402",
-			"number_of_people": [0, 0]
+			"RID": 1,
+			"provinces": [
+				{
+					"provinceLabel": "Verbano-Cusio-Ossola",
+					"PID": 103,
+					"dimensions": "2255",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Cuneo",
+					"PID": 4,
+					"dimensions": "6902.65",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Biella",
+					"PID": 96,
+					"dimensions": "913.72",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Vercelli",
+					"PID": 2,
+					"dimensions": "2088",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Alessandria",
+					"PID": 6,
+					"dimensions": "3560.42",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Asti",
+					"PID": 5,
+					"dimensions": "1510.78",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Novara",
+					"PID": 3,
+					"dimensions": "1338.79",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Torino",
+					"PID": 1,
+					"dimensions": "6821",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Puglia",
-			"FID": 16,
-			"dimensions": "19365.8",
-			"number_of_people": [0, 0]
+			"RID": 16,
+			"provinces": [
+				{
+					"provinceLabel": "Foggia",
+					"PID": 71,
+					"dimensions": "6965",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Bari",
+					"PID": 72,
+					"dimensions": "3825",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Barletta-Andria-Trani",
+					"PID": 110,
+					"dimensions": "1542.95",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Brindisi",
+					"PID": 74,
+					"dimensions": "1839",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Lecce",
+					"PID": 75,
+					"dimensions": "2759.4",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Taranto",
+					"PID": 73,
+					"dimensions": "2436.67",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Sardegna",
-			"FID": 20,
-			"dimensions": "23949",
-			"number_of_people": [0, 0]
+			"RID": 20,
+			"provinces": [
+				{
+					"provinceLabel": "Cagliari",
+					"PID": 92,
+					"dimensions": "4596",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Carbonia-Iglesias",
+					"PID": 107,
+					"dimensions": "1494.95",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Medio Campidano",
+					"PID": 106,
+					"dimensions": "1516.19",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Nuoro",
+					"PID": 91,
+					"dimensions": "5638.06",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Ogliastra",
+					"PID": 105,
+					"dimensions": "1854.24",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Olbia-Tempio",
+					"PID": 104,
+					"dimensions": "3406.18",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Oristano",
+					"PID": 95,
+					"dimensions": "2990.45",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Sassari",
+					"PID": 90,
+					"dimensions": "7692",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Sicilia",
-			"FID": 19,
-			"dimensions": "25711",
-			"number_of_people": [0, 0]
+			"RID": 19,
+			"provinces": [
+				{
+					"provinceLabel": "Agrigento",
+					"PID": 84,
+					"dimensions": "3247",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Caltanissetta",
+					"PID": 85,
+					"dimensions": "2128",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Catania",
+					"PID": 87,
+					"dimensions": "6773.68",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Enna",
+					"PID": 86,
+					"dimensions": "74.7",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Messina",
+					"PID": 83,
+					"dimensions": "3247",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Palermo",
+					"PID": 82,
+					"dimensions": "5009.28",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Ragusa",
+					"PID": 88,
+					"dimensions": "1623.89",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Siracusa",
+					"PID": 89,
+					"dimensions": "2109",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Trapani",
+					"PID": 81,
+					"dimensions": "2469.62",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Toscana",
-			"FID": 9,
-			"dimensions": "22987.04",
-			"number_of_people": [0, 0]
+			"RID": 9,
+			"provinces": [
+				{
+					"provinceLabel": "Arezzo",
+					"PID": 51,
+					"dimensions": "3235.15",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Firenze",
+					"PID": 48,
+					"dimensions": "3514",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Grosseto",
+					"PID": 53,
+					"dimensions": "4504",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Livorno",
+					"PID": 49,
+					"dimensions": "1211.38",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Lucca",
+					"PID": 46,
+					"dimensions": "1772",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Massa-Carrara",
+					"PID": 45,
+					"dimensions": "1156.33",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Pisa",
+					"PID": 50,
+					"dimensions": "2444.38",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Pistoia",
+					"PID": 47,
+					"dimensions": "964.98",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Prato",
+					"PID": 100,
+					"dimensions": "365.26",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Siena",
+					"PID": 52,
+					"dimensions": "3821.22",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Trentino-Alto Adige",
-			"FID": 4,
-			"dimensions": "13606.87",
-			"number_of_people": [0, 0]
+			"RID": 4,
+			"provinces": [
+				{
+					"provinceLabel": "Bolzano/Bozen",
+					"PID": 21,
+					"dimensions": "7400.43",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Trento",
+					"PID": 22,
+					"dimensions": "6207",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Umbria",
-			"FID": 10,
-			"dimensions": "8456",
-			"number_of_people": [0, 0]
+			"RID": 10,
+			"provinces": [
+				{
+					"provinceLabel": "Perugia",
+					"PID": 54,
+					"dimensions": "6334",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Terni",
+					"PID": 55,
+					"dimensions": "2122",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Valle d'Aosta",
-			"FID": 2,
-			"dimensions": "3263.22",
-			"number_of_people": [0, 0]
+			"RID": 2,
+			"provinces": [
+				{
+					"provinceLabel": "Aosta",
+					"PID": 7,
+					"dimensions": "3260.9",
+					"mf_ratio": [0, 0]
+				}
+			]
 		},
 		{
 			"regionLabel": "Veneto",
-			"FID": 5,
-			"dimensions": "18339",
-			"number_of_people": [0, 0]
+			"RID": 5,
+			"provinces": [
+				{
+					"provinceLabel": "Venezia",
+					"PID": 27,
+					"dimensions": "2472.91",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Verona",
+					"PID": 23,
+					"dimensions": "3121",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Vicenza",
+					"PID": 24,
+					"dimensions": "2722.76",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Treviso",
+					"PID": 26,
+					"dimensions": "2476.68",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Belluno",
+					"PID": 25,
+					"dimensions": "3677",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Padova",
+					"PID": 28,
+					"dimensions": "2037",
+					"mf_ratio": [0, 0]
+				},
+				{
+					"provinceLabel": "Rovigo",
+					"PID": 29,
+					"dimensions": "1789.93",
+					"mf_ratio": [0, 0]
+				}
+			]
 		}
 	]
 }
