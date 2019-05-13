@@ -312,7 +312,7 @@ Promise.all(provinceData).then(function(data_1) {
 				var prov_obj = htd[idx.r].provinces[idx.p];
 				
 				var total = prov_obj.mf_ratio[0] + prov_obj.mf_ratio[1];
-				var dim = stringToFloat(prov_obj.dimensions);
+				var dim = stringToFloat(prov_obj.population);
 				var h = 240 + (60 * (prov_obj.mf_ratio[1] / total));
 				var v = Math.floor(100 - (50 * (total / dim)));
 				return "hsl(" + h + ", 100%, " + v + "%)";
