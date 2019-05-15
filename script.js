@@ -243,13 +243,10 @@ Promise.all(provinceData).then(function(data_1) {
 					.attr("d", path);
 		}
 			
-		// draw point
+		// draw points
 		var qd_visible = [];
 		
 		qd.forEach((d) => {
-			var pp = projection([d.coords.x, d.coords.y]);
-			d.coords.x = pp[0];
-			d.coords.y = pp[1];
 			var elem = svgNodeFromCoordinates(d.coords.x, d.coords.y);
 			if (elem != null && elem.classList[0] == "province") {
 				var pid = +elem.id;
@@ -314,11 +311,11 @@ Promise.all(provinceData).then(function(data_1) {
 				var total = prov_obj.mf_ratio[0] + prov_obj.mf_ratio[1];
 				var dim = stringToFloat(prov_obj.population);
 				var h = 240 + (60 * (prov_obj.mf_ratio[1] / total));
-				var v = Math.floor(100 - (50 * (total / dim)));
+				var v = Math.floor(100 - (25000 * (total / dim)));
 				return "hsl(" + h + ", 100%, " + v + "%)";
 			});
 			
-		// Associate event handlers to page elements	
+		// Associate event handlers to page elements
 		svg_map.call(d3.zoom().on("zoom", updateTransform)),
 		
 		slider.selectAll(".track-overlay")

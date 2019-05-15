@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+const d3 = require('d3');
 const fs = require('fs');
 
 class SPARQLQueryDispatcher {
@@ -70,6 +71,18 @@ Promise.all([living_data, dead_data]).then(function(data) {
 	// generating points
 	console.log("Generating records...");
 	
+	var viewBox_map = {
+		x: 0,
+		y: 0,
+		width: 1000,
+		height: 500
+	};
+	
+	var projection = d3.geoMercator()
+		.translate([viewBox_map.width/2, viewBox_map.height/2])
+		.center([12, 42.1])
+		.scale(1950);
+	
 	var prev_name = '';
 	for (i = 0; i < ld.length; i++) {
 		if (ld[i].personaLabel.value != prev_name) {
@@ -79,7 +92,7 @@ Promise.all([living_data, dead_data]).then(function(data) {
 				'occupation': [],
 				'dob': toInteger(ld[i].anno.value),
 				'dod': 0,
-				'coords': toPointObj(ld[i].coord.value),
+				'coords': toPointObj(ld[i].coord.value, projection),
 				'article': ld[i].articolo.value
 			};
 			obj.occupation.push(ld[i].occupazioneLabel.value);
@@ -101,7 +114,7 @@ Promise.all([living_data, dead_data]).then(function(data) {
 				'occupation': [],
 				'dob': toInteger(dd[i].anno_nascita.value),
 				'dod': toInteger(dd[i].anno_morte.value),
-				'coords': toPointObj(dd[i].coord.value),
+				'coords': toPointObj(dd[i].coord.value, projection),
 				'article': dd[i].articolo.value
 			};
 			obj.occupation.push(dd[i].occupazioneLabel.value);
@@ -135,11 +148,12 @@ function toInteger(s) {
 	return +s;
 }
 
-function toPointObj(pt) {
+function toPointObj(pt, projection) {
 	var res = pt.split(" ");
 	var x_str = res[0].split("Point(");
 	var y_str = res[1].split(")");
 	var x = +x_str[1];
 	var y = +y_str[0];
-	return { 'x': x, 'y': y };
+	var tp = projection([x, y]);
+	return { 'x': tp[0], 'y': tp[1] };
 }
