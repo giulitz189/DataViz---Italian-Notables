@@ -3,8 +3,13 @@
   <head>
     <meta charset="utf-8" />
 	<title>D3.js DataViz: Born distribution of living italian notables</title>
+	
+	<!-- D3.js library -->
 	<script src="https://d3js.org/d3.v5.min.js"></script>
+	
+	<!-- Topojson library -->
 	<script src="https://d3js.org/topojson.v2.min.js"></script>
+	
 	<!-- Libraries for panning and zooming -->
 	<script src="https://d3js.org/d3-color.v1.min.js"></script>
 	<script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
@@ -15,13 +20,17 @@
 	<script src="https://d3js.org/d3-transition.v1.min.js"></script>
 	<script src="https://d3js.org/d3-drag.v1.min.js"></script>
 	<script src="https://d3js.org/d3-zoom.v1.min.js"></script>
+	
+	<!-- heatmap.js library -->
+	<script src="https://www.patrick-wied.at/static/heatmapjs/assets/js/heatmap.min.js"></script>
+	
 	<link rel="stylesheet" href="styles.css"/>
   </head>
   <body>
 	<div id="wrapper">
 	  <form class="selector"></form>
 	  <div id="content">
-	    <div class="map"></div>
+	    <div class="map-box"></div>
 	    <div class="slider-box"></div>
 	  </div>
 	</div>

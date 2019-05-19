@@ -7,7 +7,7 @@ div#content {
 }
 
 /* Map */
-.map {
+.map-box {
 	border-style: groove;
 	border-color: #a9a9a9;
 }
@@ -89,7 +89,7 @@ div#content {
 .switch-field label {
 	background-color: #E4E4E4;
 	color: rgba(0, 0, 0, 0.6);
-	font-size: 13px;
+	font-size: 12px;
 	line-height: 1;
 	text-align: center;
 	padding: 7px 14px;

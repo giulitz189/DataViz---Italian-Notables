@@ -9,7 +9,7 @@ var viewBox_map = {
 
 var circle_rad = 1;
 
-var svg_map = d3.select(".map")
+var svg_map = d3.select(".map-box")
 	.append("svg")
 	.attr("preserveAspectRatio", "xMinYMin meet")
 	.attr("viewBox", viewBox_map.x + " " + viewBox_map.y + " " +
@@ -107,13 +107,23 @@ sf_mapviz.append("label")
 	
 sf_mapviz.append("input")
 	.attr("type", "radio")
+	.attr("id", "density-btn")
+	.attr("name", "mapviz")
+	.attr("value", "density"),
+	
+sf_mapviz.append("label")
+	.attr("for", "density-btn")
+	.text("Densità");
+	
+sf_mapviz.append("input")
+	.attr("type", "radio")
 	.attr("id", "heatmap-btn")
 	.attr("name", "mapviz")
 	.attr("value", "heatmap"),
 	
 sf_mapviz.append("label")
 	.attr("for", "heatmap-btn")
-	.text("Densità");
+	.text("Heatmap");
 
 var sf_gender = d3.select(".selector")
 	.append("div")
@@ -173,6 +183,24 @@ var vval = "dotmap";
 var gval = "all";
 	
 // DATA LOAD PHASE
+// Timestamp test - BEGIN
+var startTime, endTime;
+
+function start() {
+  startTime = new Date();
+};
+
+function end() {
+  endTime = new Date();
+  var timeDiff = endTime - startTime; //in ms
+  // strip the ms
+  timeDiff /= 1000;
+
+  // get seconds
+  console.log(timeDiff + " s");
+}
+// Timestamp test - END
+
 var endpoint = "https://giulitz189.github.io/";
 
 var provinceDataFiles = [
@@ -242,8 +270,9 @@ Promise.all(provinceData).then(function(data_1) {
 					.attr("id", function (d) { return d.id; })
 					.attr("d", path);
 		}
-			
-		// draw points
+		
+		// heatmap initialization
+		var hm_points = [];
 		var qd_visible = [];
 		
 		qd.forEach((d) => {
@@ -257,10 +286,29 @@ Promise.all(provinceData).then(function(data_1) {
 					else if (d.gender == "female")
 						htd[idx.r].provinces[idx.p].mf_ratio[1]++;
 					qd_visible.push(d);
+					
+					var dataPoint = {
+						x: d.coords.x,
+						y: d.coords.y,
+						value: 0.5
+					};
+					hm_points.push(dataPoint);
 				}
 			}
 		});
 		
+		/**
+		var heatmapInstance = h337.create({
+			container: document.querySelector(".map-box")
+		});
+		
+		heatmapInstance.setData({
+			max: 100,
+			data: hm_points
+		});
+		 */
+		
+		// draw points
 		var circles = map.selectAll("circle")
 			.data(qd_visible)
 			.enter()
@@ -280,26 +328,26 @@ Promise.all(provinceData).then(function(data_1) {
 				});
 			
 		circles.append("name")
-			.text(function(d, i) { return qd_visible[i].name; }),
+			.text(function(d) { return d.name; }),
 			
 		circles.append("gender")
-			.text(function(d, i) { return qd_visible[i].gender; }),
+			.text(function(d) { return d.gender; }),
 			
 		circles.append("occs")
 			.selectAll("occupation")
-			.data(function(d, i) { return qd_visible[i].occupation; })
+			.data(function(d) { return d.occupation; })
 			.enter()
 			.append("occupation")
 				.text(function(d) { return d; }),
 		
 		circles.append("dob")
-			.text(function(d, i) { return qd_visible[i].dob; }),
+			.text(function(d) { return d.dob; }),
 			
 		circles.append("dod")
-			.text(function(d, i) { return qd_visible[i].dod; }),
+			.text(function(d) { return d.dod; }),
 			
 		circles.append("article")
-			.text(function(d, i) { return qd_visible[i].article; }),
+			.text(function(d) { return d.article; }),
 			
 		// generate density by region
 		map.selectAll(".province")
@@ -358,7 +406,7 @@ function findZoneIndexes(htd, pid) {
 }
 
 function svgNodeFromCoordinates(x, y) {
-	var root = document.getElementsByClassName("map")[0]
+	var root = document.getElementsByClassName("map-box")[0]
 						.getElementsByTagName("svg")[0];
 	var rpos = root.createSVGPoint();
 	rpos.x = x;
