@@ -7,7 +7,7 @@ var viewBox_map = {
 	height: 500
 };
 
-var circle_rad = 1;
+var circle_rad = 0.5;
 
 var svg_map = d3.select(".map-box")
 	.append("svg")
@@ -309,45 +309,64 @@ Promise.all(provinceData).then(function(data_1) {
 		 */
 		
 		// draw points
-		var circles = map.selectAll("circle")
-			.data(qd_visible)
-			.enter()
-			.append("circle")
-				.attr("display", "block")
-				.attr("cx", function(d) { return d.coords.x; })
-				.attr("cy", function(d) { return d.coords.y; })
-				.attr("r", circle_rad)
-				.style("fill", function(d) {
-					switch (d.gender) {
-						case "male": return "#000080";
-									 break;
-						case "female": return "#F40041";
-									   break;
-						default: return "#66FF66";
-					}
-				});
-			
-		circles.append("name")
-			.text(function(d) { return d.name; }),
-			
-		circles.append("gender")
-			.text(function(d) { return d.gender; }),
-			
-		circles.append("occs")
-			.selectAll("occupation")
-			.data(function(d) { return d.occupation; })
-			.enter()
-			.append("occupation")
-				.text(function(d) { return d; }),
+		var worker = new Worker("worker.js");
 		
-		circles.append("dob")
-			.text(function(d) { return d.dob; }),
+		worker.postMessage({
+			nodes: hm_points,
+			radius: circle_rad
+		});
+		
+		worker.onmessage = function(event) {
+			if (event.data.type == "end")
+				return ended(event.data);
+		};
+		
+		function ended(data) {
+			var nodes = data.nodes,
+				radius = data.radius;
 			
-		circles.append("dod")
-			.text(function(d) { return d.dod; }),
+			var circles = map.selectAll("circle")
+				.data(nodes)
+				.enter()
+				.append("circle")
+					.attr("display", "block")
+					.attr("cx", function(d) { return d.x; })
+					.attr("cy", function(d) { return d.y; })
+					.attr("r", radius)
+					.style("stroke", "black")
+					.style("stroke-width", 0.1)
+					.style("fill", function(d, i) {
+						switch (qd_visible[i].gender) {
+							case "male": return "#00BFFF";
+										 break;
+							case "female": return "#FF1493";
+										   break;
+							default: return "#66FF66";
+						}
+					});
+				
+			circles.append("name")
+				.text(function(d, i) { return qd_visible[i].name; }),
+				
+			circles.append("gender")
+				.text(function(d, i) { return qd_visible[i].gender; }),
+				
+			circles.append("occs")
+				.selectAll("occupation")
+				.data(function(d, i) { return qd_visible[i].occupation; })
+				.enter()
+				.append("occupation")
+					.text(function(d) { return d; }),
 			
-		circles.append("article")
-			.text(function(d) { return d.article; }),
+			circles.append("dob")
+				.text(function(d, i) { return qd_visible[i].dob; }),
+				
+			circles.append("dod")
+				.text(function(d, i) { return qd_visible[i].dod; }),
+				
+			circles.append("article")
+				.text(function(d, i) { return qd_visible[i].article; });
+		}
 			
 		// generate density by region
 		map.selectAll(".province")
