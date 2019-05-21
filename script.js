@@ -11,9 +11,9 @@ var circle_rad = 0.5;
 
 var svg_map = d3.select(".map-box")
 	.append("svg")
-	.attr("preserveAspectRatio", "xMinYMin meet")
-	.attr("viewBox", viewBox_map.x + " " + viewBox_map.y + " " +
-					+ viewBox_map.width + " " + viewBox_map.height);
+		.attr("preserveAspectRatio", "xMinYMin meet")
+		.attr("viewBox", viewBox_map.x + " " + viewBox_map.y + " " +
+						+ viewBox_map.width + " " + viewBox_map.height);
 
 var map = svg_map.append("g");
 	
@@ -24,8 +24,6 @@ var projection = d3.geoMercator()
 	
 var path = d3.geoPath()
 	.projection(projection);
-	
-var isDragging = false;
 	
 // Slider sector
 var viewBox_slide = {
@@ -41,9 +39,9 @@ var labels = d3.range(0, 18).map(function(d) {
 
 var svg_sldr = d3.select(".slider-box")
 	.append("svg")
-	.attr("preserveAspectRatio", "xMinYMin meet")
-	.attr("viewBox", viewBox_slide.x + " " + viewBox_slide.y + " " +
-					+ viewBox_slide.width + " " + viewBox_slide.height);
+		.attr("preserveAspectRatio", "xMinYMin meet")
+		.attr("viewBox", viewBox_slide.x + " " + viewBox_slide.y + " " +
+						+ viewBox_slide.width + " " + viewBox_slide.height);
 	
 var x = d3.scaleLinear()
 	.domain([d3.min(labels), d3.max(labels)])
@@ -297,17 +295,6 @@ Promise.all(provinceData).then(function(data_1) {
 			}
 		});
 		
-		/**
-		var heatmapInstance = h337.create({
-			container: document.querySelector(".map-box")
-		});
-		
-		heatmapInstance.setData({
-			max: 100,
-			data: hm_points
-		});
-		 */
-		
 		// draw points
 		var worker = new Worker("worker.js");
 		
@@ -324,6 +311,22 @@ Promise.all(provinceData).then(function(data_1) {
 		function ended(data) {
 			var nodes = data.nodes,
 				radius = data.radius;
+				
+			var tool_tip = d3.tip()
+				.attr("class", "d3-tip")
+				.html(function(d, i) {
+					if (qd_visible[i].dod > 0) {
+						return 'Nome: ' + qd_visible[i].name + '</br>' +
+							'Sesso: ' + qd_visible[i].gender + '</br>' +
+							'Anno di nascita: ' + qd_visible[i].dob + '</br>' +
+							'Anno di morte: ' + qd_visible[i].dod + '</br>';
+					} else {
+						return "Nome: " + qd_visible[i].name + "</br>" +
+							"Sesso: " + qd_visible[i].gender + "</br>" +
+							"Anno di nascita: " + qd_visible[i].dob + "</br>";
+					}
+				});
+			map.call(tool_tip);
 			
 			var circles = map.selectAll("circle")
 				.data(nodes)
@@ -343,7 +346,9 @@ Promise.all(provinceData).then(function(data_1) {
 										   break;
 							default: return "#66FF66";
 						}
-					});
+					})
+					.on("focusin", tool_tip.show)
+					.on("focusout", tool_tip.hide);
 				
 			circles.append("name")
 				.text(function(d, i) { return qd_visible[i].name; }),
@@ -367,7 +372,18 @@ Promise.all(provinceData).then(function(data_1) {
 			circles.append("article")
 				.text(function(d, i) { return qd_visible[i].article; });
 		}
-			
+		
+		/**
+		var heatmapInstance = h337.create({
+			container: document.querySelector(".heatmap-render")
+		});
+		
+		heatmapInstance.setData({
+			max: 100,
+			data: hm_points
+		});
+		 */
+		
 		// generate density by region
 		map.selectAll(".province")
 			.style("fill", function(d) {

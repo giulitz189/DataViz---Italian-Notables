@@ -12,9 +12,7 @@ onmessage = function(event) {
 		.force("collision", d3.forceCollide().radius(radius + 0.5))
 		.stop();
 		
-	for (var i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
-		simulation.tick();
-	}
+	simulation.tick(150);
 	
 	postMessage({type: "end", nodes: nodes, radius: radius});
 };
