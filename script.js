@@ -266,7 +266,13 @@ Promise.all(provinceData).then(function(data_1) {
 				.append("path")
 					.attr("class", "province")
 					.attr("id", function (d) { return d.id; })
-					.attr("d", path);
+					.attr("d", path)
+					.attr("data-population", function(d) {
+						var idx = findZoneIndexes(htd, d.id);
+						return htd[idx.r].provinces[idx.p].population;
+					})
+					.attr("data-male", 0)
+					.attr("data-female", 0);
 		}
 		
 		// heatmap initialization
@@ -276,22 +282,19 @@ Promise.all(provinceData).then(function(data_1) {
 		qd.forEach((d) => {
 			var elem = svgNodeFromCoordinates(d.coords.x, d.coords.y);
 			if (elem != null && elem.classList[0] == "province") {
-				var pid = +elem.id;
-				var idx = findZoneIndexes(htd, pid);
-				if (idx.r >= 0 && idx.p >= 0) {
-					if (d.gender == "male")
-						htd[idx.r].provinces[idx.p].mf_ratio[0]++;
-					else if (d.gender == "female")
-						htd[idx.r].provinces[idx.p].mf_ratio[1]++;
-					qd_visible.push(d);
-					
-					var dataPoint = {
-						x: d.coords.x,
-						y: d.coords.y,
-						value: 0.5
-					};
-					hm_points.push(dataPoint);
-				}
+				if (d.gender == "male")
+					elem.dataset.male++;
+				else if (d.gender == "female")
+					elem.dataset.female++;
+				qd_visible.push(d);
+				
+				var dataPoint = {
+					x: d.coords.x,
+					y: d.coords.y,
+					value: 0.5,
+					province_idx: elem.id
+				};
+				hm_points.push(dataPoint);
 			}
 		});
 		
@@ -336,6 +339,7 @@ Promise.all(provinceData).then(function(data_1) {
 					.attr("cx", function(d) { return d.x; })
 					.attr("cy", function(d) { return d.y; })
 					.attr("r", radius)
+					.attr("data-provinceId", function(d) { return d.province_idx; })
 					.style("stroke", "black")
 					.style("stroke-width", 0.1)
 					.style("fill", function(d, i) {
@@ -349,28 +353,6 @@ Promise.all(provinceData).then(function(data_1) {
 					})
 					.on("focusin", tool_tip.show)
 					.on("focusout", tool_tip.hide);
-				
-			circles.append("name")
-				.text(function(d, i) { return qd_visible[i].name; }),
-				
-			circles.append("gender")
-				.text(function(d, i) { return qd_visible[i].gender; }),
-				
-			circles.append("occs")
-				.selectAll("occupation")
-				.data(function(d, i) { return qd_visible[i].occupation; })
-				.enter()
-				.append("occupation")
-					.text(function(d) { return d; }),
-			
-			circles.append("dob")
-				.text(function(d, i) { return qd_visible[i].dob; }),
-				
-			circles.append("dod")
-				.text(function(d, i) { return qd_visible[i].dod; }),
-				
-			circles.append("article")
-				.text(function(d, i) { return qd_visible[i].article; });
 		}
 		
 		/**
@@ -386,15 +368,15 @@ Promise.all(provinceData).then(function(data_1) {
 		
 		// generate density by region
 		map.selectAll(".province")
-			.style("fill", function(d) {
-				var pid = +d.id;
-				var idx = findZoneIndexes(htd, pid);
-				var prov_obj = htd[idx.r].provinces[idx.p];
+			.style("fill", function(d, i) {
+				var prov = d3.select(this).node();
+				var m = parseInt(prov.dataset.male);
+				var f = parseInt(prov.dataset.female);
+				var pop = parseInt(prov.dataset.population);
 				
-				var total = prov_obj.mf_ratio[0] + prov_obj.mf_ratio[1];
-				var dim = stringToFloat(prov_obj.population);
-				var h = 240 + (60 * (prov_obj.mf_ratio[1] / total));
-				var v = Math.floor(100 - (25000 * (total / dim)));
+				var total = m + f;
+				var h = 240 + (60 * (f / total));
+				var v = Math.floor(100 - (25000 * (total / pop)));
 				return "hsl(" + h + ", 100%, " + v + "%)";
 			});
 			
@@ -412,13 +394,13 @@ Promise.all(provinceData).then(function(data_1) {
 		sf_mapviz.selectAll("input")
 			.on("change", function(d) {
 				vval = this.value;
-				updateVisualizedPoints(qd_visible);
+				updateVisualizedPoints(qd_visible, false);
 			}),
 			
 		sf_gender.selectAll("input")
 			.on("change", function(d) {
 				gval = this.value;
-				updateVisualizedPoints(qd_visible);
+				updateVisualizedPoints(qd_visible, false);
 			});
 	});
 });
@@ -450,7 +432,7 @@ function svgNodeFromCoordinates(x, y) {
 	return document.elementFromPoint(position.x, position.y);
 }
 
-function updateVisualizedPoints(elems) {
+function updateVisualizedPoints(elems, sliderPosChanged) {
 	map.selectAll("circle")
 		.filter(function(d) {
 			return d3.select(this).attr("display") == "block";
@@ -464,6 +446,39 @@ function updateVisualizedPoints(elems) {
 			else return false;
 		})
 		.attr("display", "block");
+		
+	if (sliderPosChanged) {
+		map.selectAll(".province")
+			.attr("data-male", 0)
+			.attr("data-female", 0),
+		
+		map.selectAll("circle")
+			.filter(function(d, i) {
+				if (elems[i].dob >= minYear && elems[i].dob <= maxYear) {
+					var circle = d3.select(this).node();
+					
+					var prov = document.getElementById(circle.dataset.provinceId);
+					if (elems[i].gender == "male")
+						prov.dataset.male++;
+					else if (elems[i].gender == "female")
+						prov.dataset.female++;
+					return true;
+				} else return false;
+			}),
+		
+		map.selectAll(".province")
+			.style("fill", function(d, i) {
+				var prov = d3.select(this).node();
+				var m = parseInt(prov.dataset.male);
+				var f = parseInt(prov.dataset.female);
+				var pop = parseInt(prov.dataset.population);
+				
+				var total = m + f;
+				var h = 240 + (60 * (f / total));
+				var v = Math.floor(100 - (25000 * (total / pop)));
+				return "hsl(" + h + ", 100%, " + v + "%)";
+			});
+	}
 }
 
 // Event handlers
@@ -485,5 +500,5 @@ function updateCursorPositions(v, elems, htd) {
 	maxYear = x.invert(+handle_rx.attr("cx"));
 	
 	// Apply to points
-	updateVisualizedPoints(elems);
+	updateVisualizedPoints(elems, true);
 }
