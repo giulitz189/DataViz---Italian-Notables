@@ -299,7 +299,47 @@ Promise.all(provinceData).then(function(data_1) {
 		});
 		
 		// draw points
+		var container = document.querySelector(".map-box");
 		var worker = new Worker("worker.js");
+		
+		var tool_tip = d3.tip()
+			.attr("class", "d3-tip")
+			.html(function(d, i) {
+				if (qd_visible[i].dod > 0) {
+					return 'Nome: ' + qd_visible[i].name + '</br>' +
+						'Sesso: ' + qd_visible[i].gender + '</br>' +
+						'Anno di nascita: ' + qd_visible[i].dob + '</br>' +
+						'Anno di morte: ' + qd_visible[i].dod + '</br>';
+				} else {
+					return "Nome: " + qd_visible[i].name + "</br>" +
+						"Sesso: " + qd_visible[i].gender + "</br>" +
+						"Anno di nascita: " + qd_visible[i].dob + "</br>";
+				}
+			});
+		map.call(tool_tip);
+		
+		var circles = map.selectAll("circle")
+			.data(hm_points)
+			.enter()
+			.append("circle")
+				.attr("display", "block")
+				.attr("cx", function(d) { return d.x; })
+				.attr("cy", function(d) { return d.y; })
+				.attr("r", circle_rad)
+				.attr("data-provinceId", function(d) { return d.province_idx; })
+				.style("stroke", "black")
+				.style("stroke-width", 0.1)
+				.style("fill", function(d, i) {
+					switch (qd_visible[i].gender) {
+						case "male": return "#00BFFF";
+									 break;
+						case "female": return "#FF1493";
+									   break;
+						default: return "#66FF66";
+					}
+				})
+				.on("focusin", tool_tip.show)
+				.on("focusout", tool_tip.hide);
 		
 		worker.postMessage({
 			nodes: hm_points,
@@ -307,52 +347,18 @@ Promise.all(provinceData).then(function(data_1) {
 		});
 		
 		worker.onmessage = function(event) {
-			if (event.data.type == "end")
-				return ended(event.data);
+			switch (event.data.type) {
+				case "progress": return updatePos(event.data);
+				case "end": return updatePos(event.data);
+			}
 		};
 		
-		function ended(data) {
-			var nodes = data.nodes,
-				radius = data.radius;
-				
-			var tool_tip = d3.tip()
-				.attr("class", "d3-tip")
-				.html(function(d, i) {
-					if (qd_visible[i].dod > 0) {
-						return 'Nome: ' + qd_visible[i].name + '</br>' +
-							'Sesso: ' + qd_visible[i].gender + '</br>' +
-							'Anno di nascita: ' + qd_visible[i].dob + '</br>' +
-							'Anno di morte: ' + qd_visible[i].dod + '</br>';
-					} else {
-						return "Nome: " + qd_visible[i].name + "</br>" +
-							"Sesso: " + qd_visible[i].gender + "</br>" +
-							"Anno di nascita: " + qd_visible[i].dob + "</br>";
-					}
-				});
-			map.call(tool_tip);
+		function updatePos(data) {
+			var nodes = data.nodes;
 			
-			var circles = map.selectAll("circle")
-				.data(nodes)
-				.enter()
-				.append("circle")
-					.attr("display", "block")
-					.attr("cx", function(d) { return d.x; })
-					.attr("cy", function(d) { return d.y; })
-					.attr("r", radius)
-					.attr("data-provinceId", function(d) { return d.province_idx; })
-					.style("stroke", "black")
-					.style("stroke-width", 0.1)
-					.style("fill", function(d, i) {
-						switch (qd_visible[i].gender) {
-							case "male": return "#00BFFF";
-										 break;
-							case "female": return "#FF1493";
-										   break;
-							default: return "#66FF66";
-						}
-					})
-					.on("focusin", tool_tip.show)
-					.on("focusout", tool_tip.hide);
+			map.selectAll("circle")
+				.attr("cx", function(d, i) { return nodes[i].x; })
+				.attr("cy", function(d, i) { return nodes[i].y; });
 		}
 		
 		/**
