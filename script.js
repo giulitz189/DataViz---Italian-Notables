@@ -259,6 +259,22 @@ Promise.all(provinceData).then(function(data_1) {
 				.attr("id", function (d, i) { return htd[i].regionLabel; })
 				.attr("d", path);
 				
+		var map_tip = d3.tip()
+			.attr("class", "d3-tip")
+			.html(function(d, i) {
+				var provId = d.id;
+				var provElem = map.selectAll(".province")
+								.select(function(d) {
+									var elemId = d3.select(this).attr("id")
+									return elemId == provId ? this : null;
+								}).node();
+				var tot = parseInt(provElem.dataset.male) + parseInt(provElem.dataset.female);
+				return 'Nome: ' + provElem.dataset.name + '</br>' +
+					'Popolazione: ' + provElem.dataset.population + '</br>' +
+					'Di cui notables: ' + tot;
+			});
+		map.call(map_tip);
+		
 		for (i = 0; i < pd.length; i++) {
 			map.selectAll(".prov")
 				.data(topojson.feature(pd[i], pd[i].objects.sub).features)
@@ -267,12 +283,18 @@ Promise.all(provinceData).then(function(data_1) {
 					.attr("class", "province")
 					.attr("id", function (d) { return d.id; })
 					.attr("d", path)
+					.attr("data-name", function(d) {
+						var prov_idx = findZoneIndexes(htd, d.id);
+						return htd[prov_idx.r].provinces[prov_idx.p].provinceLabel;
+					})
 					.attr("data-population", function(d) {
-						var idx = findZoneIndexes(htd, d.id);
-						return htd[idx.r].provinces[idx.p].population;
+						var prov_idx = findZoneIndexes(htd, d.id);
+						return htd[prov_idx.r].provinces[prov_idx.p].population;
 					})
 					.attr("data-male", 0)
-					.attr("data-female", 0);
+					.attr("data-female", 0)
+					.on("mouseover", map_tip.show)
+					.on("mouseout", map_tip.hide);
 		}
 		
 		// heatmap initialization
@@ -302,7 +324,7 @@ Promise.all(provinceData).then(function(data_1) {
 		var container = document.querySelector(".map-box");
 		var worker = new Worker("worker.js");
 		
-		var tool_tip = d3.tip()
+		var circle_tip = d3.tip()
 			.attr("class", "d3-tip")
 			.html(function(d, i) {
 				if (qd_visible[i].dod > 0) {
@@ -316,7 +338,7 @@ Promise.all(provinceData).then(function(data_1) {
 						"Anno di nascita: " + qd_visible[i].dob + "</br>";
 				}
 			});
-		map.call(tool_tip);
+		map.call(circle_tip);
 		
 		var circles = map.selectAll("circle")
 			.data(hm_points)
@@ -338,8 +360,8 @@ Promise.all(provinceData).then(function(data_1) {
 						default: return "#66FF66";
 					}
 				})
-				.on("focusin", tool_tip.show)
-				.on("focusout", tool_tip.hide);
+				.on("mouseover", circle_tip.show)
+				.on("mouseout", circle_tip.hide);
 		
 		worker.postMessage({
 			nodes: hm_points,
@@ -406,7 +428,7 @@ Promise.all(provinceData).then(function(data_1) {
 		sf_gender.selectAll("input")
 			.on("change", function(d) {
 				gval = this.value;
-				updateVisualizedPoints(qd_visible, false);
+				updateVisualizedPoints(qd_visible, true);
 			});
 	});
 });
@@ -438,7 +460,7 @@ function svgNodeFromCoordinates(x, y) {
 	return document.elementFromPoint(position.x, position.y);
 }
 
-function updateVisualizedPoints(elems, sliderPosChanged) {
+function updateVisualizedPoints(elems, vizChanged) {
 	map.selectAll("circle")
 		.filter(function(d) {
 			return d3.select(this).attr("display") == "block";
@@ -453,7 +475,7 @@ function updateVisualizedPoints(elems, sliderPosChanged) {
 		})
 		.attr("display", "block");
 		
-	if (sliderPosChanged) {
+	if (vizChanged) {
 		map.selectAll(".province")
 			.attr("data-male", 0)
 			.attr("data-female", 0),
@@ -482,7 +504,17 @@ function updateVisualizedPoints(elems, sliderPosChanged) {
 				var total = m + f;
 				var h = 240 + (60 * (f / total));
 				var v = Math.floor(100 - (25000 * (total / pop)));
-				return "hsl(" + h + ", 100%, " + v + "%)";
+				switch (gval) {
+					case "male":
+						v = Math.floor(100 - (25000 * (m / pop)));
+						return "hsl(240, 100%, " + v + "%)";
+						break;
+					case "female":
+						v = Math.floor(100 - (25000 * (f / pop)));
+						return "hsl(300, 100%, " + v + "%)";
+						break;
+					default: return "hsl(" + h + ", 100%, " + v + "%)";
+				}
 			});
 	}
 }
