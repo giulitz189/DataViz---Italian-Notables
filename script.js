@@ -231,8 +231,7 @@ function end() {
 }
 // Timestamp test - END
 
-var endpoint = "http://127.0.0.1:8765/";
-//"https://giulitz189.github.io/";
+var endpoint = "https://giulitz189.github.io/";
 
 var provinceDataFiles = [
 	"abruzzo.json",
