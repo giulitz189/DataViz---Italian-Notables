@@ -6,7 +6,7 @@ importScripts("https://d3js.org/d3-force.v1.min.js");
 
 onmessage = function(event) {
 	var nodes = event.data.nodes,
-		radius = event.data.radius;
+		radius = event.data.radius,
 		maxTicks = 300;
 	
 	var simulation = d3.forceSimulation(nodes)

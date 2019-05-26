@@ -19,29 +19,31 @@ class SPARQLQueryDispatcher {
 
 const endpointUrl = 'https://query.wikidata.org/sparql';
 
-const sq_living = 'SELECT DISTINCT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno) ?coord ?articolo WHERE {\
+const sq_living = 'SELECT DISTINCT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno) ?pobLabel ?coord ?articolo WHERE {\
   ?persona wdt:P31 wd:Q5;\
            wdt:P27 wd:Q38;\
            wdt:P1412 wd:Q652;\
            wdt:P21 ?gender;\
            wdt:P106 ?occupazione;\
-           wdt:P19 [wdt:P625 ?coord].\
+		   wdt:P19 ?pob.\
+  ?pob wdt:P625 ?coord.\
   ?articolo schema:about ?persona;\
             schema:isPartOf <https://it.wikipedia.org/>.\
   FILTER EXISTS { ?persona wdt:P569 ?data_nascita. }\
   FILTER NOT EXISTS { ?persona wdt:P570 ?data_morte. }\
   ?persona wdt:P569 ?dob. BIND(YEAR(now()) - YEAR(?dob) as ?age)\
   FILTER(?age <= 110)\
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }\
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "it,en". }\
 } ORDER BY ?personaLabel';
 
-const sq_dead = 'SELECT DISTINCT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno_nascita) (YEAR(?dod) AS ?anno_morte) ?coord ?articolo WHERE {\
+const sq_dead = 'SELECT DISTINCT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno_nascita) (YEAR(?dod) AS ?anno_morte) ?pobLabel ?coord ?articolo WHERE {\
   ?persona wdt:P31 wd:Q5;\
            wdt:P27 wd:Q38;\
            wdt:P1412 wd:Q652;\
            wdt:P21 ?gender;\
            wdt:P106 ?occupazione;\
-           wdt:P19 [wdt:P625 ?coord].\
+		   wdt:P19 ?pob.\
+  ?pob wdt:P625 ?coord.\
   ?articolo schema:about ?persona;\
             schema:isPartOf <https://it.wikipedia.org/>.\
   FILTER EXISTS { ?persona wdt:P569 ?data_nascita. }\
@@ -51,7 +53,7 @@ const sq_dead = 'SELECT DISTINCT ?personaLabel ?genderLabel ?occupazioneLabel (Y
   BIND(YEAR(?dob) - 1850 as ?yob)\
   BIND(YEAR(?dod) - 1850 as ?yod)\
   FILTER(?yob >= 0 && ?yod >= 0)\
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }\
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "it,en". }\
 } ORDER BY ?personaLabel';
 
 // data fetch phase
@@ -92,6 +94,7 @@ Promise.all([living_data, dead_data]).then(function(data) {
 				'occupation': [],
 				'dob': toInteger(ld[i].anno.value),
 				'dod': 0,
+				'pob': ld[i].pobLabel.value,
 				'coords': toPointObj(ld[i].coord.value, projection),
 				'article': ld[i].articolo.value
 			};
@@ -114,6 +117,7 @@ Promise.all([living_data, dead_data]).then(function(data) {
 				'occupation': [],
 				'dob': toInteger(dd[i].anno_nascita.value),
 				'dod': toInteger(dd[i].anno_morte.value),
+				'pob': dd[i].pobLabel.value,
 				'coords': toPointObj(dd[i].coord.value, projection),
 				'article': dd[i].articolo.value
 			};

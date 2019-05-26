@@ -134,7 +134,7 @@ sf_gender.append("input")
 	.attr("type", "radio")
 	.attr("id", "male-btn")
 	.attr("name", "gender")
-	.attr("value", "male"),
+	.attr("value", "maschio"),
 	
 sf_gender.append("label")
 	.attr("for", "male-btn")
@@ -155,7 +155,7 @@ sf_gender.append("input")
 	.attr("type", "radio")
 	.attr("id", "female-btn")
 	.attr("name", "gender")
-	.attr("value", "female"),
+	.attr("value", "femmina"),
 	
 sf_gender.append("label")
 	.attr("for", "female-btn")
@@ -179,6 +179,37 @@ opts.append("option")
 
 var vval = "dotmap";
 var gval = "all";
+
+// Circle infobox
+var ci = d3.select(".circleInfo");
+
+ci.append("div")
+	.attr("class", "section")
+	.html("Nome: ");
+	
+ci.append("div")
+	.attr("class", "section")
+	.html("Sesso: ");
+	
+ci.append("div")
+	.attr("class", "section")
+	.html("Occupazioni: ");
+	
+ci.append("div")
+	.attr("class", "section")
+	.html("Anno di nascita: ");
+	
+ci.append("div")
+	.attr("class", "section")
+	.html("Anno di morte: ");
+	
+ci.append("div")
+	.attr("class", "section")
+	.html("Luogo di nascita: ");
+	
+ci.append("div")
+	.attr("class", "section")
+	.html("Articolo Wikipedia: ");
 	
 // DATA LOAD PHASE
 // Timestamp test - BEGIN
@@ -199,7 +230,8 @@ function end() {
 }
 // Timestamp test - END
 
-var endpoint = "https://giulitz189.github.io/";
+var endpoint = "http://127.0.0.1:8765/"
+//"https://giulitz189.github.io/";
 
 var provinceDataFiles = [
 	"abruzzo.json",
@@ -304,9 +336,9 @@ Promise.all(provinceData).then(function(data_1) {
 		qd.forEach((d) => {
 			var elem = svgNodeFromCoordinates(d.coords.x, d.coords.y);
 			if (elem != null && elem.classList[0] == "province") {
-				if (d.gender == "male")
+				if (d.gender == "maschio")
 					elem.dataset.male++;
-				else if (d.gender == "female")
+				else if (d.gender == "femmina")
 					elem.dataset.female++;
 				qd_visible.push(d);
 				
@@ -353,15 +385,18 @@ Promise.all(provinceData).then(function(data_1) {
 				.style("stroke-width", 0.1)
 				.style("fill", function(d, i) {
 					switch (qd_visible[i].gender) {
-						case "male": return "#00BFFF";
+						case "maschio": return "#00BFFF";
 									 break;
-						case "female": return "#FF1493";
+						case "femmina": return "#FF1493";
 									   break;
 						default: return "#66FF66";
 					}
 				})
 				.on("mouseover", circle_tip.show)
-				.on("mouseout", circle_tip.hide);
+				.on("mouseout", circle_tip.hide)
+				.on("click", function(d, i) {
+					writePersonInfo(qd_visible[i]);
+				});
 		
 		worker.postMessage({
 			nodes: hm_points,
@@ -460,6 +495,42 @@ function svgNodeFromCoordinates(x, y) {
 	return document.elementFromPoint(position.x, position.y);
 }
 
+function writePersonInfo(data) {
+	ci.selectAll(".section")
+		.html(function(d, i) {
+			switch (i) {
+				case 0:
+					return "Nome: " + data.name;
+					break;
+				case 1:
+					return "Sesso: " + data.gender;
+					break;
+				case 2:
+					var str = "Occupazioni: ";
+					for (idx = 0; idx < data.occupation.length; idx++) {
+						if (idx == data.occupation.length - 1)
+							str += data.occupation[idx];
+						else str += data.occupation[idx] + ", ";
+					}
+					return str;
+					break;
+				case 3:
+					return "Anno di nascita: " + data.dob;
+					break;
+				case 4:
+					if (data.dod == 0) return "Anno di morte: -";
+					else return "Anno di morte: " + data.dod;
+					break;
+				case 5:
+					return "Luogo di nascita: " + data.pob;
+					break;
+				case 6:
+					return 'Articolo Wikipedia: <a href="' + data.article +
+							'" target="_blank">' + data.article + '</a>';
+			}
+		});
+}
+
 function updateVisualizedPoints(elems, vizChanged) {
 	map.selectAll("circle")
 		.filter(function(d) {
@@ -486,9 +557,9 @@ function updateVisualizedPoints(elems, vizChanged) {
 					var circle = d3.select(this).node();
 					
 					var prov = document.getElementById(circle.dataset.provinceId);
-					if (elems[i].gender == "male")
+					if (elems[i].gender == "maschio")
 						prov.dataset.male++;
-					else if (elems[i].gender == "female")
+					else if (elems[i].gender == "femmina")
 						prov.dataset.female++;
 					return true;
 				} else return false;
@@ -505,11 +576,11 @@ function updateVisualizedPoints(elems, vizChanged) {
 				var h = 240 + (60 * (f / total));
 				var v = Math.floor(100 - (25000 * (total / pop)));
 				switch (gval) {
-					case "male":
+					case "maschio":
 						v = Math.floor(100 - (25000 * (m / pop)));
 						return "hsl(240, 100%, " + v + "%)";
 						break;
-					case "female":
+					case "femmina":
 						v = Math.floor(100 - (25000 * (f / pop)));
 						return "hsl(300, 100%, " + v + "%)";
 						break;

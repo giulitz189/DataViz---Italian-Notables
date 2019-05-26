@@ -2,6 +2,12 @@ div#wrapper {
 	width: 100%;
 }
 
+div#controls {
+	float: right;
+	width: 13em;
+	height: 100%;
+}
+
 div#content {
 	margin-right: 14em;
 }
@@ -32,6 +38,7 @@ div#content {
 	color: #FFF;
 	border-radius: 4px;
 	font-size: 12px;
+	pointer-events: none;
 }
 
 .d3-tip:after {
@@ -44,12 +51,14 @@ div#content {
 	content: "\25BC";
 	position: absolute;
 	text-align: center;
+	pointer-events: none;
 }
 
 .d3-tip.n:after {
 	margin: -2px 0 0 0;
 	top: 100%;
 	left: 0;
+	pointer-events: none;
 }
 
 /* Slider */
@@ -86,17 +95,26 @@ div#content {
 }
 
 /* Selector */
-.selector {
-	float: right;
-	width: 13em;
-	height: 100%;
-	border: 2px solid #00cccc;
+.selector, .circleInfo {
+	border-style: solid;
+	border-width: 2px;
 	border-radius: 8px;
 	padding: 2px;
 }
 
+.selector {
+	margin-bottom: 8px;
+	border-color: #00cccc;
+}
+
+.circleInfo {
+	margin-top: 8px;
+	border-color: #ff0000;
+}
+
 .section {
 	margin: 2px 2px 2px 2px;
+	word-wrap: break-word;
 }
 
 .switch-field {
@@ -117,7 +135,7 @@ div#content {
 .switch-field label {
 	background-color: #e4e4e4;
 	color: rgba(0, 0, 0, 0.6);
-	font-size: 12px;
+	font-size: 11px;
 	line-height: 1;
 	text-align: center;
 	padding: 7px 14px;
