@@ -175,10 +175,11 @@ var opts = sf_occupation.append("form")
 		
 opts.append("option")
 	.attr("value", "0")
-	.text("All");
+	.text("TUTTO");
 
 var vval = "dotmap";
 var gval = "all";
+var occval = "0";
 
 // Circle infobox
 var ci = d3.select(".circleInfo");
@@ -230,7 +231,7 @@ function end() {
 }
 // Timestamp test - END
 
-var endpoint = "http://127.0.0.1:8765/"
+var endpoint = "http://127.0.0.1:8765/";
 //"https://giulitz189.github.io/";
 
 var provinceDataFiles = [
@@ -333,18 +334,29 @@ Promise.all(provinceData).then(function(data_1) {
 		var hm_points = [];
 		var qd_visible = [];
 		
-		qd.forEach((d) => {
-			var elem = svgNodeFromCoordinates(d.coords.x, d.coords.y);
+		qd.forEach((rec) => {
+			var elem = svgNodeFromCoordinates(rec.coords.x, rec.coords.y);
 			if (elem != null && elem.classList[0] == "province") {
-				if (d.gender == "maschio")
+				if (rec.gender == "maschio")
 					elem.dataset.male++;
-				else if (d.gender == "femmina")
+				else if (rec.gender == "femmina")
 					elem.dataset.female++;
-				qd_visible.push(d);
+				qd_visible.push(rec);
+				
+				for (i = 0; i < rec.occupation.length; i++) {
+					var check = opts.selectAll("option").filter(function(d) {
+						return d3.select(this).text() == rec.occupation[i];
+					}).empty();
+					if (check) {
+						opts.append("option")
+							.attr("value", rec.occupation[i])
+							.text(rec.occupation[i]);
+					}
+				}
 				
 				var dataPoint = {
-					x: d.coords.x,
-					y: d.coords.y,
+					x: rec.coords.x,
+					y: rec.coords.y,
 					value: 0.5,
 					province_idx: elem.id
 				};
@@ -465,6 +477,11 @@ Promise.all(provinceData).then(function(data_1) {
 				gval = this.value;
 				updateVisualizedPoints(qd_visible, true);
 			});
+			
+		opts.on("change", function(d) {
+			occval = this.value;
+			updateVisualizedPoints(qd_visible, true);
+		});
 	});
 });
 
@@ -531,6 +548,10 @@ function writePersonInfo(data) {
 		});
 }
 
+function checkOccupation(occ) {
+	return occ == occval;
+}
+
 function updateVisualizedPoints(elems, vizChanged) {
 	map.selectAll("circle")
 		.filter(function(d) {
@@ -540,9 +561,11 @@ function updateVisualizedPoints(elems, vizChanged) {
 		
 	map.selectAll("circle")
 		.filter(function(d, i) {
-			if (vval == "dotmap" && (gval == "all" || elems[i].gender == gval))
-				return elems[i].dob >= minYear && elems[i].dob <= maxYear;
-			else return false;
+			var el = elems[i];
+			if (vval == "dotmap" && (gval == "all" || el.gender == gval))
+				if (occval == "0" || el.occupation.findIndex(checkOccupation) >= 0)
+					return el.dob >= minYear && el.dob <= maxYear;
+			return false;
 		})
 		.attr("display", "block");
 		
@@ -553,16 +576,20 @@ function updateVisualizedPoints(elems, vizChanged) {
 		
 		map.selectAll("circle")
 			.filter(function(d, i) {
-				if (elems[i].dob >= minYear && elems[i].dob <= maxYear) {
-					var circle = d3.select(this).node();
-					
-					var prov = document.getElementById(circle.dataset.provinceId);
-					if (elems[i].gender == "maschio")
-						prov.dataset.male++;
-					else if (elems[i].gender == "femmina")
-						prov.dataset.female++;
-					return true;
-				} else return false;
+				var el = elems[i];
+				if (occval == "0" || el.occupation.findIndex(checkOccupation) >= 0) {
+					if (el.dob >= minYear && el.dob <= maxYear) {
+						var circle = d3.select(this).node();
+						
+						var prov = document.getElementById(circle.dataset.provinceId);
+						if (el.gender == "maschio")
+							prov.dataset.male++;
+						else if (el.gender == "femmina")
+							prov.dataset.female++;
+						return true;
+					}
+				}
+				return false;
 			}),
 		
 		map.selectAll(".province")
