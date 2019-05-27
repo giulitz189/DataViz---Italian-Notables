@@ -231,8 +231,6 @@ function end() {
 }
 // Timestamp test - END
 
-var endpoint = "https://giulitz189.github.io/";
-
 var provinceDataFiles = [
 	"abruzzo.json",
 	"basilicata.json",
@@ -259,16 +257,16 @@ var provinceDataFiles = [
 function loadProvinces() {
 	var provinces = [];
 	for (i = 0; i < provinceDataFiles.length; i++) {
-		var provShape = d3.json(endpoint + "geodata/" + provinceDataFiles[i]);
+		var provShape = d3.json("geodata/" + provinceDataFiles[i]);
 		provinces.push(provShape);
 	}
 	return provinces;
 }
 
 var provinceData = loadProvinces();
-var regionData = d3.json(endpoint + "geodata/italy_reg.json");
-var queryData = d3.json(endpoint + "query_records/query_results.json");
-var heatmapData = d3.json(endpoint + "region_dimensions.json");
+var regionData = d3.json("geodata/italy_reg.json");
+var queryData = d3.json("query_records/query_results.json");
+var heatmapData = d3.json("region_dimensions.json");
 
 Promise.all(provinceData).then(function(data_1) {
 	var pd = data_1;
