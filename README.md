@@ -4,8 +4,6 @@ This repository contains an interactive map of the geographical distribution of 
 
 This project is written in Javascript using [D3.js](https://d3js.org) framework with the [d3-tip](https://github.com/VACLab/d3-tip) extension and [heatmap.js](https://www.patrick-wied.at/static/heatmapjs/) framework. Map shapes data paths are provided by [TopojsonItaly](https://github.com/qwince/TopojsonItaly).
 
-Link to project page: [https://giulitz189.github.io/Notable-Italians/](https://giulitz189.github.io/Notable-Italians/)
-
 ##### Wikidata query references
   - Living people: [https://w.wiki/4Lq](https://w.wiki/4Lq)
   - Dead people: [https://w.wiki/4Lr](https://w.wiki/4Lr)
