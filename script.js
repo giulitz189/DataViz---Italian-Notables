@@ -33,56 +33,48 @@ var viewBox_slide = {
 	height: 100
 };
 
-var labels = d3.range(0, 18).map(function(d) {
-	return 1850 + (10 * d);
-});
-
 var svg_sldr = d3.select(".slider-box")
 	.append("svg")
 		.attr("preserveAspectRatio", "xMinYMin meet")
 		.attr("viewBox", viewBox_slide.x + " " + viewBox_slide.y + " " +
 						+ viewBox_slide.width + " " + viewBox_slide.height);
+						
+var scaleW = viewBox_slide.width - 100;
+var scaleH = viewBox_slide.height - 30;
+
+var minYear = 1850;
+var maxYear = new Date().getFullYear();
 	
 var x = d3.scaleLinear()
-	.domain([d3.min(labels), d3.max(labels)])
-	.range([0, (viewBox_slide.width - 100)])
-	.clamp(true);
+	.domain([minYear, maxYear])
+	.range([0, scaleW]);
+	
+var brush = d3.brushX()
+	.extent([[0, 0], [scaleW, scaleH]]);
 	
 var slider = svg_sldr.append("g")
 	.attr("class", "slider")
-	.attr("transform", "translate(50, 50)");
+	.attr("transform", "translate(50, 10)");
 	
-slider.append("line")
-		.attr("class", "track")
-		.attr("x1", x.range()[0])
-		.attr("x2", x.range()[1])
-	.select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
-		.attr("class", "track-inset")
-	.select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
-		.attr("class", "track-overlay"),
-		
-slider.insert("g", ".track-overlay")
-		.attr("class", "ticks")
-		.attr("transform", "translate(0, " + 18 + ")")
-	.selectAll("text")
-	.data(x.ticks(18))
-	.enter().append("text")
-		.attr("x", x)
-		.attr("text-anchor", "middle")
-		.text(function(d) { return d; });
-		
-var handle_lx = slider.insert("circle", ".track-overlay")
-	.attr("class", "handle")
-	.attr("cx", x(d3.min(labels)))
-	.attr("r", 8);
+var areaGraph = slider.append("g");
 	
-var handle_rx = slider.insert("circle", ".track-overlay")
-	.attr("class", "handle")
-	.attr("cx", x(d3.max(labels)))
-	.attr("r", 8);
+var brushSelection = slider.append("g")
+	.call(brush)
+	.call(brush.move, [minYear, maxYear].map(x));
 	
-var minYear = x.invert(+handle_lx.attr("cx"));
-var maxYear = x.invert(+handle_rx.attr("cx"));
+slider.append("g")
+	.attr("class", "x axis")
+	.attr("transform", "translate(0, " + scaleH + ")")
+	.call(d3.axisBottom(x)
+			.ticks(maxYear - minYear)
+			.tickFormat(function(d) {
+				return (d % 10 != 0) ? '' : d.toString();
+			}));
+			
+d3.selectAll("g.x.axis g.tick line")
+	.attr("y2", function(d) {
+		return (d % 10 == 0) ? 6 : (d % 10 == 5) ? 4 : 2;
+	})
 
 // UI Selector
 var sf_mapviz = d3.select(".selector")
@@ -390,6 +382,8 @@ Promise.all(provinceData).then(function(data_1) {
 				.attr("cy", function(d) { return d.y; })
 				.attr("r", circle_rad)
 				.attr("data-provinceId", function(d) { return d.province_idx; })
+				.attr("data-year", function(d, i) { return qd_visible[i].dob; })
+				.attr("data-gender", function(d, i) { return qd_visible[i].gender; })
 				.style("stroke", "black")
 				.style("stroke-width", 0.1)
 				.style("fill", function(d, i) {
@@ -406,7 +400,54 @@ Promise.all(provinceData).then(function(data_1) {
 				.on("click", function(d, i) {
 					writePersonInfo(qd_visible[i]);
 				});
+				
+		// draw area chart
+		var areaValues = [];
+		for (y = minYear; y < maxYear; y++) {
+			var group = circles.filter(function(d) {
+				var el = d3.select(this).node();
+				return parseInt(el.dataset.year) == y;
+			});
+			var nom = group.filter(function(d) {
+				var el = d3.select(this).node();
+				return el.dataset.gender == "maschio";
+			}).size();
+			var nof = group.filter(function(d) {
+				var el = d3.select(this).node();
+				return el.dataset.gender == "femmina";
+			}).size();
+			areaValues.push({ year: y, m: nom, f: nof })
+		}
 		
+		var y = d3.scaleLinear()
+			.domain([0, d3.max(areaValues, function(d) {
+				return d.m > d.f ? d.m + 1 : d.f + 1;
+			})])
+			.range([scaleH, 0]);
+		
+		areaGraph.append("path")
+			.datum(areaValues)
+			.attr("fill", "rgba(0, 191, 255, 0.5)")
+			.attr("stroke", "rgba(0, 191, 255, 1)")
+			.attr("stroke-width", 1.5)
+			.attr("d", d3.area()
+				.x(function(d) { return x(d.year); })
+				.y0(y(0))
+				.y1(function(d) { return y(d.m); })
+			);
+			
+		areaGraph.append("path")
+			.datum(areaValues)
+			.attr("fill", "rgba(255, 20, 147, 0.5)")
+			.attr("stroke", "rgba(255, 20, 147, 1)")
+			.attr("stroke-width", 1.5)
+			.attr("d", d3.area()
+				.x(function(d) { return x(d.year); })
+				.y0(y(0))
+				.y1(function(d) { return y(d.f); })
+			);
+		
+		// anti-collision animation
 		worker.postMessage({
 			nodes: hm_points,
 			radius: circle_rad
@@ -454,14 +495,15 @@ Promise.all(provinceData).then(function(data_1) {
 			
 		// Associate event handlers to page elements
 		svg_map.call(d3.zoom().on("zoom", updateTransform)),
-		
-		slider.selectAll(".track-overlay")
-			.call(d3.drag()
-				.on("start.interrupt", function() { slider.interrupt(); })
-				.on("start drag", function() {
-					updateCursorPositions(x.invert(d3.event.x), qd_visible, htd);
-				})
-			),
+			
+		brush.on("start brush", function(d) { brushed(d3.event, qd_visible); })
+			.on("end", function(d) { brushended(d3.event, qd_visible); }),
+			
+		brushSelection.selectAll(".overlay")
+			.each(function(d) { d.type = "selection"; })
+			.on("mousedown touchstart", function(d) {
+				brushcentered(d3.mouse(this), qd_visible);
+			}),
 			
 		sf_mapviz.selectAll("input")
 			.on("change", function(d) {
@@ -619,19 +661,44 @@ function updateTransform() {
 	map.attr("transform", d3.event.transform);
 }
 
-function updateCursorPositions(v, elems, htd) {
-	// Update cursor position
-	var rangeVal = (((v % 1) <= 0.5) ? Math.floor(v) : Math.ceil(v));
-	var mouseCoord = x(rangeVal);
-	var pos_lx = +handle_lx.attr("cx");
-	var pos_rx = +handle_rx.attr("cx");
-	var mid = pos_lx + ((pos_rx - pos_lx) / 2);
-	if (mouseCoord <= mid) handle_lx.attr("cx", mouseCoord);
-	else handle_rx.attr("cx", mouseCoord);
-	
-	minYear = x.invert(+handle_lx.attr("cx"));
-	maxYear = x.invert(+handle_rx.attr("cx"));
+function getYearLimits(elems) {
+	var lx = +d3.select(".selection").attr("x"),
+		width = +d3.select(".selection").attr("width");
+	minYear = x.invert(lx);
+	maxYear = x.invert(lx + width);
 	
 	// Apply to points
 	updateVisualizedPoints(elems, true);
+}
+
+function brushcentered(mouseEvt, elems) {
+	var dx = x(1860) - x(1850),
+		cx = mouseEvt[0],
+		x0 = cx - dx / 2,
+		x1 = cx + dx / 2;
+	
+	brushSelection.call(brush.move, x1 > scaleW ? [scaleW - dx, scaleW] : x0 < 0 ? [0, dx] : [x0, x1]);
+	
+	getYearLimits(elems);
+}
+
+function brushed(evt, elems) {
+	if (!evt.selection) return;
+	var extent = evt.selection.map(x.invert, x);
+	getYearLimits(elems);
+}
+
+function brushended(evt, elems) {
+	if (!evt.sourceEvent) return;
+	if (!evt.selection) return;
+	var d0 = evt.selection.map(x.invert),
+		d1 = d0.map(Math.round);
+		
+	if (d1[0] >= d1[1]) {
+		d1[0] = Math.floor(d0[0]);
+		d1[1] = d1[0] + 1;
+	}
+	
+	brushSelection.transition().call(brush.move, d1.map(x));
+	getYearLimits(elems);
 }
