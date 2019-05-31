@@ -204,6 +204,10 @@ ci.append("div")
 	.attr("class", "section")
 	.html("Articolo Wikipedia: ");
 	
+// Force simulation init
+var simulation = d3.forceSimulation()
+	.force("collision", d3.forceCollide().radius(circle_rad + 0.5));
+	
 // DATA LOAD PHASE
 // Timestamp test - BEGIN
 var startTime, endTime;
@@ -344,6 +348,8 @@ Promise.all(provinceData).then(function(data_1) {
 				}
 				
 				var dataPoint = {
+					origX: rec.coords.x,
+					origY: rec.coords.y,
 					x: rec.coords.x,
 					y: rec.coords.y,
 					value: 0.5,
@@ -354,8 +360,6 @@ Promise.all(provinceData).then(function(data_1) {
 		});
 		
 		// draw points
-		var container = document.querySelector(".map-box");
-		var worker = new Worker("worker.js");
 		
 		var circle_tip = d3.tip()
 			.attr("class", "d3-tip")
@@ -448,25 +452,14 @@ Promise.all(provinceData).then(function(data_1) {
 			);
 		
 		// anti-collision animation
-		worker.postMessage({
-			nodes: hm_points,
-			radius: circle_rad
-		});
-		
-		worker.onmessage = function(event) {
-			switch (event.data.type) {
-				case "progress": return updatePos(event.data);
-				case "end": return updatePos(event.data);
-			}
-		};
-		
-		function updatePos(data) {
-			var nodes = data.nodes;
-			
-			map.selectAll("circle")
-				.attr("cx", function(d, i) { return nodes[i].x; })
-				.attr("cy", function(d, i) { return nodes[i].y; });
-		}
+		simulation.nodes(hm_points)
+			.force("x", d3.forceX(function(d) { return d.origX; }))
+			.force("y", d3.forceY(function(d) { return d.origY; }))
+			.on("tick", function(d) {
+				map.selectAll("circle")
+					.attr("cx", function(d, i) { return hm_points[i].x; })
+					.attr("cy", function(d, i) { return hm_points[i].y; });
+			});
 		
 		/**
 		var heatmapInstance = h337.create({
@@ -596,7 +589,7 @@ function updateVisualizedPoints(elems, vizChanged) {
 		.filter(function(d) {
 			return d3.select(this).attr("display") == "block";
 		})
-		.attr("display", "none"),
+		.attr("display", "none");
 		
 	map.selectAll("circle")
 		.filter(function(d, i) {
@@ -611,14 +604,25 @@ function updateVisualizedPoints(elems, vizChanged) {
 	if (vizChanged) {
 		map.selectAll(".province")
 			.attr("data-male", 0)
-			.attr("data-female", 0),
+			.attr("data-female", 0);
 		
+		var nodePos = [];
+		var indexList = [];
 		map.selectAll("circle")
 			.filter(function(d, i) {
 				var el = elems[i];
 				if (occval == "0" || el.occupation.findIndex(checkOccupation) >= 0) {
 					if (el.dob >= minYear && el.dob <= maxYear) {
 						var circle = d3.select(this).node();
+						
+						var dataPoint = {
+							origX: el.coords.x,
+							origY: el.coords.y,
+							x: circle.cx,
+							y: circle.cy
+						};
+						nodePos.push(dataPoint);
+						indexList.push(i);
 						
 						var prov = document.getElementById(circle.dataset.provinceId);
 						if (el.gender == "maschio")
@@ -629,7 +633,20 @@ function updateVisualizedPoints(elems, vizChanged) {
 					}
 				}
 				return false;
-			}),
+			});
+			
+		simulation.nodes(nodePos)
+			.force("x", d3.forceX(function(d) { return d.origX; }))
+			.force("y", d3.forceY(function(d) { return d.origY; }))
+			.on("tick", function(d) {
+				map.selectAll("circle")
+					.attr("cx", function(d, i) {
+						if (indexList.includes(i)) return nodePos[i].x;
+					})
+					.attr("cy", function(d, i) {
+						if (indexList.includes(i)) return nodePos[i].y;
+					});
+			});
 		
 		map.selectAll(".province")
 			.style("fill", function(d, i) {
