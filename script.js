@@ -25,6 +25,10 @@ var projection = d3.geoMercator()
 var path = d3.geoPath()
 	.projection(projection);
 	
+var heatmapInstance = h337.create({
+	container: document.querySelector(".map-box")
+});
+	
 // Slider sector
 var viewBox_slide = {
 	x: 0,
@@ -35,6 +39,8 @@ var viewBox_slide = {
 
 var svg_sldr = d3.select(".slider-box")
 	.append("svg")
+		.attr("xmlns", "http://www.w3.org/2000/svg")
+		.attr("xmlns:xlink", "http://www.w3.org/1999/xlink")
 		.attr("preserveAspectRatio", "xMinYMin meet")
 		.attr("viewBox", viewBox_slide.x + " " + viewBox_slide.y + " " +
 						+ viewBox_slide.width + " " + viewBox_slide.height);
@@ -360,7 +366,6 @@ Promise.all(provinceData).then(function(data_1) {
 		});
 		
 		// draw points
-		
 		var circle_tip = d3.tip()
 			.attr("class", "d3-tip")
 			.html(function(d, i) {
@@ -461,16 +466,23 @@ Promise.all(provinceData).then(function(data_1) {
 					.attr("cy", function(d, i) { return hm_points[i].y; });
 			});
 		
-		/**
-		var heatmapInstance = h337.create({
-			container: document.querySelector(".heatmap-render")
-		});
-		
+		// heatmap draw
 		heatmapInstance.setData({
 			max: 100,
 			data: hm_points
 		});
-		 */
+		
+		var hmdata_url = heatmapInstance.getDataURL();
+		map.append("image")
+			.attr("class", "heatmap-image")
+			.attr("display", "none")
+			.attr("width", function(d) {
+				return d3.select(".heatmap-canvas").attr("width");
+			})
+			.attr("height", function(d) {
+				return d3.select(".heatmap-canvas").attr("height");
+			})
+			.attr("xlink:href", hmdata_url);
 		
 		// generate density by region
 		map.selectAll(".province")
@@ -601,6 +613,12 @@ function updateVisualizedPoints(elems, vizChanged) {
 		})
 		.attr("display", "block");
 		
+	map.selectAll("image")
+		.attr("display", function(d) {
+			if (vval == "heatmap") return "block";
+			else return "none";
+		});
+		
 	if (vizChanged) {
 		map.selectAll(".province")
 			.attr("data-male", 0)
@@ -611,42 +629,41 @@ function updateVisualizedPoints(elems, vizChanged) {
 		map.selectAll("circle")
 			.filter(function(d, i) {
 				var el = elems[i];
-				if (occval == "0" || el.occupation.findIndex(checkOccupation) >= 0) {
-					if (el.dob >= minYear && el.dob <= maxYear) {
-						var circle = d3.select(this).node();
-						
-						var dataPoint = {
-							origX: el.coords.x,
-							origY: el.coords.y,
-							x: circle.cx,
-							y: circle.cy
-						};
-						nodePos.push(dataPoint);
-						indexList.push(i);
-						
-						var prov = document.getElementById(circle.dataset.provinceId);
-						if (el.gender == "maschio")
-							prov.dataset.male++;
-						else if (el.gender == "femmina")
-							prov.dataset.female++;
-						return true;
+				if (gval == "all" || el.gender == gval) {
+					if (occval == "0" || el.occupation.findIndex(checkOccupation) >= 0) {
+						if (el.dob >= minYear && el.dob <= maxYear) {
+							var circle = d3.select(this).node();
+							
+							var dataPoint = {
+								origX: el.coords.x,
+								origY: el.coords.y,
+								x: el.coords.x,
+								y: el.coords.y,
+								value: 0.5
+							};
+							nodePos.push(dataPoint);
+							indexList.push(i);
+							
+							var prov = document.getElementById(circle.dataset.provinceId);
+							if (el.gender == "maschio")
+								prov.dataset.male++;
+							else if (el.gender == "femmina")
+								prov.dataset.female++;
+							return true;
+						}
 					}
 				}
 				return false;
 			});
 			
-		simulation.nodes(nodePos)
-			.force("x", d3.forceX(function(d) { return d.origX; }))
-			.force("y", d3.forceY(function(d) { return d.origY; }))
-			.on("tick", function(d) {
-				map.selectAll("circle")
-					.attr("cx", function(d, i) {
-						if (indexList.includes(i)) return nodePos[i].x;
-					})
-					.attr("cy", function(d, i) {
-						if (indexList.includes(i)) return nodePos[i].y;
-					});
-			});
+		heatmapInstance.setData({
+			max: 100,
+			data: nodePos
+		});
+		
+		var hmdata_url = heatmapInstance.getDataURL();
+		map.selectAll(".heatmap-image")
+			.attr("xlink:href", hmdata_url);
 		
 		map.selectAll(".province")
 			.style("fill", function(d, i) {

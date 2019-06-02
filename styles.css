@@ -30,6 +30,15 @@ div#content {
 	stroke-width: 0.5;
 }
 
+.heatmap-canvas {
+	display: none;
+}
+
+.heatmap-image {
+	pointer-events: none;
+	opacity: 0.7;
+}
+
 /* Metadata */
 .d3-tip {
 	line-height: 1;
