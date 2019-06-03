@@ -637,6 +637,7 @@ function updateVisualizedPoints(elems, vizChanged) {
 							var dataPoint = {
 								origX: el.coords.x,
 								origY: el.coords.y,
+								idx: i,
 								x: el.coords.x,
 								y: el.coords.y,
 								value: 0.5
@@ -664,6 +665,22 @@ function updateVisualizedPoints(elems, vizChanged) {
 		var hmdata_url = heatmapInstance.getDataURL();
 		map.selectAll(".heatmap-image")
 			.attr("xlink:href", hmdata_url);
+
+		// TODO: reanimate points...
+		simulation.nodes(nodePos)
+			.force("x", d3.forceX(function(d) { return d.origX; }))
+			.force("y", d3.forceY(function(d) { return d.origY; }))
+			.on("tick", function(d) {
+				map.selectAll("circle")
+					.attr("cx", function(d, i) {
+									var currIdx = indexList.findIndex(val => val == i);
+									if (currIdx >= 0) return nodePos[currIdx].x;
+								})
+					.attr("cy", function(d, i) {
+									var currIdx = indexList.findIndex(val => val == i);
+									if (currIdx >= 0) return nodePos[currIdx].y;
+								});
+			});
 		
 		map.selectAll(".province")
 			.style("fill", function(d, i) {
