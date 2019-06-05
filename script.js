@@ -65,8 +65,24 @@ var slider = svg_sldr.append("g")
 var areaGraph = slider.append("g");
 	
 var brushSelection = slider.append("g")
+	.attr("class", "brush")
 	.call(brush)
 	.call(brush.move, [minYear, maxYear].map(x));
+	
+var brushHandle = brushSelection.selectAll(".handle--custom")
+	.data([{type: "w"}, {type: "e"}])
+	.enter().append("rect")
+		.attr("class", "handle--custom")
+		.attr("fill", "red")
+		.attr("cursor", "ew-resize")
+		.attr("x", function(d) {
+			if (d.type == "w")
+				return (parseInt(d3.select(".handle--w").attr("x")) + 2.5);
+			else return (parseInt(d3.select(".handle--e").attr("x")) + 1);
+		})
+		.attr("y", 25)
+		.attr("width", 3)
+		.attr("height", 20);
 	
 slider.append("g")
 	.attr("class", "x axis")
@@ -80,7 +96,7 @@ slider.append("g")
 d3.selectAll("g.x.axis g.tick line")
 	.attr("y2", function(d) {
 		return (d % 10 == 0) ? 6 : (d % 10 == 5) ? 4 : 2;
-	})
+	});
 
 // UI Selector
 var sf_mapviz = d3.select(".selector")
@@ -212,7 +228,7 @@ ci.append("div")
 	
 // Force simulation init
 var simulation = d3.forceSimulation()
-	.force("collision", d3.forceCollide().radius(circle_rad + 0.5));
+	.force("collision", d3.forceCollide().radius(circle_rad + 0.2));
 	
 // DATA LOAD PHASE
 // Timestamp test - BEGIN
@@ -667,6 +683,7 @@ function updateVisualizedPoints(elems, vizChanged) {
 			.attr("xlink:href", hmdata_url);
 
 		// TODO: reanimate points...
+		simulation.stop();
 		simulation.nodes(nodePos)
 			.force("x", d3.forceX(function(d) { return d.origX; }))
 			.force("y", d3.forceY(function(d) { return d.origY; }))
@@ -681,6 +698,7 @@ function updateVisualizedPoints(elems, vizChanged) {
 									if (currIdx >= 0) return nodePos[currIdx].y;
 								});
 			});
+		simulation.alphaTarget(.03).restart();
 		
 		map.selectAll(".province")
 			.style("fill", function(d, i) {
@@ -728,7 +746,14 @@ function brushcentered(mouseEvt, elems) {
 		x0 = cx - dx / 2,
 		x1 = cx + dx / 2;
 	
-	brushSelection.call(brush.move, x1 > scaleW ? [scaleW - dx, scaleW] : x0 < 0 ? [0, dx] : [x0, x1]);
+	brushHandle.attr("x", function(d) {
+		if (d.type == "w")
+			return (parseInt(d3.select(".handle--w").attr("x")) + 2.5);
+		else return (parseInt(d3.select(".handle--e").attr("x")) + 1);
+	});
+	brushSelection.call(
+		brush.move, x1 > scaleW ? [scaleW - dx, scaleW] : x0 < 0 ? [0, dx] : [x0, x1]
+	);
 	
 	getYearLimits(elems);
 }
@@ -736,6 +761,11 @@ function brushcentered(mouseEvt, elems) {
 function brushed(evt, elems) {
 	if (!evt.selection) return;
 	var extent = evt.selection.map(x.invert, x);
+	brushHandle.attr("x", function(d) {
+		if (d.type == "w")
+			return (parseInt(d3.select(".handle--w").attr("x")) + 2.5);
+		else return (parseInt(d3.select(".handle--e").attr("x")) + 1);
+	});
 	getYearLimits(elems);
 }
 
@@ -750,6 +780,11 @@ function brushended(evt, elems) {
 		d1[1] = d1[0] + 1;
 	}
 	
+	brushHandle.attr("x", function(d) {
+		if (d.type == "w")
+			return (parseInt(d3.select(".handle--w").attr("x")) + 2.5);
+		else return (parseInt(d3.select(".handle--e").attr("x")) + 1);
+	});
 	brushSelection.transition().call(brush.move, d1.map(x));
 	getYearLimits(elems);
 }
