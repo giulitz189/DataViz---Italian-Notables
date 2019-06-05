@@ -71,7 +71,7 @@ div#content {
 }
 
 /* Selector */
-.selector, .circleInfo {
+.selector, .circleInfo, .rangeInfo {
 	border-style: solid;
 	border-width: 2px;
 	border-radius: 8px;
@@ -84,6 +84,12 @@ div#content {
 }
 
 .circleInfo {
+	margin-top: 8px;
+	margin-bottom: 8px;
+	border-color: #ff0000;
+}
+
+.rangeInfo {
 	margin-top: 8px;
 	border-color: #ff0000;
 }

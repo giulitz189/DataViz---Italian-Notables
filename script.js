@@ -200,31 +200,41 @@ var ci = d3.select(".circleInfo");
 
 ci.append("div")
 	.attr("class", "section")
-	.html("Nome: ");
+	.html("<b>Nome:</b> ");
 	
 ci.append("div")
 	.attr("class", "section")
-	.html("Sesso: ");
+	.html("<b>Sesso:</b> ");
 	
 ci.append("div")
 	.attr("class", "section")
-	.html("Occupazioni: ");
+	.html("<b>Occupazioni:</b> ");
 	
 ci.append("div")
 	.attr("class", "section")
-	.html("Anno di nascita: ");
+	.html("<b>Anno di nascita:</b> ");
 	
 ci.append("div")
 	.attr("class", "section")
-	.html("Anno di morte: ");
+	.html("<b>Anno di morte:</b> ");
 	
 ci.append("div")
 	.attr("class", "section")
-	.html("Luogo di nascita: ");
+	.html("<b>Luogo di nascita:</b> ");
 	
 ci.append("div")
 	.attr("class", "section")
-	.html("Articolo Wikipedia: ");
+	.html("<b>Articolo Wikipedia:</b> ");
+	
+// Data range infobox
+var ri = d3.select(".rangeInfo");
+
+var ri_yearRange = ri.append("div")
+	.attr("class", "section")
+	.text("Intervallo nascite: dal " + minYear + " al " + maxYear);
+	
+var ri_pointQuantity = ri.append("div")
+	.attr("class", "section");
 	
 // Force simulation init
 var simulation = d3.forceSimulation()
@@ -426,6 +436,15 @@ Promise.all(provinceData).then(function(data_1) {
 					writePersonInfo(qd_visible[i]);
 				});
 				
+		var nom = circles.filter(function(d, i) {
+			return qd_visible[i].gender == "maschio";
+		}).size();
+		var nof = circles.filter(function(d, i) {
+			return qd_visible[i].gender == "femmina";
+		}).size();
+		ri_pointQuantity.text(circles.size() + " persone visualizzate, " +
+								"di cui " + nom + " uomini e " + nof + " donne");
+				
 		// draw area chart
 		var areaValues = [];
 		for (y = minYear; y < maxYear; y++) {
@@ -577,13 +596,13 @@ function writePersonInfo(data) {
 		.html(function(d, i) {
 			switch (i) {
 				case 0:
-					return "Nome: " + data.name;
+					return "<b>Nome:</b> " + data.name;
 					break;
 				case 1:
-					return "Sesso: " + data.gender;
+					return "<b>Sesso:</b> " + data.gender;
 					break;
 				case 2:
-					var str = "Occupazioni: ";
+					var str = "<b>Occupazioni:</b> ";
 					for (idx = 0; idx < data.occupation.length; idx++) {
 						if (idx == data.occupation.length - 1)
 							str += data.occupation[idx];
@@ -592,17 +611,17 @@ function writePersonInfo(data) {
 					return str;
 					break;
 				case 3:
-					return "Anno di nascita: " + data.dob;
+					return "<b>Anno di nascita:</b> " + data.dob;
 					break;
 				case 4:
 					if (data.dod == 0) return "Anno di morte: -";
-					else return "Anno di morte: " + data.dod;
+					else return "<b>Anno di morte:</b> " + data.dod;
 					break;
 				case 5:
-					return "Luogo di nascita: " + data.pob;
+					return "<b>Luogo di nascita:</b> " + data.pob;
 					break;
 				case 6:
-					return 'Articolo Wikipedia: <a href="' + data.article +
+					return '<b>Articolo Wikipedia:</b> <a href="' + data.article +
 							'" target="_blank">' + data.article + '</a>';
 			}
 		});
@@ -642,7 +661,7 @@ function updateVisualizedPoints(elems, vizChanged) {
 		
 		var nodePos = [];
 		var indexList = [];
-		map.selectAll("circle")
+		var selected = map.selectAll("circle")
 			.filter(function(d, i) {
 				var el = elems[i];
 				if (gval == "all" || el.gender == gval) {
@@ -672,6 +691,17 @@ function updateVisualizedPoints(elems, vizChanged) {
 				}
 				return false;
 			});
+			
+		var nom = selected.filter(function(d, i) {
+			var idx = nodePos[i].idx;
+			return elems[idx].gender == "maschio";
+		}).size();
+		var nof = selected.filter(function(d, i) {
+			var idx = nodePos[i].idx;
+			return elems[idx].gender == "femmina";
+		}).size();
+		ri_pointQuantity.text(selected.size() + " persone visualizzate, " +
+								"di cui " + nom + " uomini e " + nof + " donne");
 			
 		heatmapInstance.setData({
 			max: 100,
@@ -735,6 +765,8 @@ function getYearLimits(elems) {
 		width = +d3.select(".selection").attr("width");
 	minYear = x.invert(lx);
 	maxYear = x.invert(lx + width);
+	
+	ri_yearRange.text("Intervallo nascite: dal " + minYear + " al " + maxYear);
 	
 	// Apply to points
 	updateVisualizedPoints(elems, true);
