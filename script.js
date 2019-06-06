@@ -190,6 +190,41 @@ var opts = sf_occupation.append("form")
 opts.append("option")
 	.attr("value", "0")
 	.text("TUTTO");
+	
+var sf_circleRadius = d3.select(".selector")
+	.append("div")
+		.attr("class", "section")
+		.text("Raggio dei punti:")
+	.append("div")
+		.attr("class", "radius-slider");
+		
+var radOpts = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
+		
+var sliderHandle = d3.sliderBottom()
+	.min(d3.min(radOpts))
+	.max(d3.max(radOpts))
+	.width(160)
+	.tickFormat(d3.format(".1"))
+	.ticks(10)
+	.default(0.5)
+	.handle(
+		d3.symbol()
+			.type(d3.symbolCircle)
+			.size(100)()
+	)
+	.on("onchange", val => {
+		circle_rad = val;
+		d3.selectAll(".person").attr("r", circle_rad);
+	});
+	
+var rs_container = d3.select(".radius-slider")
+	.append("svg")
+		.attr("width", "200")
+		.attr("height", "50")
+	.append("g")
+		.attr("transform", "translate(20, 10)");
+		
+rs_container.call(sliderHandle);
 
 var vval = "dotmap";
 var gval = "all";
@@ -412,6 +447,7 @@ Promise.all(provinceData).then(function(data_1) {
 			.data(hm_points)
 			.enter()
 			.append("circle")
+				.attr("class", "person")
 				.attr("display", "block")
 				.attr("cx", function(d) { return d.x; })
 				.attr("cy", function(d) { return d.y; })
