@@ -1,0 +1,817 @@
+{
+	"categories": [
+		{
+			"category": "Figure Sportive",
+			"classes": [
+				{
+					"jobClass": "Calciatore",
+					"subclasses": [
+						"calciatore"
+					]
+				},
+				{
+					"jobClass": "Allenatore",
+					"subclasses": [
+						"allenatore",
+						"allenatore di cavalli",
+						"allenatore di calcio",
+						"personal trainer",
+						"allenatore di baseball",
+						"commissario tecnico",
+						"capo-allenatore",
+						"allenatore di pallacanestro",
+						"allenatore di hockey su ghiaccio",
+						"allenatore assistente",
+						"allenatore di tennis",
+						"allenatore di pallamano",
+						"allenatore di rugby a 15",
+						"allenatore di pattinaggio su ghiaccio",
+						"allenatore di rugby a 13",
+						"allenatore di scacchi",
+						"allenatore di atletica leggera",
+						"allenatore di pallavolo",
+						"allenatore di canottaggio",
+						"allenatore di pugilato",
+						"allenatore di calcio a 5"
+					]
+				},
+				{
+					"jobClass": "Pilota",
+					"subclasses": [
+						"pilota",
+						"pilota motociclistico",
+						"pilota di rally",
+						"pilota automobilistico",
+						"pilota di Formula 1"
+					]
+				},
+				{
+					"jobClass": "Ciclista",
+					"subclasses": [
+						"ciclocrossista",
+						"mountain biker",
+						"ciclista su strada",
+						"ciclista",
+						"ciclista su pista"
+					]
+				},
+				{
+					"jobClass": "Tennista",
+					"subclasses": [
+						"tennista"
+					]
+				},
+				{
+					"jobClass": "Arbitro",
+					"subclasses": [
+						"arbitro",
+						"arbitro di calcio",
+						"gyōji",
+						"arbitro di pallamano",
+						"arbitro di hockey su ghiaccio",
+						"arbitro di baseball",
+						"video assistant referee",
+						"arbitro di cricket",
+						"arbitro di pallacanestro",
+						"arbitro di scacchi",
+						"arbitro di pugilato",
+						"arbitro di rugby a 15",
+						"arbitro di pallavolo",
+						"arbitro di rugby a 13",
+						"giudice di atletica leggera",
+						"arbitro di pallanuoto"
+					]
+				},
+				{
+					"jobClass": "Sciatore",
+					"subclasses": [
+						"sciatore alpino",
+						"sciatore",
+						"sciatore nautico",
+						"saltatore con gli sci",
+						"combinatista nordico",
+						"fondista",
+						"biatleta",
+						"sciatore freestyle",
+						"sciatore di pattuglia militare"
+					]
+				}
+			]
+		},
+		{
+			"category": "Artisti",
+			"classes": [
+				{
+					"jobClass": "Cantante",
+					"subclasses": [
+						"cantore al liuto",
+						"tenore",
+						"soprano",
+						"cantante",
+						"cantore",
+						"cantautore",
+						"bertsolari",
+						"aedo",
+						"chazzan",
+						"crooner",
+						"dengbej",
+						"trobairitz",
+						"Khananda",
+						"yodeler",
+						"beatboxer",
+						"cantante pop",
+						"cantante lirico"
+					]
+				},
+				{
+					"jobClass": "Attore",
+					"subclasses": [
+						"attore",
+						"attore pornografico",
+						"seiyu",
+						"comparsa",
+						"mimo",
+						"attore caratterista",
+						"attore bambino",
+						"imitatore",
+						"attore non protagonista",
+						"cantante da musical",
+						"junior Idol",
+						"attore teatrale",
+						"attore televisivo",
+						"doppiatore",
+						"onnagata",
+						"burattinaio",
+						"Cabarettista",
+						"owarai tarento"
+					]
+				},
+				{
+					"jobClass": "Compositore",
+					"subclasses": [
+						"compositore",
+						"produttore discografico",
+						"cantautore",
+						"compositore di canzoni",
+						"trobairitz",
+						"cantore al liuto",
+						"innografo",
+						"compositore classico",
+						"compositore d'opera",
+						"compositore di musical"
+					]
+				},
+				{
+					"jobClass": "Regista",
+					"subclasses": [
+						"direttore creativo",
+						"direttore del doppiaggio",
+						"Coordinazione della produzione",
+						"direttore artistico",
+						"regista televisivo",
+						"regista di video musicali",
+						"Direttore dello sceneggiato",
+						"regista teatrale",
+						"regista",
+						"intendente",
+						"montatore",
+						"regista di anime",
+						"regista di film pornografici"
+					]
+				},
+				{
+					"jobClass": "Direttore d'Orchestra",
+					"subclasses": [
+						"direttore d'orchestra",
+						"bandleader",
+						"direttore di coro"
+					]
+				},
+				{
+					"jobClass": "Architetto",
+					"subclasses": [
+						"architetto",
+						"designer d'interni",
+						"architetto del paesaggio"
+					]
+				},
+				{
+					"jobClass": "Stilista",
+					"subclasses": [
+						"stilista",
+						"stilista d'alta moda"
+					]
+				},
+				{
+					"jobClass": "Fumettista",
+					"subclasses": [
+						"mangaka",
+						"letterista",
+						"scrittore di fumetti",
+						"fumettista",
+						"gensakusha",
+						"colorista",
+						"inchiostratore"
+					]
+				},
+				{
+					"jobClass": "Pittore",
+					"subclasses": [
+						"miniatore",
+						"pittore",
+						"yōga",
+						"pittore ritrattista",
+						"ceramografo",
+						"pittore di vasi a figure nere",
+						"pittore di vasi a figure rosse",
+						"pittore di animali",
+						"pittori vascolari greci",
+						"pittore vascolare attico"
+					]
+				},
+				{
+					"jobClass": "Fotografo",
+					"subclasses": [
+						"fotografo",
+						"paparazzo",
+						"fotoreporter",
+						"fotografo di scena",
+						"fotografo pubblicitario",
+						"fotografo di guerra"
+					]
+				}
+			]
+		},
+		{
+			"category": "Istituzioni",
+			"classes": [
+				{
+					"jobClass": "Politico",
+					"subclasses": [
+						"logoteta",
+						"statista",
+						"politico",
+						"oratore",
+						"assistente parlamentare",
+						"lealista",
+						"capitoul",
+						"intendant",
+						"legislatore",
+						"sindaco",
+						"re filosofo",
+						"Sindaco",
+						"deputato",
+						"Kaptein",
+						"tetrarca"
+					]
+				},
+				{
+					"jobClass": "Figura Religiosa",
+					"subclasses": [
+						"missionario",
+						"monaco",
+						"predicatore",
+						"frate",
+						"monaco buddhista",
+						"cappellano militare",
+						"parroco",
+						"direttore spirituale",
+						"frate converso",
+						"ieromonaco",
+						"lettore",
+						"ministro di culto",
+						"ierodiacono",
+						"Padre cappuccino",
+						"sacerdote",
+						"sacerdotessa",
+						"confessore",
+						"miko",
+						"cellario",
+						"suddiacono",
+						"chazzan",
+						"capitoul",
+						"intendant",
+						"diacono",
+						"daoshi",
+						"elemosiniere",
+						"sommo sacerdote",
+						"abate commendatario",
+						"prelato",
+						"sacrestano",
+						"vicario episcopale",
+						"sacerdote ortodosso",
+						"egumeno",
+						"sacerdote diocesano",
+						"ordinario",
+						"curato",
+						"padre"
+					]
+				},
+				{
+					"jobClass": "Militare",
+					"subclasses": [
+						"militare",
+						"ufficiale",
+						"tiratore scelto",
+						"asso dell'aviazione",
+						"soldato di carriera",
+						"ricognitore",
+						"pilota da caccia",
+						"paracadutista militare",
+						"siniscalco",
+						"zappatore",
+						"condottiero",
+						"filibusta",
+						"conquistatore",
+						"infermiere militare",
+						"scolta di notte",
+						"ufficiale di marina",
+						"aviatore di marina statunitense",
+						"marineoffizier",
+						"capitano di ventura",
+						"primo ufficiale di coperta"
+					]
+				},
+				{
+					"jobClass": "Giudice",
+					"subclasses": [
+						"giudice",
+						"difensore civico",
+						"qadi"
+					]
+				},
+				{
+					"jobClass": "Agente Diplomatico",
+					"subclasses": [
+						"agente diplomatico"
+					]
+				}
+			]
+		},
+		{
+			"category": "Umanistica",
+			"classes": [
+				{
+					"jobClass": "Scrittore",
+					"subclasses": [
+						"sceneggiatore",
+						"scrittore",
+						"poeta",
+						"scrittore di discorsi",
+						"traduttore",
+						"scrittrice",
+						"compositore di canzoni",
+						"biografo",
+						"medico scrittore",
+						"ghostwriter",
+						"aedo",
+						"paroliere",
+						"cantore al liuto",
+						"cronista",
+						"scrittore di viaggio",
+						"aforista",
+						"scrittore di fumetti",
+						"autore di haiku",
+						"prosatore",
+						"aedo",
+						"technical writer",
+						"trobairitz",
+						"dialoghista",
+						"favolista",
+						"script doctor",
+						"scaldo",
+						"poeta giurista",
+						"innografo",
+						"scrittore di racconti",
+						"scrittore di scienza",
+						"tragediografo",
+						"poeta ditirambico",
+						"scrittore religioso",
+						"traduttore giurato",
+						"epigrammatista",
+						"scrittore per ragazzi",
+						"Compilatore",
+						"cantautore",
+						"critico",
+						"enciclopedista",
+						"gensakusha",
+						"romanziere",
+						"critico letterario",
+						"recensore",
+						"critico musicale",
+						"critico culinario",
+						"critico d'arte",
+						"scrittore di saggistica",
+						"scrittore di fantascienza",
+						"librettista",
+						"scrittore di light novel",
+						"memorialista",
+						"agiografo",
+						"saggista",
+						"commediografo",
+						"critico teatrale",
+						"critico dell'architettura",
+						"blogger",
+						"bibliografo",
+						"epigrafista",
+						"critico di fumetti"
+					]
+				},
+				{
+					"jobClass": "Giornalista",
+					"subclasses": [
+						"inviato",
+						"paparazzo",
+						"corrispondente di guerra",
+						"fotoreporter",
+						"telecronista di calcio",
+						"giornalista",
+						"corrispondente",
+						"critico musicale",
+						"telecronista sportivo",
+						"fumettista editoriale",
+						"giornalista pubblicista",
+						"giornalista professionista",
+						"fotografo di guerra",
+						"giornalista sportivo",
+						"giornalista di scacchi",
+						"editorialista",
+						"giornalista scientifico",
+						"giornalista musicale",
+						"giornalista televisivo"
+					]
+				},
+				{
+					"jobClass": "Filosofo",
+					"subclasses": [
+						"intellettuale",
+						"re filosofo",
+						"filosofo",
+						"logico",
+						"epistemologo",
+						"teorico politico",
+						"fenomenologo",
+						"filosofo della scienza",
+						"semiologo",
+						"metafisico",
+						"esistenzialista",
+						"filosofo della politica",
+						"filosofo del linguaggio"
+					]
+				}
+			]
+		},
+		{
+			"category": "Scienza e Tecnologia",
+			"classes": [
+				{
+					"jobClass": "Biologo",
+					"subclasses": [
+						"zoologo",
+						"biologo",
+						"farmacologo",
+						"botanico",
+						"ornitologo",
+						"fisiologo",
+						"micologo",
+						"biochimico",
+						"entomologo",
+						"esobiologo",
+						"genetista",
+						"lepidotterista",
+						"neurologo",
+						"fitopatologo",
+						"microbiologo",
+						"ittiologo",
+						"biofisico",
+						"virologo",
+						"neuroscienziato",
+						"algologo",
+						"cetologo",
+						"batteriologo",
+						"neuropatologo",
+						"primatologo",
+						"mammologo",
+						"etologo",
+						"malariologo",
+						"bioinformatico",
+						"biologo marino",
+						"neurochirurgo",
+						"acarologo",
+						"neuropsichiatra",
+						"neurobiologo",
+						"parassitologo",
+						"aracnologo",
+						"geobotanico",
+						"immunologo",
+						"neurogenetista",
+						"biologo cellulare",
+						"lichenologo",
+						"idrobiologo",
+						"elmintologo",
+						"concologo",
+						"biologo ambientale",
+						"etnobotanico",
+						"agrostologo",
+						"dendrologo",
+						"fitogeografo",
+						"paleobiologo",
+						"biologo evoluzionista",
+						"biologo teorico",
+						"erpetologo",
+						"malacologo",
+						"embriologo",
+						"briologo"
+					]
+				},
+				{
+					"jobClass": "Fisico",
+					"subclasses": [
+						"fisico",
+						"fisico teorico",
+						"biofisico",
+						"cristallografo",
+						"climatologo",
+						"fisico medico",
+						"meccanico",
+						"sismologo",
+						"geofisico",
+						"fisico nucleare",
+						"fisicochimico"
+					]
+				},
+				{
+					"jobClass": "Economista",
+					"subclasses": [
+						"economista"
+					]
+				},
+				{
+					"jobClass": "Matematico",
+					"subclasses": [
+						"matematico",
+						"attuario",
+						"calcolatore prodigio",
+						"scienziato dei dati",
+						"crittanalista",
+						"statistico",
+						"bioinformatico",
+						"scienziato computazionale",
+						"logico",
+						"crittografo",
+						"crittologo",
+						"topologo"
+					]
+				},
+				{
+					"jobClass": "Chimico",
+					"subclasses": [
+						"chimico",
+						"biochimico",
+						"tossicologo",
+						"analista chimico",
+						"cristallografo",
+						"geochimico",
+						"fisicochimico"
+					]
+				},
+				{
+					"jobClass": "Medico",
+					"subclasses": [
+						"anestesista-rianimatore",
+						"veterinario",
+						"psichiatra",
+						"chirurgo",
+						"neurologo",
+						"pediatra",
+						"farmacologo",
+						"sessuologo",
+						"dermatologo",
+						"medico dello sport",
+						"geriatra",
+						"ginecologo",
+						"psicoterapeuta medico",
+						"medico di bordo",
+						"medico scrittore",
+						"igienista",
+						"medico competente",
+						"psicoterapeuta",
+						"ematologo",
+						"specialità medica",
+						"patologo",
+						"podoiatra",
+						"tossicologo",
+						"endocrinologo",
+						"psichiatra forense",
+						"narcologista",
+						"medico di famiglia",
+						"anatomista",
+						"istologo",
+						"cardiologo",
+						"psicoanalista",
+						"anatomopatologo",
+						"fitopatologo",
+						"infettivologo",
+						"oculista",
+						"venereologo",
+						"neuropsichiatra",
+						"chirurgo ortopedico",
+						"oncologo",
+						"patologo forense",
+						"embriologo",
+						"ostetrico",
+						"neuropatologo",
+						"internista",
+						"chirurgo plastico",
+						"glaucomatologo",
+						"reumatologo",
+						"neurochirurgo",
+						"psicoterapeuta comportamentale",
+						"ipnoterapista",
+						"medico legale",
+						"urologo",
+						"neonatologo",
+						"andrologo",
+						"nefrologo",
+						"ostetrico ginecologo",
+						"dietologo",
+						"traumatologo",
+						"radiologo",
+						"otorinolaringoiatra",
+						"gastroenterologo",
+						"cardiochirurgo"
+					]
+				},
+				{
+					"jobClass": "Astronomo",
+					"subclasses": [
+						"astronomo",
+						"astrofisico",
+						"cosmologo",
+						"esobiologo",
+						"archeoastronomo",
+						"planetologo",
+						"selenografo"
+					]
+				},
+				{
+					"jobClass": "Inventore",
+					"subclasses": [
+						"inventore",
+						"glottoteta",
+						"autore di giochi"
+					]
+				},
+				{
+					"jobClass": "Ingegnere",
+					"subclasses": [
+						"ingegnere",
+						"ingegnere del suono",
+						"inventore",
+						"tecnico di volo",
+						"ingegnere finanziario",
+						"ingegnere elettrico",
+						"architetto del software",
+						"ingegnere dei sistemi",
+						"ingegnere idraulico",
+						"ingegnere del software",
+						"ingegnero energetico",
+						"ingegnere meccanico",
+						"ingegnere industriale",
+						"ingegnere strutturale",
+						"ingegnere della sicurezza",
+						"ingegnere cimico",
+						"ingegnere della conoscenza",
+						"ingegnere delle telecomunicazioni",
+						"ingegnere civile",
+						"ingegnere aerospaziale",
+						"tecnologo",
+						"ingegnere minerario",
+						"ingegnere agrario",
+						"Progettista",
+						"webmaster",
+						"sviluppatore software",
+						"sistemista",
+						"Tecnologo in tecnologie fisiche innovative",
+						"progettista",
+						"programmatore",
+						"web developer"
+					]
+				}
+			]
+		},
+		{
+			"category": "Figure Pubbliche",
+			"classes": [
+				{
+					"jobClass": "Modello",
+					"subclasses": [
+						"ombrellina",
+						"top model",
+						"modella promozionale",
+						"junior Idol",
+						"modella di nudo",
+						"fotomodello",
+						"modello"
+					]
+				},
+				{
+					"jobClass": "Attivista Sociale",
+					"subclasses": [
+						"benefattore"
+					]
+				},
+				{
+					"jobClass": "Criminale",
+					"subclasses": [
+						"signore della droga",
+						"spacciatore",
+						"filibusta"
+					]
+				}
+			]
+		},
+		{
+			"category": "Business",
+			"classes": [
+				{
+					"jobClass": "Produttore",
+					"subclasses": [
+						"produttore discografico",
+						"produttore televisivo",
+						"game director",
+						"discografico",
+						"produttore radiofonico",
+						"producer",
+						"produttore",
+						"produttore di film pornografici"
+					]
+				},
+				{
+					"jobClass": "Affarista",
+					"subclasses": [
+						"affarista",
+						"imprenditore",
+						"intermediario",
+						"mercante d'arte",
+						"mercante",
+						"mediatore marittimo",
+						"agente letterario",
+						"broker assicurativo",
+						"general contractor",
+						"gioielliere",
+						"tesoriere",
+						"armatore",
+						"agente immobiliare",
+						"commerciante di francobolli",
+						"agente di commercio",
+						"banchiere",
+						"investitore",
+						"allibratore",
+						"magnate",
+						"agente di cambio",
+						"milionario",
+						"magnate dell'informazione",
+						"trader",
+						"procuratore sportivo",
+						"project manager",
+						"proprietario terriero",
+						"direttore d'albergo",
+						"ingegnere finanziario",
+						"talent scout",
+						"analista finanziario",
+						"stock broker",
+						"industriale",
+						"negoziante",
+						"produttore",
+						"imprenditore edile",
+						"produttore discografico",
+						"antiquario",
+						"coureur des bois",
+						"venditore",
+						"discografico",
+						"produttore radiofonico",
+						"trader",
+						"commesso",
+						"producer",
+						"venditore ambulante",
+						"produttore di film pornografici"
+					]
+				}
+			]
+		},
+		{
+			"category": "Esplorazione",
+			"classes": [
+				{
+					"jobClass": "Astronauta",
+					"subclasses": [
+						"astronauta",
+						"commander",
+						"pilota del modulo lunare"
+					]
+				}
+			]
+		}
+	]
+}

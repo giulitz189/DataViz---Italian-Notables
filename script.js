@@ -99,98 +99,6 @@ d3.selectAll("g.x.axis g.tick line")
 	});
 
 // UI Selector
-var sf_mapviz = d3.select(".selector")
-	.append("div")
-		.attr("class", "section")
-		.text("Tipo visualizzazione:")
-	.append("div")
-		.attr("class", "switch-field");
-		
-sf_mapviz.append("input")
-	.attr("type", "radio")
-	.attr("id", "dotmap-btn")
-	.attr("name", "mapviz")
-	.attr("value", "dotmap")
-	.property("checked", true),
-	
-sf_mapviz.append("label")
-	.attr("for", "dotmap-btn")
-	.text("A punti"),
-	
-sf_mapviz.append("input")
-	.attr("type", "radio")
-	.attr("id", "density-btn")
-	.attr("name", "mapviz")
-	.attr("value", "density"),
-	
-sf_mapviz.append("label")
-	.attr("for", "density-btn")
-	.text("Densità");
-	
-sf_mapviz.append("input")
-	.attr("type", "radio")
-	.attr("id", "heatmap-btn")
-	.attr("name", "mapviz")
-	.attr("value", "heatmap"),
-	
-sf_mapviz.append("label")
-	.attr("for", "heatmap-btn")
-	.text("Heatmap");
-
-var sf_gender = d3.select(".selector")
-	.append("div")
-		.attr("class", "section")
-		.text("Sesso:")
-	.append("div")
-		.attr("class", "switch-field");
-		
-sf_gender.append("input")
-	.attr("type", "radio")
-	.attr("id", "male-btn")
-	.attr("name", "gender")
-	.attr("value", "maschio"),
-	
-sf_gender.append("label")
-	.attr("for", "male-btn")
-	.text("Uomini"),
-	
-sf_gender.append("input")
-	.attr("type", "radio")
-	.attr("id", "all-btn")
-	.attr("name", "gender")
-	.attr("value", "all")
-	.property("checked", true),
-	
-sf_gender.append("label")
-	.attr("for", "all-btn")
-	.text("Tutti"),
-	
-sf_gender.append("input")
-	.attr("type", "radio")
-	.attr("id", "female-btn")
-	.attr("name", "gender")
-	.attr("value", "femmina"),
-	
-sf_gender.append("label")
-	.attr("for", "female-btn")
-	.text("Donne");
-	
-var sf_occupation = d3.select(".selector")
-	.append("div")
-		.attr("class", "section")
-		.text("Occupazione:")
-	.append("div")
-		.attr("class", "selectbox");
-		
-var opts = sf_occupation.append("form")
-	.append("select")
-		.attr("id", "occ-select")
-		.attr("name", "occupations");
-		
-opts.append("option")
-	.attr("value", "0")
-	.text("TUTTO");
-	
 var sf_circleRadius = d3.select(".selector")
 	.append("div")
 		.attr("class", "section")
@@ -403,17 +311,6 @@ Promise.all(provinceData).then(function(data_1) {
 					elem.dataset.female++;
 				qd_visible.push(rec);
 				
-				for (i = 0; i < rec.occupation.length; i++) {
-					var check = opts.selectAll("option").filter(function(d) {
-						return d3.select(this).text() == rec.occupation[i];
-					}).empty();
-					if (check) {
-						opts.append("option")
-							.attr("value", rec.occupation[i])
-							.text(rec.occupation[i]);
-					}
-				}
-				
 				var dataPoint = {
 					origX: rec.coords.x,
 					origY: rec.coords.y,
@@ -455,6 +352,11 @@ Promise.all(provinceData).then(function(data_1) {
 				.attr("data-provinceId", function(d) { return d.province_idx; })
 				.attr("data-year", function(d, i) { return qd_visible[i].dob; })
 				.attr("data-gender", function(d, i) { return qd_visible[i].gender; })
+				.attr("data-categories", function(d, i) {
+					var cat = qd_visible[i].professions.categories;
+					if (cat.length > 0) return JSON.stringify(cat);
+					else return '["other"]';
+				})
 				.style("stroke", "black")
 				.style("stroke-width", 0.1)
 				.style("fill", function(d, i) {
@@ -581,19 +483,21 @@ Promise.all(provinceData).then(function(data_1) {
 				brushcentered(d3.mouse(this), qd_visible);
 			}),
 			
-		sf_mapviz.selectAll("input")
+		d3.select("#visualization-type")
+			.selectAll("input")
 			.on("change", function(d) {
 				vval = this.value;
 				updateVisualizedPoints(qd_visible, false);
 			}),
 			
-		sf_gender.selectAll("input")
+		d3.select("#gender-sel")
+			.selectAll("input")
 			.on("change", function(d) {
 				gval = this.value;
 				updateVisualizedPoints(qd_visible, true);
 			});
 			
-		opts.on("change", function(d) {
+		d3.select("#occ-select").on("change", function(d) {
 			occval = this.value;
 			updateVisualizedPoints(qd_visible, true);
 		});
@@ -639,10 +543,10 @@ function writePersonInfo(data) {
 					break;
 				case 2:
 					var str = "<b>Occupazioni:</b> ";
-					for (idx = 0; idx < data.occupation.length; idx++) {
-						if (idx == data.occupation.length - 1)
-							str += data.occupation[idx];
-						else str += data.occupation[idx] + ", ";
+					for (idx = 0; idx < data.professions.occupations.length; idx++) {
+						if (idx == data.professions.occupations.length - 1)
+							str += data.professions.occupations[idx];
+						else str += data.professions.occupations[idx] + ", ";
 					}
 					return str;
 					break;
@@ -677,9 +581,12 @@ function updateVisualizedPoints(elems, vizChanged) {
 	map.selectAll("circle")
 		.filter(function(d, i) {
 			var el = elems[i];
-			if (vval == "dotmap" && (gval == "all" || el.gender == gval))
-				if (occval == "0" || el.occupation.findIndex(checkOccupation) >= 0)
+			if (vval == "dotmap" && (gval == "all" || el.gender == gval)) {
+				var cat = el.professions.categories;
+				if (occval == "0" || cat.findIndex(checkOccupation) >= 0 || (occval == "other" && cat.length == 0)) {
 					return el.dob >= minYear && el.dob <= maxYear;
+				}
+			}
 			return false;
 		})
 		.attr("display", "block");
@@ -701,7 +608,8 @@ function updateVisualizedPoints(elems, vizChanged) {
 			.filter(function(d, i) {
 				var el = elems[i];
 				if (gval == "all" || el.gender == gval) {
-					if (occval == "0" || el.occupation.findIndex(checkOccupation) >= 0) {
+					var cat = el.professions.categories;
+					if (occval == "0" || cat.findIndex(checkOccupation) >= 0 || (occval == "other" && cat.length == 0)) {
 						if (el.dob >= minYear && el.dob <= maxYear) {
 							var circle = d3.select(this).node();
 							

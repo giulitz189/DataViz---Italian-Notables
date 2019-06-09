@@ -66,87 +66,119 @@ var query_results = {
 	'results': []
 };
 
-Promise.all([living_data, dead_data]).then(function(data) {
-	var ld = data[0].results.bindings;
-	var dd = data[1].results.bindings;
+fs.readFile('professions.json', (err, data) => {
+	if (err) throw err;
+	var profs = JSON.parse(data);
 	
-	// generating points
-	console.log("Generating records...");
-	
-	var viewBox_map = {
-		x: 0,
-		y: 0,
-		width: 1000,
-		height: 500
-	};
-	
-	var projection = d3.geoMercator()
-		.translate([viewBox_map.width/2, viewBox_map.height/2])
-		.center([12, 42.1])
-		.scale(1950);
-	
-	var prev_name = '';
-	for (i = 0; i < ld.length; i++) {
-		if (ld[i].personaLabel.value != prev_name) {
-			var obj = {
-				'name': ld[i].personaLabel.value,
-				'gender': ld[i].genderLabel.value,
-				'occupation': [],
-				'dob': toInteger(ld[i].anno.value),
-				'dod': 0,
-				'pob': ld[i].pobLabel.value,
-				'coords': toPointObj(ld[i].coord.value, projection),
-				'article': ld[i].articolo.value
-			};
-			obj.occupation.push(ld[i].occupazioneLabel.value);
-			query_results.results.push(obj);
-			prev_name = ld[i].personaLabel.value;
-		} else {
-			var last = query_results.results.length - 1;
-			query_results.results[last]
-				.occupation.push(ld[i].occupazioneLabel.value);
+	Promise.all([living_data, dead_data]).then(function(data) {
+		var ld = data[0].results.bindings;
+		var dd = data[1].results.bindings;
+		
+		// generating points
+		console.log("Generating records...");
+		
+		var viewBox_map = {
+			x: 0,
+			y: 0,
+			width: 1000,
+			height: 500
+		};
+		
+		var projection = d3.geoMercator()
+			.translate([viewBox_map.width/2, viewBox_map.height/2])
+			.center([12, 42.1])
+			.scale(1950);
+		
+		var prev_name = '';
+		for (i = 0; i < ld.length; i++) {
+			var occs = ld[i].occupazioneLabel.value;
+			var categories = getCategories(occs, profs);
+			if (ld[i].personaLabel.value != prev_name) {
+				var professions = {
+					'categories': categories,
+					'occupations': []
+				};
+				var obj = {
+					'name': ld[i].personaLabel.value,
+					'gender': ld[i].genderLabel.value,
+					'professions': professions,
+					'dob': toInteger(ld[i].anno.value),
+					'dod': 0,
+					'pob': ld[i].pobLabel.value,
+					'coords': toPointObj(ld[i].coord.value, projection),
+					'article': ld[i].articolo.value
+				};
+
+				obj.professions.occupations.push(ld[i].occupazioneLabel.value);
+				query_results.results.push(obj);
+				prev_name = ld[i].personaLabel.value;
+			} else {
+				var last = query_results.results.length - 1;
+				var currCat = query_results.results[last].professions.categories;
+				for (j = 0; j < categories.length; j++) {
+					if (currCat.findIndex(val => val == categories[j]) < 0)
+						query_results.results[last].professions
+							.categories.push(categories[j]);
+				}
+				query_results.results[last].professions
+					.occupations.push(ld[i].occupazioneLabel.value);
+			}
 		}
-	}
-	
-	prev_name = '';
-	for (i = 0; i < dd.length; i++) {
-		if (dd[i].personaLabel.value != prev_name) {
-			var obj = {
-				'name': dd[i].personaLabel.value,
-				'gender': dd[i].genderLabel.value,
-				'occupation': [],
-				'dob': toInteger(dd[i].anno_nascita.value),
-				'dod': toInteger(dd[i].anno_morte.value),
-				'pob': dd[i].pobLabel.value,
-				'coords': toPointObj(dd[i].coord.value, projection),
-				'article': dd[i].articolo.value
-			};
-			obj.occupation.push(dd[i].occupazioneLabel.value);
-			query_results.results.push(obj);
-			prev_name = dd[i].personaLabel.value;
-		} else {
-			var last = query_results.results.length - 1;
-			query_results.results[last]
-				.occupation.push(dd[i].occupazioneLabel.value);
+		
+		prev_name = '';
+		for (i = 0; i < dd.length; i++) {
+			if (dd[i].personaLabel.value != prev_name) {
+				var occs = dd[i].occupazioneLabel.value;
+				var categories = getCategories(occs, profs);
+				
+				var professions = {
+					'categories': categories,
+					'occupations': []
+				};
+				var obj = {
+					'name': dd[i].personaLabel.value,
+					'gender': dd[i].genderLabel.value,
+					'professions': professions,
+					'dob': toInteger(dd[i].anno_nascita.value),
+					'dod': toInteger(dd[i].anno_morte.value),
+					'pob': dd[i].pobLabel.value,
+					'coords': toPointObj(dd[i].coord.value, projection),
+					'article': dd[i].articolo.value
+				};
+				
+				obj.professions.occupations.push(dd[i].occupazioneLabel.value);
+				query_results.results.push(obj);
+				prev_name = dd[i].personaLabel.value;
+			} else {
+				var last = query_results.results.length - 1;
+				var currCat = query_results.results[last].professions.categories;
+				for (j = 0; j < categories.length; j++) {
+					if (currCat.findIndex(val => val == categories[j]) < 0)
+						query_results.results[last].professions
+							.categories.push(categories[j]);
+				}
+				query_results.results[last].professions
+					.occupations.push(dd[i].occupazioneLabel.value);
+			}
 		}
-	}
-	
-	// sorting alphabetically by name
-	console.log("Sorting records by name...");
-	query_results.results.sort(function (a, b) {
-		a = a.name.toLowerCase();
-		b = b.name.toLowerCase();
-		return a < b ? -1 : a > b ? 1 : 0;
-	});
-	
-	// save on json file
-	console.log("Saving...");
-	var json_string = JSON.stringify(query_results);
-	fs.writeFile('query_results.json', json_string, function(err) {
-		if (err) throw err;
-		console.log('Data retrieved successfully!');
-	});
-}).catch(function(e) { console.log(e); });
+		
+		// sorting alphabetically by name
+		console.log("Sorting records by name...");
+		query_results.results.sort(function (a, b) {
+			a = a.name.toLowerCase();
+			b = b.name.toLowerCase();
+			return a < b ? -1 : a > b ? 1 : 0;
+		});
+		
+		// save on json file
+		console.log("Saving...");
+		var json_string = JSON.stringify(query_results);
+		fs.writeFile('query_results.json', json_string, function(err) {
+			if (err) throw err;
+			console.log('Data retrieved successfully!');
+		});
+	}).catch(function(e) { console.log(e); });
+});
 
 function toInteger(s) {
 	return +s;
@@ -160,4 +192,23 @@ function toPointObj(pt, projection) {
 	var y = +y_str[0];
 	var tp = projection([x, y]);
 	return { 'x': tp[0], 'y': tp[1] };
+}
+
+function getCategories(obj, profs) {
+	var cat = [],
+		found = false;
+	
+	for (var i = 0; i < profs.categories.length; i++) {
+		var currCat = profs.categories[i];
+		for (var j = 0; j < currCat.classes.length; j++) {
+			var currClass = currCat.classes[j];
+			var idx = currClass.subclasses.findIndex(occ => occ == obj);
+			if (idx >= 0) {
+				if (cat.findIndex(val => val == currClass.jobClass) < 0)
+					cat.push(currClass.jobClass);
+			}
+		}
+	}
+	
+	return cat;
 }
