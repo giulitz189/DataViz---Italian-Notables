@@ -20,8 +20,7 @@ class SPARQLQueryDispatcher {
 const endpointUrl = 'https://query.wikidata.org/sparql';
 
 const sq_living = 'SELECT DISTINCT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno) ?pobLabel ?coord ?articolo WHERE {\
-  ?persona wdt:P31 wd:Q5;\
-           wdt:P27 wd:Q38;\
+  ?persona wdt:P27 wd:Q38;\
            wdt:P1412 wd:Q652;\
            wdt:P21 ?gender;\
            wdt:P106 ?occupazione;\
@@ -37,8 +36,7 @@ const sq_living = 'SELECT DISTINCT ?personaLabel ?genderLabel ?occupazioneLabel 
 } ORDER BY ?personaLabel';
 
 const sq_dead = 'SELECT DISTINCT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno_nascita) (YEAR(?dod) AS ?anno_morte) ?pobLabel ?coord ?articolo WHERE {\
-  ?persona wdt:P31 wd:Q5;\
-           wdt:P27 wd:Q38;\
+  ?persona wdt:P27 wd:Q38;\
            wdt:P1412 wd:Q652;\
            wdt:P21 ?gender;\
            wdt:P106 ?occupazione;\

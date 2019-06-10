@@ -611,7 +611,7 @@ function updateVisualizedPoints(elems, vizChanged) {
 					var cat = el.professions.categories;
 					if (occval == "0" || cat.findIndex(checkOccupation) >= 0 || (occval == "other" && cat.length == 0)) {
 						if (el.dob >= minYear && el.dob <= maxYear) {
-							var circle = d3.select(this).node();
+							var circle = d3.select(this);
 							
 							var dataPoint = {
 								origX: el.coords.x,
@@ -624,7 +624,8 @@ function updateVisualizedPoints(elems, vizChanged) {
 							nodePos.push(dataPoint);
 							indexList.push(i);
 							
-							var prov = document.getElementById(circle.dataset.provinceId);
+							var provId = circle.attr("data-provinceId");
+							var prov = document.querySelector("[id='" + provId + "']");
 							if (el.gender == "maschio")
 								prov.dataset.male++;
 							else if (el.gender == "femmina")
