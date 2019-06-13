@@ -301,8 +301,10 @@ Promise.all(provinceData).then(function(data_1) {
 		// heatmap initialization
 		var hm_points = [];
 		var qd_visible = [];
+		var birthplace_qt = [];
 		
-		qd.forEach((rec) => {
+		for (var i = 0, len = qd.length; i < len; i++) {
+			var rec = qd[i];
 			var elem = svgNodeFromCoordinates(rec.coords.x, rec.coords.y);
 			if (elem != null && elem.classList[0] == "province") {
 				if (rec.gender == "maschio")
@@ -316,12 +318,21 @@ Promise.all(provinceData).then(function(data_1) {
 					origY: rec.coords.y,
 					x: rec.coords.x,
 					y: rec.coords.y,
-					value: 0.5,
+					value: 1,
 					province_idx: elem.id
 				};
 				hm_points.push(dataPoint);
+				
+				var bp_idx = birthplace_qt.findIndex(v => v.place == rec.pob);
+				if (bp_idx < 0) {
+					var bp_record = {
+						place: rec.pob,
+						quantity: 1
+					};
+					birthplace_qt.push(bp_record);
+				} else birthplace_qt[bp_idx].quantity++;
 			}
-		});
+		}
 		
 		// draw points
 		var circle_tip = d3.tip()
@@ -429,19 +440,10 @@ Promise.all(provinceData).then(function(data_1) {
 				.y1(function(d) { return y(d.f); })
 			);
 		
-		// anti-collision animation
-		simulation.nodes(hm_points)
-			.force("x", d3.forceX(function(d) { return d.origX; }))
-			.force("y", d3.forceY(function(d) { return d.origY; }))
-			.on("tick", function(d) {
-				map.selectAll("circle")
-					.attr("cx", function(d, i) { return hm_points[i].x; })
-					.attr("cy", function(d, i) { return hm_points[i].y; });
-			});
-		
 		// heatmap draw
+		var bp_max = Math.max.apply(Math, birthplace_qt.map(o => o.quantity));
 		heatmapInstance.setData({
-			max: 100,
+			max: bp_max,
 			data: hm_points
 		});
 		
@@ -456,6 +458,16 @@ Promise.all(provinceData).then(function(data_1) {
 				return d3.select(".heatmap-canvas").attr("height");
 			})
 			.attr("xlink:href", hmdata_url);
+			
+		// anti-collision animation
+		simulation.nodes(hm_points)
+			.force("x", d3.forceX(function(d) { return d.origX; }))
+			.force("y", d3.forceY(function(d) { return d.origY; }))
+			.on("tick", function(d) {
+				map.selectAll("circle")
+					.attr("cx", function(d, i) { return hm_points[i].x; })
+					.attr("cy", function(d, i) { return hm_points[i].y; });
+			});
 		
 		// generate density by region
 		map.selectAll(".province")
@@ -470,7 +482,7 @@ Promise.all(provinceData).then(function(data_1) {
 				var v = Math.floor(100 - (25000 * (total / pop)));
 				return "hsl(" + h + ", 100%, " + v + "%)";
 			});
-			
+		
 		// Associate event handlers to page elements
 		svg_map.call(d3.zoom().on("zoom", updateTransform)),
 			
@@ -577,19 +589,26 @@ function updateVisualizedPoints(elems, vizChanged) {
 			return d3.select(this).attr("display") == "block";
 		})
 		.attr("display", "none");
-		
-	map.selectAll("circle")
+	
+	var indexList = [];
+	var selected = map.selectAll("circle")
 		.filter(function(d, i) {
 			var el = elems[i];
-			if (vval == "dotmap" && (gval == "all" || el.gender == gval)) {
+			if (gval == "all" || el.gender == gval) {
 				var cat = el.professions.categories;
 				if (occval == "0" || cat.findIndex(checkOccupation) >= 0 || (occval == "other" && cat.length == 0)) {
-					return el.dob >= minYear && el.dob <= maxYear;
+					if (el.dob >= minYear && el.dob <= maxYear) {
+						indexList.push(i);
+						return true;
+					}
 				}
 			}
 			return false;
 		})
-		.attr("display", "block");
+		.attr("display", function(d) {
+			if (vval == "dotmap") return "block";
+			else return "none";
+		});
 		
 	map.selectAll("image")
 		.attr("display", function(d) {
@@ -603,53 +622,61 @@ function updateVisualizedPoints(elems, vizChanged) {
 			.attr("data-female", 0);
 		
 		var nodePos = [];
-		var indexList = [];
-		var selected = map.selectAll("circle")
-			.filter(function(d, i) {
-				var el = elems[i];
-				if (gval == "all" || el.gender == gval) {
-					var cat = el.professions.categories;
-					if (occval == "0" || cat.findIndex(checkOccupation) >= 0 || (occval == "other" && cat.length == 0)) {
-						if (el.dob >= minYear && el.dob <= maxYear) {
-							var circle = d3.select(this);
-							
-							var dataPoint = {
-								origX: el.coords.x,
-								origY: el.coords.y,
-								idx: i,
-								x: el.coords.x,
-								y: el.coords.y,
-								value: 0.5
-							};
-							nodePos.push(dataPoint);
-							indexList.push(i);
-							
-							var provId = circle.attr("data-provinceId");
-							var prov = document.querySelector("[id='" + provId + "']");
-							if (el.gender == "maschio")
-								prov.dataset.male++;
-							else if (el.gender == "femmina")
-								prov.dataset.female++;
-							return true;
-						}
-					}
-				}
-				return false;
-			});
+		var birthplace_qt = [];
+		
+		for (var i = 0, len = indexList.length; i < len; i++) {
+			var il_idx = indexList[i];
+			var el = elems[il_idx];
 			
+			var dataPoint = {
+				origX: el.coords.x,
+				origY: el.coords.y,
+				idx: il_idx,
+				x: el.coords.x,
+				y: el.coords.y,
+				value: 1
+			};
+			nodePos.push(dataPoint);
+			
+			var bp_idx = birthplace_qt.findIndex(v => v.place == el.pob);
+			if (bp_idx < 0) {
+				var bp_record = {
+					place: el.pob,
+					quantity: 1
+				};
+				birthplace_qt.push(bp_record);
+			} else birthplace_qt[bp_idx].quantity++;
+		}
+		
+		selected.each(function(d) {
+			var provId = d3.select(this).attr("data-provinceId");
+			var prov = document.querySelector("[id='" + provId + "']");
+			if (el.gender == "maschio")
+				prov.dataset.male++;
+			else if (el.gender == "femmina")
+				prov.dataset.female++;
+		});
+	
+		var nos = selected.size();
 		var nom = selected.filter(function(d, i) {
-			var idx = nodePos[i].idx;
-			return elems[idx].gender == "maschio";
+			if (i < indexList.length) {
+				var idx = indexList[i];
+				return elems[idx].gender == "maschio";
+			}
 		}).size();
 		var nof = selected.filter(function(d, i) {
-			var idx = nodePos[i].idx;
-			return elems[idx].gender == "femmina";
+			if (i < indexList.length) {
+				var idx = indexList[i];
+				return elems[idx].gender == "femmina";
+			}
 		}).size();
-		ri_pointQuantity.text(selected.size() + " persone visualizzate, " +
+		
+		ri_pointQuantity.text(nos + " persone visualizzate, " +
 								"di cui " + nom + " uomini e " + nof + " donne");
-			
+		
+		var bp_max = Math.max.apply(Math, birthplace_qt.map(o => o.quantity));
 		heatmapInstance.setData({
-			max: 100,
+			max: bp_max,
 			data: nodePos
 		});
 		
@@ -657,7 +684,6 @@ function updateVisualizedPoints(elems, vizChanged) {
 		map.selectAll(".heatmap-image")
 			.attr("xlink:href", hmdata_url);
 
-		// TODO: reanimate points...
 		simulation.stop();
 		simulation.nodes(nodePos)
 			.force("x", d3.forceX(function(d) { return d.origX; }))
