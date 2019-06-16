@@ -318,7 +318,6 @@ Promise.all(provinceData).then(function(data_1) {
 					origY: rec.coords.y,
 					x: rec.coords.x,
 					y: rec.coords.y,
-					value: 1,
 					province_idx: elem.id
 				};
 				hm_points.push(dataPoint);
@@ -327,10 +326,12 @@ Promise.all(provinceData).then(function(data_1) {
 				if (bp_idx < 0) {
 					var bp_record = {
 						place: rec.pob,
-						quantity: 1
+						x: rec.coords.x,
+						y: rec.coords.y,
+						value: 1
 					};
 					birthplace_qt.push(bp_record);
-				} else birthplace_qt[bp_idx].quantity++;
+				} else birthplace_qt[bp_idx].value++;
 			}
 		}
 		
@@ -393,58 +394,15 @@ Promise.all(provinceData).then(function(data_1) {
 		}).size();
 		ri_pointQuantity.text(circles.size() + " persone visualizzate, " +
 								"di cui " + nom + " uomini e " + nof + " donne");
-				
-		// draw area chart
-		var areaValues = [];
-		for (y = minYear; y < maxYear; y++) {
-			var group = circles.filter(function(d) {
-				var el = d3.select(this).node();
-				return parseInt(el.dataset.year) == y;
-			});
-			var nom = group.filter(function(d) {
-				var el = d3.select(this).node();
-				return el.dataset.gender == "maschio";
-			}).size();
-			var nof = group.filter(function(d) {
-				var el = d3.select(this).node();
-				return el.dataset.gender == "femmina";
-			}).size();
-			areaValues.push({ year: y, m: nom, f: nof })
-		}
 		
-		var y = d3.scaleLinear()
-			.domain([0, d3.max(areaValues, function(d) {
-				return d.m > d.f ? d.m + 1 : d.f + 1;
-			})])
-			.range([scaleH, 0]);
-		
-		areaGraph.append("path")
-			.datum(areaValues)
-			.attr("fill", "rgba(0, 191, 255, 0.5)")
-			.attr("stroke", "rgba(0, 191, 255, 1)")
-			.attr("stroke-width", 1.5)
-			.attr("d", d3.area()
-				.x(function(d) { return x(d.year); })
-				.y0(y(0))
-				.y1(function(d) { return y(d.m); })
-			);
-			
-		areaGraph.append("path")
-			.datum(areaValues)
-			.attr("fill", "rgba(255, 20, 147, 0.5)")
-			.attr("stroke", "rgba(255, 20, 147, 1)")
-			.attr("stroke-width", 1.5)
-			.attr("d", d3.area()
-				.x(function(d) { return x(d.year); })
-				.y0(y(0))
-				.y1(function(d) { return y(d.f); })
-			);
+		drawAreaChart(qd_visible);
 		
 		// heatmap draw
-		var bp_max = Math.max.apply(Math, birthplace_qt.map(o => o.quantity));
+		var bp_max = Math.max.apply(Math, birthplace_qt.map(o => o.value));
 		heatmapInstance.setData({
 			max: bp_max,
-			data: hm_points
+			min: 0,
+			data: birthplace_qt
 		});
 		
 		var hmdata_url = heatmapInstance.getDataURL();
@@ -579,6 +537,69 @@ function writePersonInfo(data) {
 		});
 }
 
+function drawAreaChart(elems) {
+	var areaValues = [];
+	var nowYear = new Date().getFullYear()
+	for (i = 1850; i < nowYear; i++) {
+		var nom = elems.filter(el => {
+			if (el.gender == "maschio" && el.dob == i) {
+				var cat = el.professions.categories;
+				return occval == "0" || cat.findIndex(checkOccupation) >= 0 ||
+						(occval == "other" && cat.length == 0);
+			}
+		}).length;
+		var nof = elems.filter(el => {
+			if (el.gender == "femmina" && el.dob == i) {
+				var cat = el.professions.categories;
+				return occval == "0" || cat.findIndex(checkOccupation) >= 0 ||
+						(occval == "other" && cat.length == 0);
+			}
+		}).length;
+		areaValues.push({ year: i, m: nom, f: nof });
+	}
+	
+	var y_max = d3.max(areaValues, function(d) {
+			return d.m > d.f ? d.m + 1 : d.f + 1;
+		});
+	var y = d3.scaleLinear()
+		.domain([0, y_max])
+		.range([scaleH, 0]);
+		
+	slider.select(".y-axis").remove();
+		
+	slider.append("g")
+		.attr("class", "y-axis")
+		.call(d3.axisLeft(y)
+				.ticks(Math.floor(y_max / 50) + 1));
+				
+	areaGraph.select(".male-graph").remove();
+	areaGraph.select(".female-graph").remove();
+	
+	areaGraph.append("path")
+		.datum(areaValues)
+		.attr("class", "male-graph")
+		.attr("fill", "rgba(0, 191, 255, 0.5)")
+		.attr("stroke", "rgba(0, 191, 255, 1)")
+		.attr("stroke-width", 1.5)
+		.attr("d", d3.area()
+			.x(function(d) { return x(d.year); })
+			.y0(y(0))
+			.y1(function(d) { return y(d.m); })
+		);
+		
+	areaGraph.append("path")
+		.datum(areaValues)
+		.attr("class", "female-graph")
+		.attr("fill", "rgba(255, 20, 147, 0.5)")
+		.attr("stroke", "rgba(255, 20, 147, 1)")
+		.attr("stroke-width", 1.5)
+		.attr("d", d3.area()
+			.x(function(d) { return x(d.year); })
+			.y0(y(0))
+			.y1(function(d) { return y(d.f); })
+		);
+}
+
 function checkOccupation(occ) {
 	return occ == occval;
 }
@@ -633,8 +654,7 @@ function updateVisualizedPoints(elems, vizChanged) {
 				origY: el.coords.y,
 				idx: il_idx,
 				x: el.coords.x,
-				y: el.coords.y,
-				value: 1
+				y: el.coords.y
 			};
 			nodePos.push(dataPoint);
 			
@@ -642,10 +662,12 @@ function updateVisualizedPoints(elems, vizChanged) {
 			if (bp_idx < 0) {
 				var bp_record = {
 					place: el.pob,
-					quantity: 1
+					x: el.coords.x,
+					y: el.coords.y,
+					value: 1
 				};
 				birthplace_qt.push(bp_record);
-			} else birthplace_qt[bp_idx].quantity++;
+			} else birthplace_qt[bp_idx].value++;
 		}
 		
 		selected.each(function(d) {
@@ -673,11 +695,14 @@ function updateVisualizedPoints(elems, vizChanged) {
 		
 		ri_pointQuantity.text(nos + " persone visualizzate, " +
 								"di cui " + nom + " uomini e " + nof + " donne");
+								
+		drawAreaChart(elems);
 		
-		var bp_max = Math.max.apply(Math, birthplace_qt.map(o => o.quantity));
+		var bp_max = Math.max.apply(Math, birthplace_qt.map(o => o.value));
 		heatmapInstance.setData({
 			max: bp_max,
-			data: nodePos
+			min: 0,
+			data: birthplace_qt
 		});
 		
 		var hmdata_url = heatmapInstance.getDataURL();
