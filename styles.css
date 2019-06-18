@@ -9,7 +9,7 @@ div#controls {
 }
 
 div#content {
-	margin-right: 14em;
+	margin-right: 29.5em;
 }
 
 /* Map */
@@ -71,7 +71,7 @@ div#content {
 }
 
 /* Selector */
-.selector, .circleInfo, .rangeInfo {
+.selector, .circleInfo, .rangeInfo, div#occ-select-grid {
 	border-style: solid;
 	border-width: 2px;
 	border-radius: 8px;
@@ -92,6 +92,15 @@ div#content {
 .rangeInfo {
 	margin-top: 8px;
 	border-color: #ff0000;
+}
+
+div#occ-select-grid {
+	float: right;
+	width: 14.1em;
+	height: 100%;
+	margin-right: 0.5em;
+	border-color: #00cccc;
+	word-wrap: break-word;
 }
 
 .section {
