@@ -97,6 +97,8 @@ d3.selectAll("g.x.axis g.tick line")
 	.attr("y2", function(d) {
 		return (d % 10 == 0) ? 6 : (d % 10 == 5) ? 4 : 2;
 	});
+	
+var rangeChanged = false;
 
 // UI Selector
 var sf_circleRadius = d3.select(".selector")
@@ -440,6 +442,7 @@ Promise.all(provinceData).then(function(data_1) {
 					})
 					.attr("data-male", 0)
 					.attr("data-female", 0)
+					.attr("data-total_notables", 0)
 					.on("mouseover", map_tip.show)
 					.on("mouseout", map_tip.hide);
 		}
@@ -453,6 +456,7 @@ Promise.all(provinceData).then(function(data_1) {
 			var rec = qd[i];
 			var elem = svgNodeFromCoordinates(rec.coords.x, rec.coords.y);
 			if (elem != null && elem.classList[0] == "province") {
+				elem.dataset.total_notables++;
 				if (rec.gender == "maschio")
 					elem.dataset.male++;
 				else if (rec.gender == "femmina")
@@ -649,12 +653,12 @@ Promise.all(provinceData).then(function(data_1) {
 				var prov = d3.select(this).node();
 				var m = parseInt(prov.dataset.male);
 				var f = parseInt(prov.dataset.female);
-				var pop = parseInt(prov.dataset.population);
+				var tn = parseInt(prov.dataset.total_notables);
 				
 				var total = m + f;
-				var h = 240 + (60 * (f / total));
-				var v = Math.floor(100 - (25000 * (total / pop)));
-				return "hsl(" + h + ", 100%, " + v + "%)";
+				var h = 240 + Math.ceil(60 * (f / total));
+				var v = 100 - Math.ceil(30 * (total / tn));
+				return "hsla(" + h + ", 100%, " + v + "%, 0.5)";
 			});
 		
 		// Associate event handlers to page elements
@@ -841,6 +845,23 @@ function updateVisualizedPoints(elems, vizChanged) {
 			return d3.select(this).attr("display") == "block";
 		})
 		.attr("display", "none");
+		
+	if (rangeChanged) {
+		map.selectAll(".province")
+			.attr("data-total_notables", 0);
+			
+		map.selectAll("circle")
+			.each(function (d, i) {
+				var el = elems[i];
+				if (el.dob >= minYear && el.dob <= maxYear) {
+					var provId = d3.select(this).attr("data-provinceId");
+					var prov = document.querySelector("[id='" + provId + "']");
+					prov.dataset.total_notables++;
+				}
+			})
+		
+		rangeChanged = false;
+	}
 	
 	var indexList = [];
 	var selected = map.selectAll("circle")
@@ -909,11 +930,12 @@ function updateVisualizedPoints(elems, vizChanged) {
 		}
 		
 		selected.each(function(d) {
-			var provId = d3.select(this).attr("data-provinceId");
+			var el = d3.select(this);
+			var provId = el.attr("data-provinceId");
 			var prov = document.querySelector("[id='" + provId + "']");
-			if (el.gender == "maschio")
+			if (el.attr("data-gender") == "maschio")
 				prov.dataset.male++;
-			else if (el.gender == "femmina")
+			else if (el.attr("data-gender") == "femmina")
 				prov.dataset.female++;
 		});
 	
@@ -954,13 +976,13 @@ function updateVisualizedPoints(elems, vizChanged) {
 			.on("tick", function(d) {
 				map.selectAll("circle")
 					.attr("cx", function(d, i) {
-									var currIdx = indexList.findIndex(val => val == i);
-									if (currIdx >= 0) return nodePos[currIdx].x;
-								})
+						var currIdx = indexList.findIndex(val => val == i);
+						if (currIdx >= 0) return nodePos[currIdx].x;
+					})
 					.attr("cy", function(d, i) {
-									var currIdx = indexList.findIndex(val => val == i);
-									if (currIdx >= 0) return nodePos[currIdx].y;
-								});
+						var currIdx = indexList.findIndex(val => val == i);
+						if (currIdx >= 0) return nodePos[currIdx].y;
+					});
 			});
 		simulation.alphaTarget(.03).restart();
 		
@@ -969,21 +991,21 @@ function updateVisualizedPoints(elems, vizChanged) {
 				var prov = d3.select(this).node();
 				var m = parseInt(prov.dataset.male);
 				var f = parseInt(prov.dataset.female);
-				var pop = parseInt(prov.dataset.population);
+				var tn = parseInt(prov.dataset.total_notables);
 				
 				var total = m + f;
 				var h = 240 + (60 * (f / total));
-				var v = Math.floor(100 - (25000 * (total / pop)));
+				var v = 100 - Math.ceil(30 * (total / tn));
 				switch (gval) {
 					case "maschio":
-						v = Math.floor(100 - (25000 * (m / pop)));
-						return "hsl(240, 100%, " + v + "%)";
+						v = 100 - Math.ceil(30 * (m / tn));
+						return "hsla(240, 100%, " + v + "%, 0.5)";
 						break;
 					case "femmina":
-						v = Math.floor(100 - (25000 * (f / pop)));
-						return "hsl(300, 100%, " + v + "%)";
+						v = 100 - Math.ceil(30 * (f / tn));
+						return "hsla(300, 100%, " + v + "%, 0.5)";
 						break;
-					default: return "hsl(" + h + ", 100%, " + v + "%)";
+					default: return "hsla(" + h + ", 100%, " + v + "%, 0.5)";
 				}
 			});
 	}
@@ -1084,6 +1106,7 @@ function brushcentered(mouseEvt, elems) {
 		brush.move, x1 > scaleW ? [scaleW - dx, scaleW] : x0 < 0 ? [0, dx] : [x0, x1]
 	);
 	
+	rangeChanged = true;
 	getYearLimits(elems);
 }
 
@@ -1095,6 +1118,8 @@ function brushed(evt, elems) {
 			return (parseInt(d3.select(".handle--w").attr("x")) + 2.5);
 		else return (parseInt(d3.select(".handle--e").attr("x")) + 1);
 	});
+	
+	rangeChanged = true;
 	getYearLimits(elems);
 }
 
@@ -1115,6 +1140,8 @@ function brushended(evt, elems) {
 		else return (parseInt(d3.select(".handle--e").attr("x")) + 1);
 	});
 	brushSelection.transition().call(brush.move, d1.map(x));
+	
+	rangeChanged = true;
 	getYearLimits(elems);
 }
 
