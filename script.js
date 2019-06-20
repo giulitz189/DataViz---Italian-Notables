@@ -641,6 +641,9 @@ Promise.all(provinceData).then(function(data_1) {
 		simulation.nodes(hm_points)
 			.force("x", d3.forceX(function(d) { return d.origX; }))
 			.force("y", d3.forceY(function(d) { return d.origY; }))
+			.force("r", d3.forceRadial(0)
+							.x(function(d) { return d.origX; })
+							.y(function(d) { return d.origY; }))
 			.on("tick", function(d) {
 				map.selectAll("circle")
 					.attr("cx", function(d, i) { return hm_points[i].x; })
@@ -656,9 +659,11 @@ Promise.all(provinceData).then(function(data_1) {
 				var tn = parseInt(prov.dataset.total_notables);
 				
 				var total = m + f;
-				var h = 240 + Math.ceil(60 * (f / total));
-				var v = 100 - Math.ceil(30 * (total / tn));
-				return "hsla(" + h + ", 100%, " + v + "%, 0.5)";
+				if (tn > 0 && total > 0) {
+					var h = 240 + Math.floor(60 * (f / total));
+					var l = 100 - Math.ceil(30 * (total / tn));
+					return "hsla(" + h + ", 100%, " + l + "%, 0.5)";
+				} else return "#fff";
 			});
 		
 		// Associate event handlers to page elements
@@ -745,7 +750,7 @@ function writePersonInfo(data) {
 					return "<b>Anno di nascita:</b> " + data.dob;
 					break;
 				case 4:
-					if (data.dod == 0) return "Anno di morte: -";
+					if (data.dod == 0) return "<b>Anno di morte:</b> -";
 					else return "<b>Anno di morte:</b> " + data.dod;
 					break;
 				case 5:
@@ -973,6 +978,9 @@ function updateVisualizedPoints(elems, vizChanged) {
 		simulation.nodes(nodePos)
 			.force("x", d3.forceX(function(d) { return d.origX; }))
 			.force("y", d3.forceY(function(d) { return d.origY; }))
+			.force("r", d3.forceRadial(0)
+							.x(function(d) { return d.origX; })
+							.y(function(d) { return d.origY; }))
 			.on("tick", function(d) {
 				map.selectAll("circle")
 					.attr("cx", function(d, i) {
@@ -984,7 +992,7 @@ function updateVisualizedPoints(elems, vizChanged) {
 						if (currIdx >= 0) return nodePos[currIdx].y;
 					});
 			});
-		simulation.alphaTarget(.03).restart();
+		simulation.alpha(1).restart();
 		
 		map.selectAll(".province")
 			.style("fill", function(d, i) {
@@ -994,19 +1002,21 @@ function updateVisualizedPoints(elems, vizChanged) {
 				var tn = parseInt(prov.dataset.total_notables);
 				
 				var total = m + f;
-				var h = 240 + (60 * (f / total));
-				var v = 100 - Math.ceil(30 * (total / tn));
-				switch (gval) {
-					case "maschio":
-						v = 100 - Math.ceil(30 * (m / tn));
-						return "hsla(240, 100%, " + v + "%, 0.5)";
-						break;
-					case "femmina":
-						v = 100 - Math.ceil(30 * (f / tn));
-						return "hsla(300, 100%, " + v + "%, 0.5)";
-						break;
-					default: return "hsla(" + h + ", 100%, " + v + "%, 0.5)";
-				}
+				if (tn > 0 && total > 0) {
+					var h = 240 + Math.floor(60 * (f / total));
+					var l = 100 - Math.ceil(30 * (total / tn));
+					switch (gval) {
+						case "maschio":
+							l = 100 - Math.ceil(30 * (m / tn));
+							return "hsla(240, 100%, " + l + "%, 0.5)";
+							break;
+						case "femmina":
+							l = 100 - Math.ceil(30 * (f / tn));
+							return "hsla(300, 100%, " + l + "%, 0.5)";
+							break;
+						default: return "hsla(" + h + ", 100%, " + l + "%, 0.5)";
+					}
+				} else return "#fff";
 			});
 	}
 }
