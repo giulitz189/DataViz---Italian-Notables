@@ -277,7 +277,7 @@ var column = row.selectAll(".square")
 	.enter()
 	.append("g")
 		.attr("class", "cell")
-		.attr("data-rowId", function(d, i) { return d.row_idx; })
+		.attr("data-row-id", function(d, i) { return d.row_idx; })
 		.attr("data-type", function(d, i) {
 			switch (i) {
 				case 1: return "male-count";
@@ -581,7 +581,7 @@ Promise.all(provinceData).then(function(data_1) {
 				.attr("cx", function(d) { return d.x; })
 				.attr("cy", function(d) { return d.y; })
 				.attr("r", circle_rad)
-				.attr("data-provinceId", function(d) { return d.province_idx; })
+				.attr("data-province-id", function(d) { return d.province_idx; })
 				.attr("data-year", function(d, i) { return qd_visible[i].dob; })
 				.attr("data-gender", function(d, i) { return qd_visible[i].gender; })
 				.attr("data-categories", function(d, i) {
@@ -774,7 +774,7 @@ function drawAreaChart(elems) {
 					return true;
 				else {
 					for (var idx = 0; idx < cat.length; idx++) {
-						if (occGroupSelected.findIndex(v => v == cat[idx]) >= 0 && el.dob >= minYear && el.dob <= maxYear)
+						if (occGroupSelected.findIndex(v => v == cat[idx]) >= 0)
 							return true;
 					}
 				}
@@ -788,7 +788,7 @@ function drawAreaChart(elems) {
 					return true;
 				else {
 					for (var idx = 0; idx < cat.length; idx++) {
-						if (occGroupSelected.findIndex(v => v == cat[idx]) >= 0 && el.dob >= minYear && el.dob <= maxYear)
+						if (occGroupSelected.findIndex(v => v == cat[idx]) >= 0)
 							return true;
 					}
 				}
@@ -859,7 +859,7 @@ function updateVisualizedPoints(elems, vizChanged) {
 			.each(function (d, i) {
 				var el = elems[i];
 				if (el.dob >= minYear && el.dob <= maxYear) {
-					var provId = d3.select(this).attr("data-provinceId");
+					var provId = d3.select(this).attr("data-province-id");
 					var prov = document.querySelector("[id='" + provId + "']");
 					prov.dataset.total_notables++;
 				}
@@ -936,7 +936,7 @@ function updateVisualizedPoints(elems, vizChanged) {
 		
 		selected.each(function(d) {
 			var el = d3.select(this);
-			var provId = el.attr("data-provinceId");
+			var provId = el.attr("data-province-id");
 			var prov = document.querySelector("[id='" + provId + "']");
 			if (el.attr("data-gender") == "maschio")
 				prov.dataset.male++;
@@ -1162,7 +1162,7 @@ function gridSelection(rowId) {
 	occGroupSelected = [];
 	d3.selectAll(".cell")
 		.filter(function(d) {
-			var id = d3.select(this).attr("data-rowId");
+			var id = d3.select(this).attr("data-row-id");
 			return parseInt(id) == rowId;
 		})
 		.selectAll("rect")
@@ -1181,7 +1181,7 @@ function gridSelection(rowId) {
 			}
 			d3.selectAll(".cell")
 				.filter(function(d) {
-					var id = d3.select(this).attr("data-rowId");
+					var id = d3.select(this).attr("data-row-id");
 					return parseInt(id) > rowId && parseInt(id) < subId_last;
 				})
 				.selectAll("rect")
