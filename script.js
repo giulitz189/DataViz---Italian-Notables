@@ -108,24 +108,20 @@ var sf_circleRadius = d3.select(".selector")
 	.append("div")
 		.attr("class", "radius-slider");
 		
-var radOpts = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
+var radOpts = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
 		
 var sliderHandle = d3.sliderBottom()
 	.min(d3.min(radOpts))
 	.max(d3.max(radOpts))
 	.width(160)
 	.tickFormat(d3.format(".1"))
-	.ticks(10)
+	.ticks(9)
 	.default(0.5)
 	.handle(
 		d3.symbol()
 			.type(d3.symbolCircle)
 			.size(100)()
-	)
-	.on("onchange", val => {
-		circle_rad = val;
-		d3.selectAll(".person").attr("r", circle_rad);
-	});
+	);
 	
 var rs_container = d3.select(".radius-slider")
 	.append("svg")
@@ -133,8 +129,6 @@ var rs_container = d3.select(".radius-slider")
 		.attr("height", "50")
 	.append("g")
 		.attr("transform", "translate(20, 10)");
-		
-rs_container.call(sliderHandle);
 
 var vval = "dotmap";
 var gval = "all";
@@ -220,12 +214,9 @@ var occ_categories = [
 	{ name: "Chimico", type: "subcategory", m: 0, f: 0 },
 	{ name: "Medico", type: "subcategory", m: 0, f: 0 },
 	{ name: "Astronomo", type: "subcategory", m: 0, f: 0 },
-	{ name: "Inventore", type: "subcategory", m: 0, f: 0 },
 	{ name: "Ingegnere", type: "subcategory", m: 0, f: 0 },
 	{ name: "Figure Pubbliche", type: "category", m: 0, f: 0 },
 	{ name: "Modello", type: "subcategory", m: 0, f: 0 },
-	{ name: "Attivista Sociale", type: "subcategory", m: 0, f: 0 },
-	{ name: "Criminale", type: "subcategory", m: 0, f: 0 },
 	{ name: "Business", type: "category", m: 0, f: 0 },
 	{ name: "Produttore", type: "subcategory", m: 0, f: 0 },
 	{ name: "Affarista", type: "subcategory", m: 0, f: 0 },
@@ -328,8 +319,7 @@ d3.selectAll(".cell")
 var occGroupSelected = ["all"];
 	
 // Force simulation init
-var simulation = d3.forceSimulation()
-	.force("collision", d3.forceCollide().radius(circle_rad + 0.2));
+var simulation = d3.forceSimulation();
 	
 // DATA LOAD PHASE
 // Timestamp test - BEGIN
@@ -639,6 +629,7 @@ Promise.all(provinceData).then(function(data_1) {
 			
 		// anti-collision animation
 		simulation.nodes(hm_points)
+			.force("collision", d3.forceCollide().radius(circle_rad + 0.2))
 			.force("x", d3.forceX(function(d) { return d.origX; }))
 			.force("y", d3.forceY(function(d) { return d.origY; }))
 			.force("r", d3.forceRadial(0)
@@ -691,6 +682,13 @@ Promise.all(provinceData).then(function(data_1) {
 				gval = this.value;
 				updateVisualizedPoints(qd_visible, true);
 			});
+
+		sliderHandle.on("onchange", val => {
+				circle_rad = val;
+				d3.selectAll(".person").attr("r", circle_rad);
+				updateVisualizedPoints(qd_visible, true);
+			});
+		rs_container.call(sliderHandle);
 		
 		d3.selectAll(".row")
 			.on("click", function(d, i) {
@@ -976,6 +974,7 @@ function updateVisualizedPoints(elems, vizChanged) {
 
 		simulation.stop();
 		simulation.nodes(nodePos)
+			.force("collision", d3.forceCollide().radius(circle_rad + 0.2))
 			.force("x", d3.forceX(function(d) { return d.origX; }))
 			.force("y", d3.forceY(function(d) { return d.origY; }))
 			.force("r", d3.forceRadial(0)

@@ -655,14 +655,6 @@
 					]
 				},
 				{
-					"jobClass": "Inventore",
-					"subclasses": [
-						"inventore",
-						"glottoteta",
-						"autore di giochi"
-					]
-				},
-				{
 					"jobClass": "Ingegnere",
 					"subclasses": [
 						"ingegnere",
@@ -713,20 +705,6 @@
 						"modella di nudo",
 						"fotomodello",
 						"modello"
-					]
-				},
-				{
-					"jobClass": "Attivista Sociale",
-					"subclasses": [
-						"benefattore"
-					]
-				},
-				{
-					"jobClass": "Criminale",
-					"subclasses": [
-						"signore della droga",
-						"spacciatore",
-						"filibusta"
 					]
 				}
 			]
