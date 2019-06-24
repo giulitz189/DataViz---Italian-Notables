@@ -634,13 +634,14 @@ Promise.all(provinceData).then(function(data_1) {
 					writePersonInfo(qd_visible[i]);
 				});
 				
+		var nos = circles.size();
 		var nom = circles.filter(function(d, i) {
 			return qd_visible[i].gender == "maschio";
 		}).size();
 		var nof = circles.filter(function(d, i) {
 			return qd_visible[i].gender == "femmina";
 		}).size();
-		ri_pointQuantity.text(circles.size() + " persone visualizzate, " +
+		ri_pointQuantity.text(nos + " persone visualizzate, " +
 								"di cui " + nom + " uomini e " + nof + " donne");
 		
 		drawAreaChart(qd_visible);
@@ -685,13 +686,12 @@ Promise.all(provinceData).then(function(data_1) {
 				var prov = d3.select(this).node();
 				var m = parseInt(prov.dataset.male);
 				var f = parseInt(prov.dataset.female);
-				var tn = parseInt(prov.dataset.total_notables);
 				
 				var total = m + f;
-				if (tn > 0 && total > 0) {
+				if (nos > 0 && total > 0) {
 					var h = 240 + Math.floor(60 * (f / total));
-					var l = 100 - Math.ceil(30 * (total / tn));
-					return "hsla(" + h + ", 100%, " + l + "%, 0.5)";
+					var l = 90 - Math.ceil(50 * (total / nos));
+					return "hsla(" + h + ", 100%, " + l + "%, 0.8)";
 				} else return "#fff";
 			});
 		
@@ -937,125 +937,125 @@ function updateVisualizedPoints(elems, vizChanged) {
 			else return "none";
 		});
 		
-	if (vizChanged) {
-		map.selectAll(".province")
-			.attr("data-male", 0)
-			.attr("data-female", 0);
-		
-		var nodePos = [];
-		var birthplace_qt = [];
-		
-		for (var i = 0, len = indexList.length; i < len; i++) {
-			var il_idx = indexList[i];
-			var el = elems[il_idx];
-			
-			var dataPoint = {
-				origX: el.coords.x,
-				origY: el.coords.y,
-				idx: il_idx,
-				x: el.coords.x,
-				y: el.coords.y
-			};
-			nodePos.push(dataPoint);
-			
-			var bp_idx = birthplace_qt.findIndex(v => v.place == el.pob);
-			if (bp_idx < 0) {
-				var bp_record = {
-					place: el.pob,
-					x: el.coords.x,
-					y: el.coords.y,
-					value: 1
-				};
-				birthplace_qt.push(bp_record);
-			} else birthplace_qt[bp_idx].value++;
-		}
-		
-		selected.each(function(d) {
-			var el = d3.select(this);
-			var provId = el.attr("data-province-id");
-			var prov = document.querySelector("[id='" + provId + "']");
-			if (el.attr("data-gender") == "maschio")
-				prov.dataset.male++;
-			else if (el.attr("data-gender") == "femmina")
-				prov.dataset.female++;
-		});
+	map.selectAll(".province")
+		.attr("data-male", 0)
+		.attr("data-female", 0);
 	
-		var nos = selected.size();
-		var nom = selected.filter(function(d, i) {
-			if (i < indexList.length) {
-				var idx = indexList[i];
-				return elems[idx].gender == "maschio";
-			}
-		}).size();
-		var nof = selected.filter(function(d, i) {
-			if (i < indexList.length) {
-				var idx = indexList[i];
-				return elems[idx].gender == "femmina";
-			}
-		}).size();
+	var nodePos = [];
+	var birthplace_qt = [];
+	
+	for (var i = 0, len = indexList.length; i < len; i++) {
+		var il_idx = indexList[i];
+		var el = elems[il_idx];
 		
-		ri_pointQuantity.text(nos + " persone visualizzate, " +
-								"di cui " + nom + " uomini e " + nof + " donne");
+		var dataPoint = {
+			origX: el.coords.x,
+			origY: el.coords.y,
+			idx: il_idx,
+			x: el.coords.x,
+			y: el.coords.y
+		};
+		nodePos.push(dataPoint);
 		
-		drawAreaChart(elems);
-		
-		var bp_max = Math.max.apply(Math, birthplace_qt.map(o => o.value));
-		heatmapInstance.setData({
-			max: bp_max,
-			min: 0,
-			data: birthplace_qt
-		});
-		
-		var hmdata_url = heatmapInstance.getDataURL();
-		map.selectAll(".heatmap-image")
-			.attr("xlink:href", hmdata_url);
+		var bp_idx = birthplace_qt.findIndex(v => v.place == el.pob);
+		if (bp_idx < 0) {
+			var bp_record = {
+				place: el.pob,
+				x: el.coords.x,
+				y: el.coords.y,
+				value: 1
+			};
+			birthplace_qt.push(bp_record);
+		} else birthplace_qt[bp_idx].value++;
+	}
+	
+	selected.each(function(d) {
+		var el = d3.select(this);
+		var provId = el.attr("data-province-id");
+		var prov = document.querySelector("[id='" + provId + "']");
+		if (el.attr("data-gender") == "maschio")
+			prov.dataset.male++;
+		else if (el.attr("data-gender") == "femmina")
+			prov.dataset.female++;
+	});
 
-		simulation.stop();
-		simulation.nodes(nodePos)
-			.force("collision", d3.forceCollide().radius(circle_rad + 0.2))
-			.force("x", d3.forceX(function(d) { return d.origX; }))
-			.force("y", d3.forceY(function(d) { return d.origY; }))
-			.force("r", d3.forceRadial(0)
-							.x(function(d) { return d.origX; })
-							.y(function(d) { return d.origY; }))
-			.on("tick", function(d) {
-				map.selectAll("circle")
-					.attr("cx", function(d, i) {
-						var currIdx = indexList.findIndex(val => val == i);
-						if (currIdx >= 0) return nodePos[currIdx].x;
-					})
-					.attr("cy", function(d, i) {
-						var currIdx = indexList.findIndex(val => val == i);
-						if (currIdx >= 0) return nodePos[currIdx].y;
-					});
-			});
-		simulation.alpha(1).restart();
-		
-		map.selectAll(".province")
-			.style("fill", function(d, i) {
+	var nos = selected.size();
+	var nom = selected.filter(function(d, i) {
+		if (i < indexList.length) {
+			var idx = indexList[i];
+			return elems[idx].gender == "maschio";
+		}
+	}).size();
+	var nof = selected.filter(function(d, i) {
+		if (i < indexList.length) {
+			var idx = indexList[i];
+			return elems[idx].gender == "femmina";
+		}
+	}).size();
+	
+	ri_pointQuantity.text(nos + " persone visualizzate, " +
+							"di cui " + nom + " uomini e " + nof + " donne");
+	
+	drawAreaChart(elems);
+	
+	var bp_max = Math.max.apply(Math, birthplace_qt.map(o => o.value));
+	heatmapInstance.setData({
+		max: bp_max,
+		min: 0,
+		data: birthplace_qt
+	});
+	
+	var hmdata_url = heatmapInstance.getDataURL();
+	map.selectAll(".heatmap-image")
+		.attr("xlink:href", hmdata_url);
+
+	simulation.stop();
+	simulation.nodes(nodePos)
+		.force("collision", d3.forceCollide().radius(circle_rad + 0.2))
+		.force("x", d3.forceX(function(d) { return d.origX; }))
+		.force("y", d3.forceY(function(d) { return d.origY; }))
+		.force("r", d3.forceRadial(0)
+						.x(function(d) { return d.origX; })
+						.y(function(d) { return d.origY; }))
+		.on("tick", function(d) {
+			map.selectAll("circle")
+				.attr("cx", function(d, i) {
+					var currIdx = indexList.findIndex(val => val == i);
+					if (currIdx >= 0) return nodePos[currIdx].x;
+				})
+				.attr("cy", function(d, i) {
+					var currIdx = indexList.findIndex(val => val == i);
+					if (currIdx >= 0) return nodePos[currIdx].y;
+				});
+		});
+	simulation.alpha(1).restart();
+	
+	map.selectAll(".province")
+		.style("fill", function(d, i) {
+			if (vval != "heatmap") {
 				var prov = d3.select(this).node();
 				var m = parseInt(prov.dataset.male);
 				var f = parseInt(prov.dataset.female);
-				var tn = parseInt(prov.dataset.total_notables);
 				
 				var total = m + f;
-				if (tn > 0 && total > 0) {
+				if (nos > 0 && total > 0) {
 					var h = 240 + Math.floor(60 * (f / total));
-					var l = 100 - Math.ceil(30 * (total / tn));
+					var l = 90 - Math.ceil(50 * (total / nos));
 					switch (gval) {
 						case "maschio":
-							l = 100 - Math.ceil(30 * (m / tn));
-							return "hsla(240, 100%, " + l + "%, 0.5)";
+							l = 90 - Math.ceil(50 * (m / nos));
+							return "hsla(240, 100%, " + l + "%, 0.8)";
 							break;
 						case "femmina":
-							l = 100 - Math.ceil(30 * (f / tn));
-							return "hsla(300, 100%, " + l + "%, 0.5)";
+							l = 90 - Math.ceil(50 * (f / nos));
+							return "hsla(300, 100%, " + l + "%, 0.8)";
 							break;
-						default: return "hsla(" + h + ", 100%, " + l + "%, 0.5)";
+						default: return "hsla(" + h + ", 100%, " + l + "%, 0.8)";
 					}
-				} else return "#fff";
-			});
-	}
+				}
+			}
+			return "#fff";
+		});
 }
 
 // Event handlers
