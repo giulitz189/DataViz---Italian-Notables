@@ -176,53 +176,53 @@ var ri_pointQuantity = ri.append("div")
 	
 // Occupation grid selector
 var occ_categories = [
-	{ name: "TUTTO", type: "special", m: 0, f: 0 },
-	{ name: "Figure Sportive", type: "category", m: 0, f: 0 },
-	{ name: "Calciatore", type: "subcategory", m: 0, f: 0 },
-	{ name: "Allenatore", type: "subcategory", m: 0, f: 0 },
-	{ name: "Pilota", type: "subcategory", m: 0, f: 0 },
-	{ name: "Ciclista", type: "subcategory", m: 0, f: 0 },
-	{ name: "Tennista", type: "subcategory", m: 0, f: 0 },
-	{ name: "Arbitro", type: "subcategory", m: 0, f: 0 },
-	{ name: "Sciatore", type: "subcategory", m: 0, f: 0 },
-	{ name: "Artisti", type: "category", m: 0, f: 0 },
-	{ name: "Cantante", type: "subcategory", m: 0, f: 0 },
-	{ name: "Attore", type: "subcategory", m: 0, f: 0 },
-	{ name: "Compositore", type: "subcategory", m: 0, f: 0 },
-	{ name: "Regista", type: "subcategory", m: 0, f: 0 },
-	{ name: "Direttore d'Orchestra", type: "subcategory", m: 0, f: 0 },
-	{ name: "Architetto", type: "subcategory", m: 0, f: 0 },
-	{ name: "Stilista", type: "subcategory", m: 0, f: 0 },
-	{ name: "Fumettista", type: "subcategory", m: 0, f: 0 },
-	{ name: "Pittore", type: "subcategory", m: 0, f: 0 },
-	{ name: "Fotografo", type: "subcategory", m: 0, f: 0 },
-	{ name: "Istituzioni", type: "category", m: 0, f: 0 },
-	{ name: "Politico", type: "subcategory", m: 0, f: 0 },
-	{ name: "Figura Religiosa", type: "subcategory", m: 0, f: 0 },
-	{ name: "Militare", type: "subcategory", m: 0, f: 0 },
-	{ name: "Giudice", type: "subcategory", m: 0, f: 0 },
-	{ name: "Agente Diplomatico", type: "subcategory", m: 0, f: 0 },
-	{ name: "Umanistica", type: "category", m: 0, f: 0 },
-	{ name: "Scrittore", type: "subcategory", m: 0, f: 0 },
-	{ name: "Giornalista", type: "subcategory", m: 0, f: 0 },
-	{ name: "Filosofo", type: "subcategory", m: 0, f: 0 },
-	{ name: "Scienza e Tecnologia", type: "category", m: 0, f: 0 },
-	{ name: "Biologo", type: "subcategory", m: 0, f: 0 },
-	{ name: "Fisico", type: "subcategory", m: 0, f: 0 },
-	{ name: "Economista", type: "subcategory", m: 0, f: 0 },
-	{ name: "Matematico", type: "subcategory", m: 0, f: 0 },
-	{ name: "Chimico", type: "subcategory", m: 0, f: 0 },
-	{ name: "Medico", type: "subcategory", m: 0, f: 0 },
-	{ name: "Astronomo", type: "subcategory", m: 0, f: 0 },
-	{ name: "Ingegnere", type: "subcategory", m: 0, f: 0 },
-	{ name: "Figure Pubbliche", type: "category", m: 0, f: 0 },
-	{ name: "Modello", type: "subcategory", m: 0, f: 0 },
-	{ name: "Business", type: "category", m: 0, f: 0 },
-	{ name: "Produttore", type: "subcategory", m: 0, f: 0 },
-	{ name: "Affarista", type: "subcategory", m: 0, f: 0 },
-	{ name: "Esplorazione", type: "category", m: 0, f: 0 },
-	{ name: "Astronauta", type: "subcategory", m: 0, f: 0 },
-	{ name: "Altro", type: "special", m: 0, f: 0 }
+	{ name: "TUTTO", type: "special", m: 0, f: 0, other: 0 },
+	{ name: "Figure Sportive", type: "category", m: 0, f: 0, other: 0 },
+	{ name: "Calciatore", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Allenatore", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Pilota", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Ciclista", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Tennista", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Arbitro", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Sciatore", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Artisti", type: "category", m: 0, f: 0, other: 0 },
+	{ name: "Cantante", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Attore", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Compositore", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Regista", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Direttore d'Orchestra", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Architetto", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Stilista", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Fumettista", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Pittore", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Fotografo", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Istituzioni", type: "category", m: 0, f: 0, other: 0 },
+	{ name: "Politico", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Figura Religiosa", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Militare", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Giudice", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Agente Diplomatico", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Umanistica", type: "category", m: 0, f: 0, other: 0 },
+	{ name: "Scrittore", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Giornalista", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Filosofo", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Scienza e Tecnologia", type: "category", m: 0, f: 0, other: 0 },
+	{ name: "Biologo", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Fisico", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Economista", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Matematico", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Chimico", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Medico", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Astronomo", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Ingegnere", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Figure Pubbliche", type: "category", m: 0, f: 0, other: 0 },
+	{ name: "Modello", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Business", type: "category", m: 0, f: 0, other: 0 },
+	{ name: "Produttore", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Affarista", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Esplorazione", type: "category", m: 0, f: 0, other: 0 },
+	{ name: "Astronauta", type: "subcategory", m: 0, f: 0, other: 0 },
+	{ name: "Altro", type: "special", m: 0, f: 0, other: 0 }
 ];
 
 function generateGridLayout() {
@@ -234,8 +234,8 @@ function generateGridLayout() {
 	
 	for (var row = 0; row < occ_categories.length; row++) {
 		data.push(new Array());
-		for (var column = 0; column < 3; column++) {
-			width = column == 0 ? 160 : 30;
+		for (var column = 0; column < 4; column++) {
+			width = column == 0 ? 130 : 30;
 			data[row].push({
 				x: xpos,
 				y: ypos,
@@ -253,15 +253,21 @@ function generateGridLayout() {
 
 var grid = d3.select("#occ-select-grid")
 	.text("Occupazione: ")
+	.append("div")
+		.style("width", "100%")
+		.style("height", "600px")
+		.style("overflow-x", "hidden")
+		.style("overflow-y", "auto")
 	.append("svg")
-	.attr("width", "100%")
-	.attr("height", function(d) { return "" + (occ_categories.length * 30)})
-	.style("margin", "2px 2px 2px 2px");
+		.attr("width", "100%")
+		.attr("height", function(d) { return "" + (occ_categories.length * 30)})
+		.style("margin", "2px 2px 2px 2px");
 	
 var row = grid.selectAll(".row")
 	.data(generateGridLayout)
 	.enter().append("g")
-	.attr("class", "row");
+	.attr("class", "row")
+	.style("cursor", "pointer");
 	
 var column = row.selectAll(".square")
 	.data(function(d) { return d; })
@@ -274,6 +280,8 @@ var column = row.selectAll(".square")
 				case 1: return "male-count";
 						break;
 				case 2: return "female-count";
+						break;
+				case 3: return "other-count";
 						break;
 				default: return "name";
 			}
@@ -290,7 +298,7 @@ var column = row.selectAll(".square")
 d3.selectAll(".cell")
 	.filter(function (d) { return d3.select(this).attr("data-type") == "name"; })
 	.append("text")
-	.attr("x", "80")
+	.attr("x", "65")
 	.attr("y", function(d) {
 		var el = d3.select(this).node().parentNode;
 		var idx = el.dataset.rowId;
@@ -298,6 +306,7 @@ d3.selectAll(".cell")
 	})
 	.attr("dominant-baseline", "middle")
 	.attr("text-anchor", "middle")
+	.style("font-size", "13px")
 	.style("font-weight", function(d) {
 		var el = d3.select(this).node().parentNode;
 		var idx = el.dataset.rowId;
@@ -404,7 +413,7 @@ Promise.all(provinceData).then(function(data_1) {
 				var provId = d.id;
 				var provElem = map.selectAll(".province")
 								.select(function(d) {
-									var elemId = d3.select(this).attr("id")
+									var elemId = d3.select(this).attr("id");
 									return elemId == provId ? this : null;
 								}).node();
 				var tot = parseInt(provElem.dataset.male) + parseInt(provElem.dataset.female);
@@ -475,10 +484,13 @@ Promise.all(provinceData).then(function(data_1) {
 				
 				if (rec.gender == "maschio") occ_categories[0].m++;
 				else if (rec.gender == "femmina") occ_categories[0].f++;
+				else occ_categories[0].other++;
+				
 				if (rec.professions.categories.length == 0) {
 					var l = occ_categories.length;
 					if (rec.gender == "maschio") occ_categories[l-1].m++;
 					else if (rec.gender == "femmina") occ_categories[l-1].f++;
+					else occ_categories[l-1].other++;
 				} else {
 					var prev_idx_class = -1;
 					for (var j = 0; j < rec.professions.categories.length; j++) {
@@ -498,6 +510,12 @@ Promise.all(provinceData).then(function(data_1) {
 								occ_categories[idx_class].f++;
 								prev_idx_class = idx_class;
 							}
+						} else {
+							occ_categories[idx].other++;
+							if (prev_idx_class != idx_class) {
+								occ_categories[idx_class].other++;
+								prev_idx_class = idx_class;
+							}
 						}
 					}
 				}
@@ -510,7 +528,7 @@ Promise.all(provinceData).then(function(data_1) {
 				return d3.select(this).attr("data-type") == "male-count";
 			})
 			.append("text")
-			.attr("x", "175")
+			.attr("x", "145")
 			.attr("y", function(d) {
 				var el = d3.select(this).node().parentNode;
 				var idx = el.dataset.rowId;
@@ -530,7 +548,7 @@ Promise.all(provinceData).then(function(data_1) {
 				return d3.select(this).attr("data-type") == "female-count";
 			})
 			.append("text")
-			.attr("x", "205")
+			.attr("x", "175")
 			.attr("y", function(d) {
 				var el = d3.select(this).node().parentNode;
 				var idx = el.dataset.rowId;
@@ -543,6 +561,26 @@ Promise.all(provinceData).then(function(data_1) {
 				var el = d3.select(this).node().parentNode;
 				var idx = el.dataset.rowId;
 				return "" + occ_categories[idx].f;
+			});
+			
+		d3.selectAll(".cell")
+			.filter(function (d) {
+				return d3.select(this).attr("data-type") == "other-count";
+			})
+			.append("text")
+			.attr("x", "205")
+			.attr("y", function(d) {
+				var el = d3.select(this).node().parentNode;
+				var idx = el.dataset.rowId;
+				return "" + ((idx * 30) + 15);
+			})
+			.attr("dominant-baseline", "middle")
+			.attr("text-anchor", "middle")
+			.style("font-size", "11px")
+			.text(function(d) {
+				var el = d3.select(this).node().parentNode;
+				var idx = el.dataset.rowId;
+				return "" + occ_categories[idx].other;
 			});
 		
 		// draw points
@@ -1036,6 +1074,7 @@ function getYearLimits(elems) {
 	for (var i = 0; i < occ_categories.length; i++) {
 		occ_categories[i].m = 0;
 		occ_categories[i].f = 0;
+		occ_categories[i].other = 0;
 	}
 	
 	for (var i = 0; i < elems.length; i++) {
@@ -1044,11 +1083,13 @@ function getYearLimits(elems) {
 		if (rec.dob >= minYear && rec.dob <= maxYear) {
 			if (rec.gender == "maschio") occ_categories[0].m++;
 			else if (rec.gender == "femmina") occ_categories[0].f++;
+			else occ_categories[0].other++;
 			
 			if (rec.professions.categories.length == 0) {
 				var l = occ_categories.length;
 				if (rec.gender == "maschio") occ_categories[l-1].m++;
 				else if (rec.gender == "femmina") occ_categories[l-1].f++;
+				else occ_categories[l-1].other++;
 			} else {
 				var prev_idx_class = -1;
 				for (var j = 0; j < rec.professions.categories.length; j++) {
@@ -1066,6 +1107,12 @@ function getYearLimits(elems) {
 						occ_categories[idx].f++;
 						if (prev_idx_class != idx_class) {
 							occ_categories[idx_class].f++;
+							prev_idx_class = idx_class;
+						}
+					} else {
+						occ_categories[idx].other++;
+						if (prev_idx_class != idx_class) {
+							occ_categories[idx_class].other++;
 							prev_idx_class = idx_class;
 						}
 					}
@@ -1094,6 +1141,17 @@ function getYearLimits(elems) {
 			var el = d3.select(this).node().parentNode;
 			var idx = el.dataset.rowId;
 			return "" + occ_categories[idx].f;
+		});
+		
+	d3.selectAll(".cell")
+		.filter(function (d) {
+			return d3.select(this).attr("data-type") == "other-count";
+		})
+		.select("text")
+		.text(function(d) {
+			var el = d3.select(this).node().parentNode;
+			var idx = el.dataset.rowId;
+			return "" + occ_categories[idx].other;
 		});
 	
 	// Apply to points
