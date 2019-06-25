@@ -409,6 +409,7 @@ Promise.all(provinceData).then(function(data_1) {
 				
 		var map_tip = d3.tip()
 			.attr("class", "d3-tip")
+			.attr("id", "map-tip")
 			.html(function(d, i) {
 				var provId = d.id;
 				var provElem = map.selectAll(".province")
@@ -441,7 +442,6 @@ Promise.all(provinceData).then(function(data_1) {
 					})
 					.attr("data-male", 0)
 					.attr("data-female", 0)
-					.attr("data-total_notables", 0)
 					.on("mouseover", map_tip.show)
 					.on("mouseout", map_tip.hide);
 		}
@@ -455,7 +455,6 @@ Promise.all(provinceData).then(function(data_1) {
 			var rec = qd[i];
 			var elem = svgNodeFromCoordinates(rec.coords.x, rec.coords.y);
 			if (elem != null && elem.classList[0] == "province") {
-				elem.dataset.total_notables++;
 				if (rec.gender == "maschio")
 					elem.dataset.male++;
 				else if (rec.gender == "femmina")
@@ -586,6 +585,7 @@ Promise.all(provinceData).then(function(data_1) {
 		// draw points
 		var circle_tip = d3.tip()
 			.attr("class", "d3-tip")
+			.attr("id", "circle-tip")
 			.html(function(d, i) {
 				if (qd_visible[i].dod > 0) {
 					return 'Nome: ' + qd_visible[i].name + '</br>' +
@@ -678,21 +678,6 @@ Promise.all(provinceData).then(function(data_1) {
 				map.selectAll("circle")
 					.attr("cx", function(d, i) { return hm_points[i].x; })
 					.attr("cy", function(d, i) { return hm_points[i].y; });
-			});
-		
-		// generate density by region
-		map.selectAll(".province")
-			.style("fill", function(d, i) {
-				var prov = d3.select(this).node();
-				var m = parseInt(prov.dataset.male);
-				var f = parseInt(prov.dataset.female);
-				
-				var total = m + f;
-				if (nos > 0 && total > 0) {
-					var h = 240 + Math.floor(60 * (f / total));
-					var l = 90 - Math.ceil(50 * (total / nos));
-					return "hsla(" + h + ", 100%, " + l + "%, 0.8)";
-				} else return "#fff";
 			});
 		
 		// Associate event handlers to page elements
@@ -888,8 +873,7 @@ function updateVisualizedPoints(elems, vizChanged) {
 		.attr("display", "none");
 		
 	if (rangeChanged) {
-		map.selectAll(".province")
-			.attr("data-total_notables", 0);
+		map.selectAll(".province");
 			
 		map.selectAll("circle")
 			.each(function (d, i) {
@@ -897,7 +881,6 @@ function updateVisualizedPoints(elems, vizChanged) {
 				if (el.dob >= minYear && el.dob <= maxYear) {
 					var provId = d3.select(this).attr("data-province-id");
 					var prov = document.querySelector("[id='" + provId + "']");
-					prov.dataset.total_notables++;
 				}
 			})
 		
@@ -1032,7 +1015,7 @@ function updateVisualizedPoints(elems, vizChanged) {
 	
 	map.selectAll(".province")
 		.style("fill", function(d, i) {
-			if (vval != "heatmap") {
+			if (vval == "density") {
 				var prov = d3.select(this).node();
 				var m = parseInt(prov.dataset.male);
 				var f = parseInt(prov.dataset.female);
@@ -1066,8 +1049,8 @@ function updateTransform() {
 function getYearLimits(elems) {
 	var lx = +d3.select(".selection").attr("x"),
 		width = +d3.select(".selection").attr("width");
-	minYear = x.invert(lx);
-	maxYear = x.invert(lx + width);
+	minYear = Math.floor(x.invert(lx));
+	maxYear = Math.floor(x.invert(lx + width));
 	
 	ri_yearRange.text("Intervallo nascite: dal " + minYear + " al " + maxYear);
 	

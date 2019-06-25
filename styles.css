@@ -43,11 +43,18 @@ div#content {
 .d3-tip {
 	line-height: 1;
 	padding: 6px;
-	background: rgba(167, 166, 157, 0.9);
 	color: #FFF;
 	border-radius: 4px;
 	font-size: 12px;
 	pointer-events: none;
+}
+
+.d3-tip#map-tip {
+	background: #00cccc;
+}
+
+.d3-tip#circle-tip {
+	background: #ff0000;
 }
 
 .d3-tip:after {
@@ -56,11 +63,18 @@ div#content {
 	font-size: 10px;
 	width: 100%;
 	line-height: 1;
-	color: rgba(167, 166, 157, 0.9);
 	content: "\25BC";
 	position: absolute;
 	text-align: center;
 	pointer-events: none;
+}
+
+.d3-tip#map-tip:after {
+	color: #00cccc;
+}
+
+.d3-tip#circle-tip:after {
+	color: #ff0000;
 }
 
 .d3-tip.n:after {
