@@ -20,32 +20,32 @@ class SPARQLQueryDispatcher {
 const endpointUrl = 'https://query.wikidata.org/sparql';
 
 const sq_living = 'SELECT DISTINCT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno) ?pobLabel ?coord ?articolo WHERE {\
-  ?persona wdt:P27 wd:Q38;\
-           wdt:P1412 wd:Q652;\
-           wdt:P21 ?gender;\
-           wdt:P106 ?occupazione;\
-		   wdt:P19 ?pob.\
-  ?pob wdt:P625 ?coord.\
+  ?persona wdt:P27 wd:Q38;         # instance of human\
+           wdt:P1412 wd:Q652;      # with Italian as spoken language\
+           wdt:P21 ?gender;        # fetch gender data value\
+           wdt:P106 ?occupazione;  # fetch occupation data value\
+		   wdt:P19 ?pob.           # fetch place of birth data value\
+  ?pob wdt:P625 ?coord.            # specify place of birth coordinates\
   ?articolo schema:about ?persona;\
-            schema:isPartOf <https://it.wikipedia.org/>.\
-  FILTER EXISTS { ?persona wdt:P569 ?data_nascita. }\
-  FILTER NOT EXISTS { ?persona wdt:P570 ?data_morte. }\
+            schema:isPartOf <https://it.wikipedia.org/>. # that has a sitelink on Italian Wikipedia (FIXME: consider people that has a sitelink in at least one Wikipedia, regardless of language)\
+  FILTER EXISTS { ?persona wdt:P569 ?data_nascita. }     # that have a date of birth field\
+  FILTER NOT EXISTS { ?persona wdt:P570 ?data_morte. }   # that don"t have a date of death field\
   ?persona wdt:P569 ?dob. BIND(YEAR(now()) - YEAR(?dob) as ?age)\
-  FILTER(?age <= 110)\
+  FILTER(?age <= 110)              # only people with age minus that 110\
   SERVICE wikibase:label { bd:serviceParam wikibase:language "it,en". }\
 } ORDER BY ?personaLabel';
 
 const sq_dead = 'SELECT DISTINCT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno_nascita) (YEAR(?dod) AS ?anno_morte) ?pobLabel ?coord ?articolo WHERE {\
-  ?persona wdt:P27 wd:Q38;\
-           wdt:P1412 wd:Q652;\
-           wdt:P21 ?gender;\
-           wdt:P106 ?occupazione;\
-		   wdt:P19 ?pob.\
-  ?pob wdt:P625 ?coord.\
+  ?persona wdt:P27 wd:Q38;         # instance of human\
+           wdt:P1412 wd:Q652;      # with Italian as spoken language\
+           wdt:P21 ?gender;        # fetch gender data value\
+           wdt:P106 ?occupazione;  # fetch occupation data value\
+		   wdt:P19 ?pob.           # fetch place of birth data value\
+  ?pob wdt:P625 ?coord.            # specify place of birth coordinates\
   ?articolo schema:about ?persona;\
-            schema:isPartOf <https://it.wikipedia.org/>.\
-  FILTER EXISTS { ?persona wdt:P569 ?data_nascita. }\
-  FILTER EXISTS { ?persona wdt:P570 ?data_morte. }\
+            schema:isPartOf <https://it.wikipedia.org/>. # that has a sitelink on Italian Wikipedia (FIXME: consider people that has a sitelink in at least one Wikipedia, regardless of language)\
+  FILTER EXISTS { ?persona wdt:P569 ?data_nascita. }     # that have a date of birth field\
+  FILTER EXISTS { ?persona wdt:P570 ?data_morte. }       # that have a date of death field\
   ?persona wdt:P569 ?dob;\
            wdt:P570 ?dod.\
   BIND(YEAR(?dob) - 1850 as ?yob)\
