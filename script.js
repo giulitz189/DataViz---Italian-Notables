@@ -1,120 +1,131 @@
-// INITIALIZATION PHASE
-// Map box
-var viewBox_map = {
+// INITIALIZATION PHASE - MAP
+// Map box dimensions
+var viewBoxMapCoordinates = {
 	x: 0,
 	y: 0,
 	width: 1000,
 	height: 500
 };
 
-var circle_rad = 0.5;
+// Point radius
+var circleRadius = 0.5;
 
-var svg_map = d3.select(".map-box")
-	.append("svg")
-		.attr("preserveAspectRatio", "xMinYMin meet")
-		.attr("viewBox", viewBox_map.x + " " + viewBox_map.y + " " +
-						+ viewBox_map.width + " " + viewBox_map.height);
+// SVG viewport creation
+var svgMap = d3.select('.map-box')
+	.append('svg')
+		.attr('preserveAspectRatio', 'xMinYMin meet')
+		.attr('viewBox', viewBoxMapCoordinates.x + ' ' + viewBoxMapCoordinates.y + ' ' +
+						+ viewBoxMapCoordinates.width + ' ' + viewBoxMapCoordinates.height);
 
-var map = svg_map.append("g");
+var map = svgMap.append('g');
 	
+// Geographical Mercator projection function
 var projection = d3.geoMercator()
-	.translate([viewBox_map.width/2, viewBox_map.height/2])
+	.translate([viewBoxMapCoordinates.width/2, viewBoxMapCoordinates.height/2])
 	.center([12, 42.1])
 	.scale(1950);
 	
 var path = d3.geoPath()
 	.projection(projection);
 	
+// Heatmap initialization
 var heatmapInstance = h337.create({
-	container: document.querySelector(".map-box")
+	container: document.querySelector('.map-box')
 });
 	
-// Slider sector
-var viewBox_slide = {
+// INITIALIZATION PHASE - YEAR RANGE SLIDER
+// Slider box dimensions
+var viewBoxSliderCoordinates = {
 	x: 0,
 	y: 0,
 	width: 1000,
 	height: 100
 };
 
-var svg_sldr = d3.select(".slider-box")
-	.append("svg")
-		.attr("xmlns", "http://www.w3.org/2000/svg")
-		.attr("xmlns:xlink", "http://www.w3.org/1999/xlink")
-		.attr("preserveAspectRatio", "xMinYMin meet")
-		.attr("viewBox", viewBox_slide.x + " " + viewBox_slide.y + " " +
-						+ viewBox_slide.width + " " + viewBox_slide.height);
+// SVG box creation
+var svgSlider = d3.select('.slider-box')
+	.append('svg')
+		.attr('xmlns', 'http://www.w3.org/2000/svg')
+		.attr('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+		.attr('preserveAspectRatio', 'xMinYMin meet')
+		.attr('viewBox', viewBoxSliderCoordinates.x + ' ' + viewBoxSliderCoordinates.y + ' ' +
+						+ viewBoxSliderCoordinates.width + ' ' + viewBoxSliderCoordinates.height);
 						
-var scaleW = viewBox_slide.width - 100;
-var scaleH = viewBox_slide.height - 30;
+var scaleW = viewBoxSliderCoordinates.width - 100;
+var scaleH = viewBoxSliderCoordinates.height - 30;
+
+// Minimum and maximum year of birth
+var nowYear = new Date().getFullYear();
 
 var minYear = 1850;
-var maxYear = new Date().getFullYear();
+var maxYear = nowYear;
 	
+// Slider range definition
 var x = d3.scaleLinear()
 	.domain([minYear, maxYear])
 	.range([0, scaleW]);
 	
+// Brush rectangle definition
 var brush = d3.brushX()
 	.extent([[0, 0], [scaleW, scaleH]]);
 	
-var slider = svg_sldr.append("g")
-	.attr("class", "slider")
-	.attr("transform", "translate(50, 10)");
+// Slider construction
+var slider = svgSlider.append('g')
+	.attr('class', 'slider')
+	.attr('transform', 'translate(50, 10)');
 	
-var areaGraph = slider.append("g");
+var areaGraph = slider.append('g');
 	
-var brushSelection = slider.append("g")
-	.attr("class", "brush")
+var brushSelection = slider.append('g')
+	.attr('class', 'brush')
 	.call(brush)
 	.call(brush.move, [minYear, maxYear].map(x));
 	
-var brushHandle = brushSelection.selectAll(".handle--custom")
-	.data([{type: "w"}, {type: "e"}])
-	.enter().append("rect")
-		.attr("class", "handle--custom")
-		.attr("fill", "red")
-		.attr("cursor", "ew-resize")
-		.attr("x", function(d) {
-			if (d.type == "w")
-				return (parseInt(d3.select(".handle--w").attr("x")) + 2.5);
-			else return (parseInt(d3.select(".handle--e").attr("x")) + 1);
+// Rectangular selection handles, useful if you don't know where to click and drag
+var brushHandle = brushSelection.selectAll('.handle--custom')
+	.data([{type: 'w'}, {type: 'e'}])
+	.enter().append('rect')
+		.attr('class', 'handle--custom')
+		.attr('fill', 'red')
+		.attr('cursor', 'ew-resize')
+		.attr('x', d => {
+			if (d.type == 'w')
+				return (parseInt(d3.select('.handle--w').attr('x')) + 2.5);
+			else return (parseInt(d3.select('.handle--e').attr('x')) + 1);
 		})
-		.attr("y", 25)
-		.attr("width", 3)
-		.attr("height", 20);
+		.attr('y', 25)
+		.attr('width', 3)
+		.attr('height', 20);
 	
-slider.append("g")
-	.attr("class", "x axis")
-	.attr("transform", "translate(0, " + scaleH + ")")
+// Horizontal ruler for year values
+slider.append('g')
+	.attr('class', 'x axis')
+	.attr('transform', 'translate(0, ' + scaleH + ')')
 	.call(d3.axisBottom(x)
 			.ticks(maxYear - minYear)
-			.tickFormat(function(d) {
-				return (d % 10 != 0) ? '' : d.toString();
-			}));
+			.tickFormat(d => (d % 10 != 0) ? '' : d.toString()));
 			
-d3.selectAll("g.x.axis g.tick line")
-	.attr("y2", function(d) {
-		return (d % 10 == 0) ? 6 : (d % 10 == 5) ? 4 : 2;
-	});
-	
-var rangeChanged = false;
+d3.selectAll('g.x.axis g.tick line')
+	.attr('y2', d => (d % 10 == 0) ? 6 : (d % 10 == 5) ? 4 : 2);
 
-// UI Selector
-var sf_circleRadius = d3.select(".selector")
-	.append("div")
-		.attr("class", "section")
-		.text("Raggio dei punti:")
-	.append("div")
-		.attr("class", "radius-slider");
+// INITIALIZATION PHASE - SELECTORS
+// Point radius regulator
+d3.select('.selector')
+	.append('div')
+		.attr('class', 'section')
+		.text('Raggio dei punti:')
+	.append('div')
+		.attr('class', 'radius-slider');
 		
-var radOpts = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
-		
+// Tick values, and possible choices for circle radius
+var radiusOptions = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
+
+// Circular handle
 var sliderHandle = d3.sliderBottom()
-	.min(d3.min(radOpts))
-	.max(d3.max(radOpts))
+	.min(d3.min(radiusOptions))
+	.max(d3.max(radiusOptions))
 	.width(160)
-	.tickFormat(d3.format(".1"))
+	.tickFormat(d3.format('.1'))
 	.ticks(9)
 	.default(0.5)
 	.handle(
@@ -123,397 +134,399 @@ var sliderHandle = d3.sliderBottom()
 			.size(100)()
 	);
 	
-var rs_container = d3.select(".radius-slider")
-	.append("svg")
-		.attr("width", "200")
-		.attr("height", "50")
-	.append("g")
-		.attr("transform", "translate(20, 10)");
+// Graphic container of the slider
+var radiusSelectorGraphicContainer = d3.select('.radius-slider')
+	.append('svg')
+		.attr('width', '200')
+		.attr('height', '50')
+	.append('g')
+		.attr('transform', 'translate(20, 10)');
 
-var vval = "dotmap";
-var gval = "all";
+// Filtering values, respectively for type of visualization and gender
+var visualizationFilterValue = 'dotmap';
+var genderFilterValue = 'all';
 
 // Circle infobox
-var ci = d3.select(".circleInfo");
+var circleInfobox = d3.select('.circleInfo');
 
-ci.append("div")
-	.attr("class", "section")
-	.html("<b>Nome:</b> ");
+circleInfobox.append('div')
+	.attr('class', 'section')
+	.html('<b>Nome:</b> ');
 	
-ci.append("div")
-	.attr("class", "section")
-	.html("<b>Sesso:</b> ");
+circleInfobox.append('div')
+	.attr('class', 'section')
+	.html('<b>Sesso:</b> ');
 	
-ci.append("div")
-	.attr("class", "section")
-	.html("<b>Occupazioni:</b> ");
+circleInfobox.append('div')
+	.attr('class', 'section')
+	.html('<b>Occupazioni:</b> ');
 	
-ci.append("div")
-	.attr("class", "section")
-	.html("<b>Anno di nascita:</b> ");
+circleInfobox.append('div')
+	.attr('class', 'section')
+	.html('<b>Anno di nascita:</b> ');
 	
-ci.append("div")
-	.attr("class", "section")
-	.html("<b>Anno di morte:</b> ");
+circleInfobox.append('div')
+	.attr('class', 'section')
+	.html('<b>Anno di morte:</b> ');
 	
-ci.append("div")
-	.attr("class", "section")
-	.html("<b>Luogo di nascita:</b> ");
+circleInfobox.append('div')
+	.attr('class', 'section')
+	.html('<b>Luogo di nascita:</b> ');
 	
-ci.append("div")
-	.attr("class", "section")
-	.html("<b>Articolo Wikipedia:</b> ");
+circleInfobox.append('div')
+	.attr('class', 'section')
+	.html('<b>Articolo Wikipedia:</b> ');
 	
 // Data range infobox
-var ri = d3.select(".rangeInfo");
+var rangeInfobox = d3.select('.rangeInfo');
 
-var ri_yearRange = ri.append("div")
-	.attr("class", "section")
-	.text("Intervallo nascite: dal " + minYear + " al " + maxYear);
+var rangeInfoboxYearRange = rangeInfobox.append('div')
+	.attr('class', 'section')
+	.text('Intervallo nascite: dal ' + minYear + ' al ' + maxYear);
 	
-var ri_pointQuantity = ri.append("div")
-	.attr("class", "section");
+var rangeInfoboxPointQuantity = rangeInfobox.append('div')
+	.attr('class', 'section');
 	
 // Occupation grid selector
-var occ_categories = [
-	{ name: "TUTTO", type: "special", m: 0, f: 0, other: 0 },
-	{ name: "Figure Sportive", type: "category", m: 0, f: 0, other: 0 },
-	{ name: "Calciatore", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Allenatore", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Pilota", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Ciclista", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Tennista", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Arbitro", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Sciatore", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Artisti", type: "category", m: 0, f: 0, other: 0 },
-	{ name: "Cantante", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Attore", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Compositore", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Regista", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Direttore d'Orchestra", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Architetto", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Stilista", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Fumettista", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Pittore", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Fotografo", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Istituzioni", type: "category", m: 0, f: 0, other: 0 },
-	{ name: "Politico", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Figura Religiosa", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Militare", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Giudice", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Agente Diplomatico", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Umanistica", type: "category", m: 0, f: 0, other: 0 },
-	{ name: "Scrittore", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Giornalista", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Filosofo", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Scienza e Tecnologia", type: "category", m: 0, f: 0, other: 0 },
-	{ name: "Biologo", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Fisico", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Economista", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Matematico", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Chimico", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Medico", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Astronomo", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Ingegnere", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Figure Pubbliche", type: "category", m: 0, f: 0, other: 0 },
-	{ name: "Modello", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Business", type: "category", m: 0, f: 0, other: 0 },
-	{ name: "Produttore", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Affarista", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Esplorazione", type: "category", m: 0, f: 0, other: 0 },
-	{ name: "Astronauta", type: "subcategory", m: 0, f: 0, other: 0 },
-	{ name: "Altro", type: "special", m: 0, f: 0, other: 0 }
+var occupationCategories = [
+	{ name: 'TUTTO', type: 'special', m: 0, f: 0, other: 0 },
+	{ name: 'Figure Sportive', type: 'category', m: 0, f: 0, other: 0 },
+	{ name: 'Calciatore', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Allenatore', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Pilota', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Ciclista', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Tennista', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Arbitro', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Sciatore', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Artisti', type: 'category', m: 0, f: 0, other: 0 },
+	{ name: 'Cantante', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Attore', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Compositore', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Regista', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Direttore d\'Orchestra', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Architetto', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Stilista', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Fumettista', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Pittore', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Fotografo', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Istituzioni', type: 'category', m: 0, f: 0, other: 0 },
+	{ name: 'Politico', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Figura Religiosa', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Militare', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Giudice', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Agente Diplomatico', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Umanistica', type: 'category', m: 0, f: 0, other: 0 },
+	{ name: 'Scrittore', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Giornalista', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Filosofo', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Scienza e Tecnologia', type: 'category', m: 0, f: 0, other: 0 },
+	{ name: 'Biologo', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Fisico', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Economista', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Matematico', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Chimico', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Medico', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Astronomo', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Ingegnere', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Figure Pubbliche', type: 'category', m: 0, f: 0, other: 0 },
+	{ name: 'Modello', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Business', type: 'category', m: 0, f: 0, other: 0 },
+	{ name: 'Produttore', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Affarista', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Esplorazione', type: 'category', m: 0, f: 0, other: 0 },
+	{ name: 'Astronauta', type: 'subcategory', m: 0, f: 0, other: 0 },
+	{ name: 'Altro', type: 'special', m: 0, f: 0, other: 0 }
 ];
 
+// This function generates the grid layout, returns an array that contain infos about dimension and position
+// of every cell
 function generateGridLayout() {
 	var data = new Array();
-	var xpos = 0;
-	var ypos = 0;
+	var xPos = 0;
+	var yPos = 0;
 	var width = 0;
 	var height = 30;
 	
-	for (var row = 0; row < occ_categories.length; row++) {
+	for (var row = 0; row < occupationCategories.length; row++) {
 		data.push(new Array());
 		for (var column = 0; column < 4; column++) {
 			width = column == 0 ? 130 : 30;
 			data[row].push({
-				x: xpos,
-				y: ypos,
+				x: xPos,
+				y: yPos,
 				width: width,
 				height: height,
-				row_idx: row
+				rowIndex: row
 			})
-			xpos += width;
+			xPos += width;
 		}
-		xpos = 0;
-		ypos += height;
+		xPos = 0;
+		yPos += height;
 	}
 	return data;
 }
 
-var grid = d3.select("#occ-select-grid")
-	.text("Occupazione: ")
-	.append("div")
-		.style("width", "100%")
-		.style("height", "600px")
-		.style("overflow-x", "hidden")
-		.style("overflow-y", "auto")
-	.append("svg")
-		.attr("width", "100%")
-		.attr("height", function(d) { return "" + (occ_categories.length * 30)})
-		.style("margin", "2px 2px 2px 2px");
+// Drawing the grid (TODO: can we convert this grid into an hidden checkbox field?)
+var grid = d3.select('#occ-select-grid')
+	.text('Occupazione: ')
+	.append('div')
+		.style('width', '100%')
+		.style('height', '600px')
+		.style('overflow-x', 'hidden')
+		.style('overflow-y', 'auto')
+	.append('svg')
+		.attr('width', '100%')
+		.attr('height', _ => '' + (occupationCategories.length * 30))
+		.style('margin', '2px 2px 2px 2px');
 	
-var row = grid.selectAll(".row")
+var row = grid.selectAll('.row')
 	.data(generateGridLayout)
-	.enter().append("g")
-	.attr("class", "row")
-	.style("cursor", "pointer");
+	.enter().append('g')
+	.attr('class', 'row')
+	.style('cursor', 'pointer');
 	
-var column = row.selectAll(".square")
-	.data(function(d) { return d; })
+var column = row.selectAll('.square')
+	.data(d => d)
 	.enter()
-	.append("g")
-		.attr("class", "cell")
-		.attr("data-row-id", function(d, i) { return d.row_idx; })
-		.attr("data-type", function(d, i) {
+	.append('g')
+		.attr('class', 'cell')
+		.attr('data-row-id', d => d.rowIndex)
+		.attr('data-type', (_, i) => {
 			switch (i) {
-				case 1: return "male-count";
+				case 1: return 'male-count';
 						break;
-				case 2: return "female-count";
+				case 2: return 'female-count';
 						break;
-				case 3: return "other-count";
+				case 3: return 'other-count';
 						break;
-				default: return "name";
+				default: return 'name';
 			}
 		})
-	.append("rect")
-		.attr("class", "square")
-		.attr("x", function(d) { return d.x; })
-		.attr("y", function(d) { return d.y; })
-		.attr("width", function(d) { return d.width; })
-		.attr("height", function(d) { return d.height; })
-		.attr("fill", "#fff")
-		.attr("stroke", "#222");
+	.append('rect')
+		.attr('class', 'square')
+		.attr('x', d => d.x)
+		.attr('y', d => d.y)
+		.attr('width', d => d.width)
+		.attr('height', d => d.height)
+		.attr('fill', '#fff')
+		.attr('stroke', '#222');
 		
-d3.selectAll(".cell")
-	.filter(function (d) { return d3.select(this).attr("data-type") == "name"; })
-	.append("text")
-	.attr("x", "65")
-	.attr("y", function(d) {
-		var el = d3.select(this).node().parentNode;
+// Filling all cells
+d3.selectAll('.cell')
+	.filter((_, i, nodes) => d3.select(nodes[i]).attr('data-type') == 'name')
+	.append('text')
+	.attr('x', '65')
+	.attr('y', (_, i, nodes) => {
+		var el = d3.select(nodes[i]).node().parentNode;
 		var idx = el.dataset.rowId;
-		return "" + ((idx * 30) + 15);
+		return '' + ((idx * 30) + 15);
 	})
-	.attr("dominant-baseline", "middle")
-	.attr("text-anchor", "middle")
-	.style("font-size", "13px")
-	.style("font-weight", function(d) {
-		var el = d3.select(this).node().parentNode;
+	.attr('dominant-baseline', 'middle')
+	.attr('text-anchor', 'middle')
+	.style('font-size', '13px')
+	.style('font-weight', (_, i, nodes) => {
+		var el = d3.select(nodes[i]).node().parentNode;
 		var idx = el.dataset.rowId;
-		if (occ_categories[idx].type == "category") return "bold";
-		else return "normal";
+		if (occupationCategories[idx].type == 'category') return 'bold';
+		else return 'normal';
 	})
-	.style("font-style", function(d) {
-		var el = d3.select(this).node().parentNode;
+	.style('font-style', (_, i, nodes) => {
+		var el = d3.select(nodes[i]).node().parentNode;
 		var idx = el.dataset.rowId;
-		if (occ_categories[idx].type == "special") return "italic";
-		else return "normal";
+		if (occupationCategories[idx].type == 'special') return 'italic';
+		else return 'normal';
 	})
-	.text(function(d) {
-		var el = d3.select(this).node().parentNode;
+	.text((_, i, nodes) => {
+		var el = d3.select(nodes[i]).node().parentNode;
 		var idx = el.dataset.rowId;
-		return occ_categories[idx].name;
+		return occupationCategories[idx].name;
 	});
 	
-var occGroupSelected = ["all"];
+// Occupation categories currently selected
+var occupationFilterSelected = ['all'];
 	
 // Force simulation init
 var simulation = d3.forceSimulation();
 	
 // DATA LOAD PHASE
-// Timestamp test - BEGIN
-var startTime, endTime;
-
-function start() {
-  startTime = new Date();
-};
-
-function end() {
-  endTime = new Date();
-  var timeDiff = endTime - startTime; //in ms
-  // strip the ms
-  timeDiff /= 1000;
-
-  // get seconds
-  console.log(timeDiff + " s");
-}
-// Timestamp test - END
-
 var provinceDataFiles = [
-	"abruzzo.json",
-	"basilicata.json",
-	"calabria.json",
-	"campania.json",
-	"emilia.json",
-	"friuli.json",
-	"lazio.json",
-	"liguria.json",
-	"lombardia.json",
-	"marche.json",
-	"molise.json",
-	"piemonte.json",
-	"puglia.json",
-	"sardegna.json",
-	"sicilia.json",
-	"toscana.json",
-	"trentino.json",
-	"umbria.json",
-	"valledaosta.json",
-	"veneto.json"
+	'abruzzo.json',
+	'basilicata.json',
+	'calabria.json',
+	'campania.json',
+	'emilia.json',
+	'friuli.json',
+	'lazio.json',
+	'liguria.json',
+	'lombardia.json',
+	'marche.json',
+	'molise.json',
+	'piemonte.json',
+	'puglia.json',
+	'sardegna.json',
+	'sicilia.json',
+	'toscana.json',
+	'trentino.json',
+	'umbria.json',
+	'valledaosta.json',
+	'veneto.json'
 ];
 
+// Fetching data from province files (map shapes in TopoJSON)...
 function loadProvinces() {
 	var provinces = [];
 	for (i = 0; i < provinceDataFiles.length; i++) {
-		var provShape = d3.json("geodata/" + provinceDataFiles[i]);
-		provinces.push(provShape);
+		var provinceShape = d3.json('geodata/' + provinceDataFiles[i]);
+		provinces.push(provinceShape);
 	}
 	return provinces;
 }
 
-var provinceData = loadProvinces();
-var regionData = d3.json("geodata/italy_reg.json");
-var queryData = d3.json("query_records/query_results.json");
-var heatmapData = d3.json("region_dimensions.json");
+// ...and from query result files (data previously fetched from Wikidata)
+var provinceDataRequest = loadProvinces();
+var regionShapeDataRequest = d3.json('geodata/italy_reg.json');
+var queryDataRequest = d3.json('query_records/query_results.json');
+var regionMetadataRequest = d3.json('region_dimensions.json');
 
-Promise.all(provinceData).then(function(data_1) {
-	var pd = data_1;
-	
-	Promise.all([regionData, queryData, heatmapData]).then(function(data_2) {
-		var rd = data_2[0];
-		var qd = data_2[1].results;
-		var htd = data_2[2].regions.sort(function (a, b) {
+// We'll waiting until all data has been loaded from all the files
+Promise.all(provinceDataRequest).then(function(provinceData) {
+	Promise.all([regionShapeDataRequest, queryDataRequest, regionMetadataRequest]).then(function(data) {
+		var regionShapeData = data[0];
+		var queryData = data[1].results;
+		// Region metadata records needs to be sorted by region ID for simpler access
+		var regionMetadata = data[2].regions.sort((a, b) => {
 			a = a.RID;
 			b = b.RID;
 			return a < b ? -1 : a > b ? 1 : 0;
 		});
 		
-		// draw map
-		map.selectAll(".region")
-			.data(topojson.feature(rd, rd.objects.sub).features)
+		// Map drawing by path string extraction - Regions
+		map.selectAll('.region')
+			.data(topojson.feature(regionShapeData, regionShapeData.objects.sub).features)
 			.enter()
-			.append("path")
-				.attr("class", "region")
-				.attr("id", function (d, i) { return htd[i].regionLabel; })
-				.attr("d", path);
-				
-		var map_tip = d3.tip()
-			.attr("class", "d3-tip")
-			.attr("id", "map-tip")
-			.html(function(d, i) {
-				var provId = d.id;
-				var provElem = map.selectAll(".province")
-								.select(function(d) {
-									var elemId = d3.select(this).attr("id");
-									return elemId == provId ? this : null;
-								}).node();
-				var tot = parseInt(provElem.dataset.male) + parseInt(provElem.dataset.female);
-				return 'Nome: ' + provElem.dataset.name + '</br>' +
-					'Popolazione: ' + provElem.dataset.population + '</br>' +
-					'Di cui notables: ' + tot;
-			});
-		map.call(map_tip);
+			.append('path')
+				.attr('class', 'region')
+				.attr('id', (_, i) => regionMetadata[i].regionLabel)
+				.attr('d', path);
 		
-		for (i = 0; i < pd.length; i++) {
-			map.selectAll(".prov")
-				.data(topojson.feature(pd[i], pd[i].objects.sub).features)
+		// Map drawing by path string extraction - Provinces
+		for (i = 0; i < provinceData.length; i++) {
+			map.selectAll('.prov')
+				.data(topojson.feature(provinceData[i], provinceData[i].objects.sub).features)
 				.enter()
-				.append("path")
-					.attr("class", "province")
-					.attr("id", function (d) { return d.id; })
-					.attr("d", path)
-					.attr("data-name", function(d) {
-						var prov_idx = findZoneIndexes(htd, d.id);
-						return htd[prov_idx.r].provinces[prov_idx.p].provinceLabel;
+				.append('path')
+					.attr('class', 'province')
+					.attr('id', d => d.id) // IDs are used to further accesses
+					.attr('d', path)
+					.attr('data-name', d => { // add province name as HTML5 dataset metadata
+						var provinceIndex = findZoneIndexes(regionMetadata, d.id);
+						return regionMetadata[provinceIndex.r].provinces[provinceIndex.p].provinceLabel;
 					})
-					.attr("data-population", function(d) {
-						var prov_idx = findZoneIndexes(htd, d.id);
-						return htd[prov_idx.r].provinces[prov_idx.p].population;
+					.attr('data-population', d => { // add total population as HTML5 dataset metadata
+						var provinceIndex = findZoneIndexes(regionMetadata, d.id);
+						return regionMetadata[provinceIndex.r].provinces[provinceIndex.p].population;
 					})
-					.attr("data-male", 0)
-					.attr("data-female", 0)
-					.on("mouseover", map_tip.show)
-					.on("mouseout", map_tip.hide);
+					.attr('data-male', 0) // no. of male notable people, initialized to 0
+					.attr('data-female', 0) // no. of female notable people, initialized to 0
 		}
+
+		// Provide tip info for every province (FIXME: try to bind tipbox position to cursor position...)
+		var provinceTipbox = d3.tip()
+			.attr('class', 'd3-tip')
+			.attr('id', 'map-tip')
+			.html(d => {
+				var provinceId = d.id;
+				var provinceElement = map.selectAll('.province')
+										.select((_, i, nodes) => {
+											var thisElement = nodes[i];
+											var elementId = d3.select(thisElement).attr('id');
+											return elementId == provinceId ? thisElement : null;
+										}).node();
+				var total = parseInt(provinceElement.dataset.male) + parseInt(provinceElement.dataset.female);
+				return 'Nome: ' + provinceElement.dataset.name + '</br>' +
+					'Popolazione: ' + provinceElement.dataset.population + '</br>' +
+					'Di cui notables: ' + total;
+			});
+
+		map.call(provinceTipbox);
+		map.selectAll('.province')
+			.on('mouseover', provinceTipbox.show) // show tipbox if mouse is hovering upon this element
+			.on('mouseout', provinceTipbox.hide);
 		
-		// heatmap initialization
-		var hm_points = [];
-		var qd_visible = [];
-		var birthplace_qt = [];
-		
-		for (var i = 0, len = qd.length; i < len; i++) {
-			var rec = qd[i];
-			var elem = svgNodeFromCoordinates(rec.coords.x, rec.coords.y);
-			if (elem != null && elem.classList[0] == "province") {
-				if (rec.gender == "maschio")
-					elem.dataset.male++;
-				else if (rec.gender == "femmina")
-					elem.dataset.female++;
-				qd_visible.push(rec);
+		// Finding valid points (all people born within Italian territory)
+		var visiblePoints = [];
+		var transformablePointCoords = [];
+		var birthplaceDensity = [];
+		for (var i = 0, len = queryData.length; i < len; i++) {
+			var record = queryData[i];
+			// For every person we need to know in which province its dot is clipped
+			var provinceElement = svgNodeFromCoordinates(record.coords.x, record.coords.y);
+			if (provinceElement != null && provinceElement.classList[0] == 'province') {
+				// Insert one male or one female in the province record count
+				if (record.gender == 'maschio')
+					provinceElement.dataset.male++;
+				else if (record.gender == 'femmina')
+					provinceElement.dataset.female++;
+				visiblePoints.push(record);
 				
+				// For each record generate an object with initial cooordinates and a province id
+				// reference: will be used in heatmap generation and dynamic collision resolving
 				var dataPoint = {
-					origX: rec.coords.x,
-					origY: rec.coords.y,
-					x: rec.coords.x,
-					y: rec.coords.y,
-					province_idx: elem.id
+					origX: record.coords.x,
+					origY: record.coords.y,
+					x: record.coords.x,
+					y: record.coords.y,
+					provinceIndex: provinceElement.id,
+					value: 1
 				};
-				hm_points.push(dataPoint);
+				transformablePointCoords.push(dataPoint);
 				
-				var bp_idx = birthplace_qt.findIndex(v => v.place == rec.pob);
-				if (bp_idx < 0) {
-					var bp_record = {
-						place: rec.pob,
-						x: rec.coords.x,
-						y: rec.coords.y,
+				// Precalculation of the density population for every birthplace
+				var birthplaceIndex = birthplaceDensity.findIndex(v => v.place == record.pob);
+				if (birthplaceIndex < 0) {
+					var birthplaceRecord = {
+						place: record.pob,
 						value: 1
 					};
-					birthplace_qt.push(bp_record);
-				} else birthplace_qt[bp_idx].value++;
+					birthplaceDensity.push(birthplaceRecord);
+				} else birthplaceDensity[birthplaceIndex].value++;
+
+				// Increment "ALL" occupation filter value by one
+				if (record.gender == 'maschio') occupationCategories[0].m++;
+				else if (record.gender == 'femmina') occupationCategories[0].f++;
+				else occupationCategories[0].other++;
 				
-				if (rec.gender == "maschio") occ_categories[0].m++;
-				else if (rec.gender == "femmina") occ_categories[0].f++;
-				else occ_categories[0].other++;
-				
-				if (rec.professions.categories.length == 0) {
-					var l = occ_categories.length;
-					if (rec.gender == "maschio") occ_categories[l-1].m++;
-					else if (rec.gender == "femmina") occ_categories[l-1].f++;
-					else occ_categories[l-1].other++;
+				// For each occupation category and subcategory in which this record belongs, increment
+				// respective filter value by one (FIXME: don't count records multiple times in categories)
+				if (record.professions.categories.length == 0) {
+					var l = occupationCategories.length;
+					if (record.gender == 'maschio') occupationCategories[l-1].m++;
+					else if (record.gender == 'femmina') occupationCategories[l-1].f++;
+					else occupationCategories[l-1].other++;
 				} else {
-					var prev_idx_class = -1;
-					for (var j = 0; j < rec.professions.categories.length; j++) {
-						var currCat = rec.professions.categories[j];
-						var idx = occ_categories.findIndex(cat => cat.name == currCat);
-						var idx_class = idx;
-						while (occ_categories[idx_class].type != "category") idx_class--;
-						if (rec.gender == "maschio") {
-							occ_categories[idx].m++;
-							if (prev_idx_class != idx_class) {
-								occ_categories[idx_class].m++;
-								prev_idx_class = idx_class;
+					var previousCategoryIndex = -1;
+					for (var j = 0; j < record.professions.categories.length; j++) {
+						var currentSubcategory = record.professions.categories[j];
+						var idx = occupationCategories.findIndex(cat => cat.name == currentSubcategory);
+						var categoryIndex = idx;
+						while (occupationCategories[categoryIndex].type != 'category') categoryIndex--;
+						if (record.gender == 'maschio') {
+							occupationCategories[idx].m++;
+							if (previousCategoryIndex != categoryIndex) {
+								occupationCategories[categoryIndex].m++;
+								previousCategoryIndex = categoryIndex;
 							}
-						} else if (rec.gender == "femmina") {
-							occ_categories[idx].f++;
-							if (prev_idx_class != idx_class) {
-								occ_categories[idx_class].f++;
-								prev_idx_class = idx_class;
+						} else if (record.gender == 'femmina') {
+							occupationCategories[idx].f++;
+							if (previousCategoryIndex != categoryIndex) {
+								occupationCategories[categoryIndex].f++;
+								previousCategoryIndex = categoryIndex;
 							}
 						} else {
-							occ_categories[idx].other++;
-							if (prev_idx_class != idx_class) {
-								occ_categories[idx_class].other++;
-								prev_idx_class = idx_class;
+							occupationCategories[idx].other++;
+							if (previousCategoryIndex != categoryIndex) {
+								occupationCategories[categoryIndex].other++;
+								previousCategoryIndex = categoryIndex;
 							}
 						}
 					}
@@ -521,262 +534,247 @@ Promise.all(provinceData).then(function(data_1) {
 			}
 		}
 		
-		// occupation category frequency
-		d3.selectAll(".cell")
-			.filter(function (d) {
-				return d3.select(this).attr("data-type") == "male-count";
-			})
-			.append("text")
-			.attr("x", "145")
-			.attr("y", function(d) {
-				var el = d3.select(this).node().parentNode;
+		// Write occupation filter grid values
+		d3.selectAll('.cell')
+			.filter((_, i, nodes) =>  d3.select(nodes[i]).attr('data-type') == 'male-count')
+			.append('text')
+			.attr('x', '145')
+			.attr('y', (_, i, nodes) => {
+				var el = d3.select(nodes[i]).node().parentNode;
 				var idx = el.dataset.rowId;
-				return "" + ((idx * 30) + 15);
+				return '' + ((idx * 30) + 15);
 			})
-			.attr("dominant-baseline", "middle")
-			.attr("text-anchor", "middle")
-			.style("font-size", "11px")
-			.text(function(d) {
-				var el = d3.select(this).node().parentNode;
+			.attr('dominant-baseline', 'middle')
+			.attr('text-anchor', 'middle')
+			.style('font-size', '11px')
+			.text((_, i, nodes) => {
+				var el = d3.select(nodes[i]).node().parentNode;
 				var idx = el.dataset.rowId;
-				return "" + occ_categories[idx].m;
+				return '' + occupationCategories[idx].m;
 			});
 			
-		d3.selectAll(".cell")
-			.filter(function (d) {
-				return d3.select(this).attr("data-type") == "female-count";
-			})
-			.append("text")
-			.attr("x", "175")
-			.attr("y", function(d) {
-				var el = d3.select(this).node().parentNode;
+		d3.selectAll('.cell')
+			.filter((_, i, nodes) => d3.select(nodes[i]).attr('data-type') == 'female-count')
+			.append('text')
+			.attr('x', '175')
+			.attr('y', (_, i, nodes) => {
+				var el = d3.select(nodes[i]).node().parentNode;
 				var idx = el.dataset.rowId;
-				return "" + ((idx * 30) + 15);
+				return '' + ((idx * 30) + 15);
 			})
-			.attr("dominant-baseline", "middle")
-			.attr("text-anchor", "middle")
-			.style("font-size", "11px")
-			.text(function(d) {
-				var el = d3.select(this).node().parentNode;
+			.attr('dominant-baseline', 'middle')
+			.attr('text-anchor', 'middle')
+			.style('font-size', '11px')
+			.text((_, i, nodes) => {
+				var el = d3.select(nodes[i]).node().parentNode;
 				var idx = el.dataset.rowId;
-				return "" + occ_categories[idx].f;
+				return '' + occupationCategories[idx].f;
 			});
 			
-		d3.selectAll(".cell")
-			.filter(function (d) {
-				return d3.select(this).attr("data-type") == "other-count";
-			})
-			.append("text")
-			.attr("x", "205")
-			.attr("y", function(d) {
-				var el = d3.select(this).node().parentNode;
+		d3.selectAll('.cell')
+			.filter((_, i, nodes) => d3.select(nodes[i]).attr('data-type') == 'other-count')
+			.append('text')
+			.attr('x', '205')
+			.attr('y', (_, i, nodes) => {
+				var el = d3.select(nodes[i]).node().parentNode;
 				var idx = el.dataset.rowId;
-				return "" + ((idx * 30) + 15);
+				return '' + ((idx * 30) + 15);
 			})
-			.attr("dominant-baseline", "middle")
-			.attr("text-anchor", "middle")
-			.style("font-size", "11px")
-			.text(function(d) {
-				var el = d3.select(this).node().parentNode;
+			.attr('dominant-baseline', 'middle')
+			.attr('text-anchor', 'middle')
+			.style('font-size', '11px')
+			.text((_, i, nodes) => {
+				var el = d3.select(nodes[i]).node().parentNode;
 				var idx = el.dataset.rowId;
-				return "" + occ_categories[idx].other;
+				return '' + occupationCategories[idx].other;
 			});
 		
-		// draw points
-		var circle_tip = d3.tip()
-			.attr("class", "d3-tip")
-			.attr("id", "circle-tip")
-			.html(function(d, i) {
-				if (qd_visible[i].dod > 0) {
-					return 'Nome: ' + qd_visible[i].name + '</br>' +
-						'Sesso: ' + qd_visible[i].gender + '</br>' +
-						'Anno di nascita: ' + qd_visible[i].dob + '</br>' +
-						'Anno di morte: ' + qd_visible[i].dod + '</br>';
+		// Creating tipbox for circles 
+		var circleTipbox = d3.tip()
+			.attr('class', 'd3-tip')
+			.attr('id', 'circle-tip')
+			.html((_, i) => {
+				var genderLetter = '';
+				switch (visiblePoints[i].gender) {
+					case 'maschio': genderLetter = 'M';
+								 break;
+					case 'femmina': genderLetter = 'F';
+								   break;
+					default: genderLetter = 'X';
+							 break;
+				}
+				if (visiblePoints[i].dod > 0) {
+					return visiblePoints[i].name + ' (' + genderLetter + ')</br>' + visiblePoints[i].pob +
+						' ' + visiblePoints[i].dob + ' - ' + visiblePoints[i].dod;
 				} else {
-					return "Nome: " + qd_visible[i].name + "</br>" +
-						"Sesso: " + qd_visible[i].gender + "</br>" +
-						"Anno di nascita: " + qd_visible[i].dob + "</br>";
+					return visiblePoints[i].name + ' (' + genderLetter + ')</br>' + visiblePoints[i].pob +
+						' ' + visiblePoints[i].dob + ' -';
 				}
 			});
-		map.call(circle_tip);
+		map.call(circleTipbox);
 		
-		var circles = map.selectAll("circle")
-			.data(hm_points)
+		// Point insertion into the map
+		var circles = map.selectAll('circle')
+			.data(transformablePointCoords)
 			.enter()
-			.append("circle")
-				.attr("class", "person")
-				.attr("display", "block")
-				.attr("cx", function(d) { return d.x; })
-				.attr("cy", function(d) { return d.y; })
-				.attr("r", circle_rad)
-				.attr("data-province-id", function(d) { return d.province_idx; })
-				.attr("data-year", function(d, i) { return qd_visible[i].dob; })
-				.attr("data-gender", function(d, i) { return qd_visible[i].gender; })
-				.attr("data-categories", function(d, i) {
-					var cat = qd_visible[i].professions.categories;
+			.append('circle')
+				.attr('class', 'person')
+				.attr('display', 'block')
+				.attr('cx', d => d.x)
+				.attr('cy', d => d.y)
+				.attr('r', circleRadius)
+				.attr('data-province-id', d => d.provinceIndex) // index of belonging province
+				.attr('data-year', (_, i) => visiblePoints[i].dob) // year of birth
+				.attr('data-gender', (_, i) => visiblePoints[i].gender) // gender
+				.attr('data-categories', (_, i) => { // professional categories (for filtering purposes)
+					var cat = visiblePoints[i].professions.categories;
 					if (cat.length > 0) return JSON.stringify(cat);
 					else return '["other"]';
 				})
-				.style("stroke", "black")
-				.style("stroke-width", 0.1)
-				.style("fill", function(d, i) {
-					switch (qd_visible[i].gender) {
-						case "maschio": return "#00BFFF";
-									 break;
-						case "femmina": return "#FF1493";
-									   break;
-						default: return "#66FF66";
+				.style('stroke', 'black')
+				.style('stroke-width', 0.1)
+				.style('fill', (_, i) => { // point color identifies the gender
+					switch (visiblePoints[i].gender) {
+						case 'maschio': return '#00BFFF';
+						case 'femmina': return '#FF1493';
+						default: return '#66FF66';
 					}
 				})
-				.on("mouseover", circle_tip.show)
-				.on("mouseout", circle_tip.hide)
-				.on("click", function(d, i) {
-					writePersonInfo(qd_visible[i]);
-				});
-				
-		var nos = circles.size();
-		var nom = circles.filter(function(d, i) {
-			return qd_visible[i].gender == "maschio";
-		}).size();
-		var nof = circles.filter(function(d, i) {
-			return qd_visible[i].gender == "femmina";
-		}).size();
-		ri_pointQuantity.text(nos + " persone visualizzate, " +
-								"di cui " + nom + " uomini e " + nof + " donne");
+				.on('mouseover', circleTipbox.show) // show tipbox at mouse hovering
+				.on('mouseout', circleTipbox.hide)
+				// if clicked, show detailed information in red infobox on the right
+				.on('click', (_, i) => writePersonInfo(visiblePoints[i])); 
+			
+		// Visualize circle count (FIXME: use occupationCategories values instead of recalculation)
+		var totalCircles = circles.size();
+		var maleCircles = circles.filter((_, i) => visiblePoints[i].gender == 'maschio').size();
+		var femaleCircles = circles.filter((_, i) => visiblePoints[i].gender == 'femmina').size();
+		rangeInfoboxPointQuantity.text(totalCircles + ' persone visualizzate, ' +
+								'di cui ' + maleCircles + ' uomini e ' + femaleCircles + ' donne');
 		
-		drawAreaChart(qd_visible);
+		// Draw area chart within the year slider
+		drawAreaChart(visiblePoints);
 		
-		// heatmap draw
-		var bp_max = Math.max.apply(Math, birthplace_qt.map(o => o.value));
+		// Heatmap draw
+		var heatmapMaxValue = Math.max.apply(Math, birthplaceDensity.map(o => o.value));
 		heatmapInstance.setData({
-			max: bp_max,
+			max: heatmapMaxValue,
 			min: 0,
-			data: birthplace_qt
+			data: transformablePointCoords
 		});
 		
-		var hmdata_url = heatmapInstance.getDataURL();
-		map.append("image")
-			.attr("class", "heatmap-image")
-			.attr("display", "none")
-			.attr("width", function(d) {
-				return d3.select(".heatmap-canvas").attr("width");
-			})
-			.attr("height", function(d) {
-				return d3.select(".heatmap-canvas").attr("height");
-			})
-			.attr("xlink:href", hmdata_url);
+		var heatmapDataURL = heatmapInstance.getDataURL();
+		map.append('image')
+			.attr('class', 'heatmap-image')
+			.attr('display', 'none')
+			.attr('width', _ => d3.select('.heatmap-canvas').attr('width'))
+			.attr('height', _ => d3.select('.heatmap-canvas').attr('height'))
+			.attr('xlink:href', heatmapDataURL);
 			
-		// anti-collision animation
-		simulation.nodes(hm_points)
-			.force("collision", d3.forceCollide().radius(circle_rad + 0.2))
-			.force("x", d3.forceX(function(d) { return d.origX; }))
-			.force("y", d3.forceY(function(d) { return d.origY; }))
-			.force("r", d3.forceRadial(0)
-							.x(function(d) { return d.origX; })
-							.y(function(d) { return d.origY; }))
-			.on("tick", function(d) {
-				map.selectAll("circle")
-					.attr("cx", function(d, i) { return hm_points[i].x; })
-					.attr("cy", function(d, i) { return hm_points[i].y; });
+		// Anti-collision animation (TODO: add time limit to prevent infinite animation)
+		simulation.nodes(transformablePointCoords)
+			.force('collision', d3.forceCollide().radius(circleRadius + 0.2))
+			.force('x', d3.forceX(d => d.origX))
+			.force('y', d3.forceY(d => d.origY))
+			.force('r', d3.forceRadial(0).x(d => d.origX).y(d => d.origY))
+			.on('tick', _ => {
+				map.selectAll('circle')
+					.attr('cx', (_, i) => transformablePointCoords[i].x)
+					.attr('cy', (_, i) => transformablePointCoords[i].y);
 			});
 		
 		// Associate event handlers to page elements
-		svg_map.call(d3.zoom().on("zoom", updateTransform)),
+		svgMap.call(d3.zoom().on('zoom', updateTransform)),
 			
-		brush.on("start brush", function(d) { brushed(d3.event, qd_visible); })
-			.on("end", function(d) { brushended(d3.event, qd_visible); }),
+		brush.on('start brush', _ => brushed(d3.event, visiblePoints))
+			.on('end', _ => brushended(d3.event, visiblePoints)),
 			
-		brushSelection.selectAll(".overlay")
-			.each(function(d) { d.type = "selection"; })
-			.on("mousedown touchstart", function(d) {
-				brushcentered(d3.mouse(this), qd_visible);
+		brushSelection.selectAll('.overlay')
+			.each(d => d.type = 'selection')
+			.on('mousedown touchstart', (_, i, nodes) => brushcentered(d3.mouse(nodes[i]), visiblePoints)),
+			
+		d3.select('#visualization-type')
+			.selectAll('input')
+			.on('change', (_, i, nodes) => {
+				visualizationFilterValue = nodes[i].value;
+				updateVisualizedPoints(visiblePoints);
 			}),
 			
-		d3.select("#visualization-type")
-			.selectAll("input")
-			.on("change", function(d) {
-				vval = this.value;
-				updateVisualizedPoints(qd_visible, false);
-			}),
-			
-		d3.select("#gender-sel")
-			.selectAll("input")
-			.on("change", function(d) {
-				gval = this.value;
-				updateVisualizedPoints(qd_visible, true);
+		d3.select('#gender-sel')
+			.selectAll('input')
+			.on('change', (_, i, nodes) => {
+				genderFilterValue = nodes[i].value;
+				updateVisualizedPoints(visiblePoints);
 			});
 
-		sliderHandle.on("onchange", val => {
-				circle_rad = val;
-				d3.selectAll(".person").attr("r", circle_rad);
-				updateVisualizedPoints(qd_visible, true);
+		sliderHandle.on('onchange', val => {
+				circleRadius = val;
+				d3.selectAll('.person').attr('r', circleRadius);
+				updateVisualizedPoints(visiblePoints);
 			});
-		rs_container.call(sliderHandle);
+		radiusSelectorGraphicContainer.call(sliderHandle);
 		
-		d3.selectAll(".row")
-			.on("click", function(d, i) {
+		d3.selectAll('.row')
+			.on('click', (_, i) => {
 				gridSelection(i);
-				updateVisualizedPoints(qd_visible, true);
+				updateVisualizedPoints(visiblePoints);
 			});
 	});
 });
 
-// UTILITY FUNCTIONS AND EVENT HANDLERS
-// Utilities
+// UTILITY FUNCTIONS
+// Converts string data to floating point number
 function stringToFloat(str) {
 	return +str;
 }
 
-function findZoneIndexes(htd, pid) {
+// Find region and province indexes (province IDs are not sorted by numeric order)
+function findZoneIndexes(regionMetadataArray, provinceId) {
 	var idx = 0;
-	while (idx < htd.length) {
-		var prov = htd[idx].provinces;
-		var check = prov.findIndex(p => p.PID == pid);
+	while (idx < regionMetadataArray.length) {
+		var provinceArray = regionMetadataArray[idx].provinces;
+		var check = provinceArray.findIndex(p => p.PID == provinceId);
 		if (check < 0) idx++;
 		else return { r: idx, p: check };
 	}
 	return { r: -1, p: -1 };
 }
 
+// Find an SVG province by x and y coordinates
 function svgNodeFromCoordinates(x, y) {
-	var root = document.getElementsByClassName("map-box")[0]
-						.getElementsByTagName("svg")[0];
-	var rpos = root.createSVGPoint();
-	rpos.x = x;
-	rpos.y = y;
-	var position = rpos.matrixTransform(root.getScreenCTM());
+	var root = document.getElementsByClassName('map-box')[0]
+						.getElementsByTagName('svg')[0];
+	var rootPosition = root.createSVGPoint();
+	rootPosition.x = x;
+	rootPosition.y = y;
+	var position = rootPosition.matrixTransform(root.getScreenCTM());
 	return document.elementFromPoint(position.x, position.y);
 }
 
+// Writes detailed information about a person visualized on the map
 function writePersonInfo(data) {
-	ci.selectAll(".section")
-		.html(function(d, i) {
+	circleInfobox.selectAll('.section')
+		.html((_, i) => {
 			switch (i) {
 				case 0:
-					return "<b>Nome:</b> " + data.name;
-					break;
+					return '<b>Nome:</b> ' + data.name;
 				case 1:
-					return "<b>Sesso:</b> " + data.gender;
-					break;
+					return '<b>Sesso:</b> ' + data.gender;
 				case 2:
-					var str = "<b>Occupazioni:</b> ";
+					var str = '<b>Occupazioni:</b> ';
 					for (idx = 0; idx < data.professions.occupations.length; idx++) {
 						if (idx == data.professions.occupations.length - 1)
 							str += data.professions.occupations[idx];
-						else str += data.professions.occupations[idx] + ", ";
+						else str += data.professions.occupations[idx] + ', ';
 					}
 					return str;
-					break;
 				case 3:
-					return "<b>Anno di nascita:</b> " + data.dob;
-					break;
+					return '<b>Anno di nascita:</b> ' + data.dob;
 				case 4:
-					if (data.dod == 0) return "<b>Anno di morte:</b> -";
-					else return "<b>Anno di morte:</b> " + data.dod;
-					break;
+					if (data.dod == 0) return '<b>Anno di morte:</b> -';
+					else return '<b>Anno di morte:</b> ' + data.dod;
 				case 5:
-					return "<b>Luogo di nascita:</b> " + data.pob;
-					break;
+					return '<b>Luogo di nascita:</b> ' + data.pob;
 				case 6:
 					return '<b>Articolo Wikipedia:</b> <a href="' + data.article +
 							'" target="_blank">' + data.article + '</a>';
@@ -784,123 +782,99 @@ function writePersonInfo(data) {
 		});
 }
 
+// Draw area chart inside the year slider rectangle and adjust y-axis ruler
 function drawAreaChart(elems) {
 	var areaValues = [];
-	var nowYear = new Date().getFullYear();
+	// For every year determine how many people are born, filtering results by selected occupation category
+	// or subcategory
 	for (i = 1850; i < nowYear; i++) {
-		var nom = elems.filter(el => {
-			if (el.gender == "maschio" && el.dob == i) {
+		var maleCircles = elems.filter(el => {
+			if (el.gender == 'maschio' && el.dob == i) {
 				var cat = el.professions.categories;
-				if (occGroupSelected[0] == "all" || (occGroupSelected[0] == "other" && cat.length == 0))
+				if (occupationFilterSelected[0] == 'all' ||	(occupationFilterSelected[0] == 'other' && cat.length == 0))
 					return true;
 				else {
 					for (var idx = 0; idx < cat.length; idx++) {
-						if (occGroupSelected.findIndex(v => v == cat[idx]) >= 0)
+						if (occupationFilterSelected.findIndex(v => v == cat[idx]) >= 0)
 							return true;
 					}
 				}
 				return false;
 			}
 		}).length;
-		var nof = elems.filter(el => {
-			if (el.gender == "femmina" && el.dob == i) {
+		var femaleCircles = elems.filter(el => {
+			if (el.gender == 'femmina' && el.dob == i) {
 				var cat = el.professions.categories;
-				if (occGroupSelected[0] == "all" || (occGroupSelected[0] == "other" && cat.length == 0))
+				if (occupationFilterSelected[0] == 'all' || (occupationFilterSelected[0] == 'other' && cat.length == 0))
 					return true;
 				else {
 					for (var idx = 0; idx < cat.length; idx++) {
-						if (occGroupSelected.findIndex(v => v == cat[idx]) >= 0)
+						if (occupationFilterSelected.findIndex(v => v == cat[idx]) >= 0)
 							return true;
 					}
 				}
 				return false;
 			}
 		}).length;
-		areaValues.push({ year: i, m: nom, f: nof });
+		areaValues.push({ year: i, m: maleCircles, f: femaleCircles });
 	}
 	
-	var y_max = d3.max(areaValues, function(d) {
-			return d.m > d.f ? d.m + 1 : d.f + 1;
-		});
+	// Generate y-axis ruler for area chart
+	var yMax = d3.max(areaValues, d => d.m > d.f ? d.m + 1 : d.f + 1);
 	var y = d3.scaleLinear()
-		.domain([0, y_max])
+		.domain([0, yMax])
 		.range([scaleH, 0]);
 		
-	slider.select(".y-axis").remove();
+	slider.select('.y-axis').remove();
 		
-	slider.append("g")
-		.attr("class", "y-axis")
-		.call(d3.axisLeft(y)
-				.ticks(Math.floor(y_max / 50) + 1));
+	slider.append('g')
+		.attr('class', 'y-axis')
+		.call(d3.axisLeft(y).ticks(Math.floor(yMax / 50) + 1));
 				
-	areaGraph.select(".male-graph").remove();
-	areaGraph.select(".female-graph").remove();
+	// Redraw area chart
+	areaGraph.select('.male-graph').remove();
+	areaGraph.select('.female-graph').remove();
 	
-	areaGraph.append("path")
+	areaGraph.append('path')
 		.datum(areaValues)
-		.attr("class", "male-graph")
-		.attr("fill", "rgba(0, 191, 255, 0.5)")
-		.attr("stroke", "rgba(0, 191, 255, 1)")
-		.attr("stroke-width", 1.5)
-		.attr("d", d3.area()
-			.x(function(d) { return x(d.year); })
-			.y0(y(0))
-			.y1(function(d) { return y(d.m); })
-		);
+		.attr('class', 'male-graph')
+		.attr('fill', 'rgba(0, 191, 255, 0.5)')
+		.attr('stroke', 'rgba(0, 191, 255, 1)')
+		.attr('stroke-width', 1.5)
+		.attr('d', d3.area().x(d => x(d.year)).y0(y(0)).y1(d => y(d.m)));
 		
-	areaGraph.append("path")
+	areaGraph.append('path')
 		.datum(areaValues)
-		.attr("class", "female-graph")
-		.attr("fill", "rgba(255, 20, 147, 0.5)")
-		.attr("stroke", "rgba(255, 20, 147, 1)")
-		.attr("stroke-width", 1.5)
-		.attr("d", d3.area()
-			.x(function(d) { return x(d.year); })
-			.y0(y(0))
-			.y1(function(d) { return y(d.f); })
-		);
+		.attr('class', 'female-graph')
+		.attr('fill', 'rgba(255, 20, 147, 0.5)')
+		.attr('stroke', 'rgba(255, 20, 147, 1)')
+		.attr('stroke-width', 1.5)
+		.attr('d', d3.area().x(d => x(d.year)).y0(y(0)).y1(d => y(d.f)));
 }
 
-function checkOccupation(occ) {
-	return occ == occval;
-}
-
-function updateVisualizedPoints(elems, vizChanged) {
-	map.selectAll("circle")
-		.filter(function(d) {
-			return d3.select(this).attr("display") == "block";
-		})
-		.attr("display", "none");
-		
-	if (rangeChanged) {
-		map.selectAll(".province");
-			
-		map.selectAll("circle")
-			.each(function (d, i) {
-				var el = elems[i];
-				if (el.dob >= minYear && el.dob <= maxYear) {
-					var provId = d3.select(this).attr("data-province-id");
-					var prov = document.querySelector("[id='" + provId + "']");
-				}
-			})
-		
-		rangeChanged = false;
-	}
+// Update procedure for all visualized data
+function updateVisualizedPoints(elems) {
+	// First of all hide all points on the map
+	map.selectAll('circle')
+		.filter((_, i, nodes) => d3.select(nodes[i]).attr('display') == 'block')
+		.attr('display', 'none');
 	
+	// Determine which points are visualized after applying filter parameters and add their indexes in
+	// indexList array
 	var indexList = [];
-	var selected = map.selectAll("circle")
-		.filter(function(d, i) {
+	var selected = map.selectAll('circle')
+		.filter((_, i) => {
 			var el = elems[i];
-			if (gval == "all" || el.gender == gval) {
+			if (genderFilterValue == 'all' || el.gender == genderFilterValue) {
 				var cat = el.professions.categories;
-				if (occGroupSelected[0] == "all" || (occGroupSelected[0] == "other" && cat.length == 0)) {
+				if (occupationFilterSelected[0] == 'all' || (occupationFilterSelected[0] == 'other' && cat.length == 0)) {
 					if (el.dob >= minYear && el.dob <= maxYear) {
 						indexList.push(i);
 						return true;
 					}
 				} else {
 					for (var idx = 0; idx < cat.length; idx++) {
-						if (occGroupSelected.findIndex(v => v == cat[idx]) >= 0 && el.dob >= minYear && el.dob <= maxYear) {
+						if (occupationFilterSelected.findIndex(v => v == cat[idx]) >= 0 && el.dob >= minYear && el.dob <= maxYear) {
 							indexList.push(i);
 							return true;
 						}
@@ -909,194 +883,213 @@ function updateVisualizedPoints(elems, vizChanged) {
 			}
 			return false;
 		})
-		.attr("display", function(d) {
-			if (vval == "dotmap") return "block";
-			else return "none";
+		.attr('display', _ => {
+			if (visualizationFilterValue == 'dotmap') return 'block';
+			else return 'none';
 		});
 		
-	map.selectAll("image")
-		.attr("display", function(d) {
-			if (vval == "heatmap") return "block";
-			else return "none";
+	// If heatmap mode is selected, show heatmap over the map
+	map.selectAll('image')
+		.attr('display', function(d) {
+			if (visualizationFilterValue == 'heatmap') return 'block';
+			else return 'none';
 		});
 		
-	map.selectAll(".province")
-		.attr("data-male", 0)
-		.attr("data-female", 0);
+	// Reset province point count
+	map.selectAll('.province')
+		.attr('data-male', 0)
+		.attr('data-female', 0);
 	
-	var nodePos = [];
-	var birthplace_qt = [];
-	
+	// Get coordinates of visualized points for collision resolving and heatmap generation
+	var transformablePointCoords = [];
+	var birthplaceDensity = [];
 	for (var i = 0, len = indexList.length; i < len; i++) {
-		var il_idx = indexList[i];
-		var el = elems[il_idx];
-		
+		var idx = indexList[i];
+		var circleElement = elems[idx];
+
+		// For each record generate an object with initial cooordinates and a province id
+		// reference: will be used in heatmap generation and dynamic collision resolving
 		var dataPoint = {
-			origX: el.coords.x,
-			origY: el.coords.y,
-			idx: il_idx,
-			x: el.coords.x,
-			y: el.coords.y
+			origX: circleElement.coords.x,
+			origY: circleElement.coords.y,
+			idx: idx,
+			x: circleElement.coords.x,
+			y: circleElement.coords.y,
+			value: 1
 		};
-		nodePos.push(dataPoint);
+		transformablePointCoords.push(dataPoint);
 		
-		var bp_idx = birthplace_qt.findIndex(v => v.place == el.pob);
-		if (bp_idx < 0) {
-			var bp_record = {
-				place: el.pob,
-				x: el.coords.x,
-				y: el.coords.y,
+		// Precalculation of the density population for every birthplace
+		var birthplaceIndex = birthplaceDensity.findIndex(v => v.place == circleElement.pob);
+		if (birthplaceIndex < 0) {
+			var birthplaceRecord = {
+				place: circleElement.pob,
 				value: 1
 			};
-			birthplace_qt.push(bp_record);
-		} else birthplace_qt[bp_idx].value++;
+			birthplaceDensity.push(birthplaceRecord);
+		} else birthplaceDensity[birthplaceIndex].value++;
 	}
 	
-	selected.each(function(d) {
-		var el = d3.select(this);
-		var provId = el.attr("data-province-id");
-		var prov = document.querySelector("[id='" + provId + "']");
-		if (el.attr("data-gender") == "maschio")
-			prov.dataset.male++;
-		else if (el.attr("data-gender") == "femmina")
-			prov.dataset.female++;
+	// For each point, increase their belonging province's gender count by one
+	selected.each((_, i, nodes) => {
+		var element = d3.select(nodes[i]);
+		var provinceId = element.attr('data-province-id');
+		var province = document.querySelector('[id=\'' + provinceId + '\']');
+		if (element.attr('data-gender') == 'maschio') province.dataset.male++;
+		else if (element.attr('data-gender') == 'femmina') province.dataset.female++;
 	});
 
-	var nos = selected.size();
-	var nom = selected.filter(function(d, i) {
+	// Write in the infobox how many people are currently visualized (FIXME: insert values
+	// from category grid)
+	var totalCircles = selected.size();
+	var maleCircles = selected.filter((_, i) => {
 		if (i < indexList.length) {
 			var idx = indexList[i];
-			return elems[idx].gender == "maschio";
+			return elems[idx].gender == 'maschio';
 		}
 	}).size();
-	var nof = selected.filter(function(d, i) {
+	var femaleCircles = selected.filter((_, i) => {
 		if (i < indexList.length) {
 			var idx = indexList[i];
-			return elems[idx].gender == "femmina";
+			return elems[idx].gender == 'femmina';
 		}
 	}).size();
+	rangeInfoboxPointQuantity.text(totalCircles + ' persone visualizzate, ' +
+							'di cui ' + maleCircles + ' uomini e ' + femaleCircles + ' donne');
 	
-	ri_pointQuantity.text(nos + " persone visualizzate, " +
-							"di cui " + nom + " uomini e " + nof + " donne");
-	
+	// Redraw area chart inside year range slider
 	drawAreaChart(elems);
 	
-	var bp_max = Math.max.apply(Math, birthplace_qt.map(o => o.value));
+	// Heatmap draw
+	var heatmapMaxValue = Math.max.apply(Math, birthplaceDensity.map(o => o.value));
 	heatmapInstance.setData({
-		max: bp_max,
+		max: heatmapMaxValue,
 		min: 0,
-		data: birthplace_qt
+		data: transformablePointCoords
 	});
 	
-	var hmdata_url = heatmapInstance.getDataURL();
-	map.selectAll(".heatmap-image")
-		.attr("xlink:href", hmdata_url);
+	var heatmapDataURL = heatmapInstance.getDataURL();
+	map.selectAll('.heatmap-image')
+		.attr('xlink:href', heatmapDataURL);
 
+	// Reset and restart collision resolver engine
 	simulation.stop();
-	simulation.nodes(nodePos)
-		.force("collision", d3.forceCollide().radius(circle_rad + 0.2))
-		.force("x", d3.forceX(function(d) { return d.origX; }))
-		.force("y", d3.forceY(function(d) { return d.origY; }))
-		.force("r", d3.forceRadial(0)
-						.x(function(d) { return d.origX; })
-						.y(function(d) { return d.origY; }))
-		.on("tick", function(d) {
-			map.selectAll("circle")
-				.attr("cx", function(d, i) {
-					var currIdx = indexList.findIndex(val => val == i);
-					if (currIdx >= 0) return nodePos[currIdx].x;
+	simulation.nodes(transformablePointCoords)
+		.force('collision', d3.forceCollide().radius(circleRadius + 0.2))
+		.force('x', d3.forceX(d => d.origX))
+		.force('y', d3.forceY(d => d.origY))
+		.force('r', d3.forceRadial(0).x(d => d.origX).y(d => d.origY))
+		.on('tick', _ => {
+			map.selectAll('circle')
+				.attr('cx', (_, i) => {
+					var currentIdx = indexList.findIndex(val => val == i);
+					if (currentIdx >= 0) return transformablePointCoords[currentIdx].x;
 				})
-				.attr("cy", function(d, i) {
-					var currIdx = indexList.findIndex(val => val == i);
-					if (currIdx >= 0) return nodePos[currIdx].y;
+				.attr('cy', (_, i) => {
+					var currentIdx = indexList.findIndex(val => val == i);
+					if (currentIdx >= 0) return transformablePointCoords[currentIdx].y;
 				});
 		});
 	simulation.alpha(1).restart();
 	
-	map.selectAll(".province")
-		.style("fill", function(d, i) {
-			if (vval == "density") {
-				var prov = d3.select(this).node();
-				var m = parseInt(prov.dataset.male);
-				var f = parseInt(prov.dataset.female);
-				
+	// Generate color density
+	var maxProvincePeopleNo = 0;
+	map.selectAll('.province')
+		.each((_, i, nodes) => {
+			var province = d3.select(nodes[i]).node();
+			var total = parseInt(province.dataset.male) + parseInt(province.dataset.female);
+			if (total > maxProvincePeopleNo) maxProvincePeopleNo = total;
+		});
+	map.selectAll('.province')
+		.style('fill', (_, i, nodes) => {
+			if (visualizationFilterValue == 'density') {
+				var province = d3.select(nodes[i]).node();
+				var m = parseInt(province.dataset.male);
+				var f = parseInt(province.dataset.female);
 				var total = m + f;
-				if (nos > 0 && total > 0) {
+
+				if (maxProvincePeopleNo > 0 && total > 0) {
 					var h = 240 + Math.floor(60 * (f / total));
-					var l = 90 - Math.ceil(50 * (total / nos));
-					switch (gval) {
-						case "maschio":
-							l = 90 - Math.ceil(50 * (m / nos));
-							return "hsla(240, 100%, " + l + "%, 0.8)";
-							break;
-						case "femmina":
-							l = 90 - Math.ceil(50 * (f / nos));
-							return "hsla(300, 100%, " + l + "%, 0.8)";
-							break;
-						default: return "hsla(" + h + ", 100%, " + l + "%, 0.8)";
+					var l = 100 - Math.ceil(50 * (total / maxProvincePeopleNo));
+					switch (genderFilterValue) {
+						case 'maschio':
+							l = 100 - Math.ceil(50 * (m / maxProvincePeopleNo));
+							return 'hsla(240, 100%, ' + l + '%, 0.8)';
+						case 'femmina':
+							l = 100 - Math.ceil(50 * (f / maxProvincePeopleNo));
+							return 'hsla(300, 100%, ' + l + '%, 0.8)';
+						default: return 'hsla(' + h + ', 100%, ' + l + '%, 0.8)';
 					}
 				}
 			}
-			return "#fff";
+			return '#fff';
 		});
 }
 
-// Event handlers
+// EVENT HANDLERS
+// Apply transform matrix to all map elements
 function updateTransform() {
-	map.attr("transform", d3.event.transform);
+	map.attr('transform', d3.event.transform);
 }
 
+// Modifies birthyear limits
 function getYearLimits(elems) {
-	var lx = +d3.select(".selection").attr("x"),
-		width = +d3.select(".selection").attr("width");
+	// Update min and max limits
+	var lx = +d3.select('.selection').attr('x'),
+		width = +d3.select('.selection').attr('width');
 	minYear = Math.floor(x.invert(lx));
 	maxYear = Math.floor(x.invert(lx + width));
 	
-	ri_yearRange.text("Intervallo nascite: dal " + minYear + " al " + maxYear);
+	// Visualize updated limits in an infobox
+	rangeInfoboxYearRange.text('Intervallo nascite: dal ' + minYear + ' al ' + maxYear);
 	
-	for (var i = 0; i < occ_categories.length; i++) {
-		occ_categories[i].m = 0;
-		occ_categories[i].f = 0;
-		occ_categories[i].other = 0;
+	// Reset occupation categories values
+	for (var i = 0; i < occupationCategories.length; i++) {
+		occupationCategories[i].m = 0;
+		occupationCategories[i].f = 0;
+		occupationCategories[i].other = 0;
 	}
-	
+	 
 	for (var i = 0; i < elems.length; i++) {
-		var rec = elems[i];
+		var record = elems[i];
 		
-		if (rec.dob >= minYear && rec.dob <= maxYear) {
-			if (rec.gender == "maschio") occ_categories[0].m++;
-			else if (rec.gender == "femmina") occ_categories[0].f++;
-			else occ_categories[0].other++;
+		if (record.dob >= minYear && record.dob <= maxYear) {
+			// Increment "ALL" occupation filter value by one
+			if (record.gender == 'maschio') occupationCategories[0].m++;
+			else if (record.gender == 'femmina') occupationCategories[0].f++;
+			else occupationCategories[0].other++;
 			
-			if (rec.professions.categories.length == 0) {
-				var l = occ_categories.length;
-				if (rec.gender == "maschio") occ_categories[l-1].m++;
-				else if (rec.gender == "femmina") occ_categories[l-1].f++;
-				else occ_categories[l-1].other++;
+			// For each occupation category and subcategory in which this record belongs, increment
+			// respective filter value by one (FIXME: don't count records multiple times in categories)
+			if (record.professions.categories.length == 0) {
+				var l = occupationCategories.length;
+				if (record.gender == 'maschio') occupationCategories[l-1].m++;
+				else if (record.gender == 'femmina') occupationCategories[l-1].f++;
+				else occupationCategories[l-1].other++;
 			} else {
-				var prev_idx_class = -1;
-				for (var j = 0; j < rec.professions.categories.length; j++) {
-					var currCat = rec.professions.categories[j];
-					var idx = occ_categories.findIndex(cat => cat.name == currCat);
-					var idx_class = idx;
-					while (occ_categories[idx_class].type != "category") idx_class--;
-					if (rec.gender == "maschio") {
-						occ_categories[idx].m++;
-						if (prev_idx_class != idx_class) {
-							occ_categories[idx_class].m++;
-							prev_idx_class = idx_class;
+				var previousCategoryIndex = -1;
+				for (var j = 0; j < record.professions.categories.length; j++) {
+					var currentSubcategory = record.professions.categories[j];
+					var idx = occupationCategories.findIndex(cat => cat.name == currentSubcategory);
+					var categoryIndex = idx;
+					while (occupationCategories[categoryIndex].type != 'category') categoryIndex--;
+					if (record.gender == 'maschio') {
+						occupationCategories[idx].m++;
+						if (previousCategoryIndex != categoryIndex) {
+							occupationCategories[categoryIndex].m++;
+							previousCategoryIndex = categoryIndex;
 						}
-					} else if (rec.gender == "femmina") {
-						occ_categories[idx].f++;
-						if (prev_idx_class != idx_class) {
-							occ_categories[idx_class].f++;
-							prev_idx_class = idx_class;
+					} else if (record.gender == 'femmina') {
+						occupationCategories[idx].f++;
+						if (previousCategoryIndex != categoryIndex) {
+							occupationCategories[categoryIndex].f++;
+							previousCategoryIndex = categoryIndex;
 						}
 					} else {
-						occ_categories[idx].other++;
-						if (prev_idx_class != idx_class) {
-							occ_categories[idx_class].other++;
-							prev_idx_class = idx_class;
+						occupationCategories[idx].other++;
+						if (previousCategoryIndex != categoryIndex) {
+							occupationCategories[categoryIndex].other++;
+							previousCategoryIndex = categoryIndex;
 						}
 					}
 				}
@@ -1104,75 +1097,68 @@ function getYearLimits(elems) {
 		}
 	}
 	
-	d3.selectAll(".cell")
-		.filter(function (d) {
-			return d3.select(this).attr("data-type") == "male-count";
-		})
-		.select("text")
-		.text(function(d) {
-			var el = d3.select(this).node().parentNode;
+	// Update the content of value cells
+	d3.selectAll('.cell')
+		.filter((_, i, nodes) => d3.select(nodes[i]).attr('data-type') == 'male-count')
+		.select('text')
+		.text((_, i, nodes) => {
+			var el = d3.select(nodes[i]).node().parentNode;
 			var idx = el.dataset.rowId;
-			return "" + occ_categories[idx].m;
+			return '' + occupationCategories[idx].m;
 		});
 		
-	d3.selectAll(".cell")
-		.filter(function (d) {
-			return d3.select(this).attr("data-type") == "female-count";
-		})
-		.select("text")
-		.text(function(d) {
-			var el = d3.select(this).node().parentNode;
+	d3.selectAll('.cell')
+		.filter((_, i, nodes) => d3.select(nodes[i]).attr('data-type') == 'female-count')
+		.select('text')
+		.text((_, i, nodes) => {
+			var el = d3.select(nodes[i]).node().parentNode;
 			var idx = el.dataset.rowId;
-			return "" + occ_categories[idx].f;
+			return '' + occupationCategories[idx].f;
 		});
 		
-	d3.selectAll(".cell")
-		.filter(function (d) {
-			return d3.select(this).attr("data-type") == "other-count";
-		})
-		.select("text")
-		.text(function(d) {
-			var el = d3.select(this).node().parentNode;
+	d3.selectAll('.cell')
+		.filter((_, i, nodes) => d3.select(nodes[i]).attr('data-type') == 'other-count')
+		.select('text')
+		.text((_, i, nodes) => {
+			var el = d3.select(nodes[i]).node().parentNode;
 			var idx = el.dataset.rowId;
-			return "" + occ_categories[idx].other;
+			return '' + occupationCategories[idx].other;
 		});
 	
 	// Apply to points
-	updateVisualizedPoints(elems, true);
+	updateVisualizedPoints(elems);
 }
 
+// Year range slider event handler for click on unselected spaces
 function brushcentered(mouseEvt, elems) {
 	var dx = x(1860) - x(1850),
 		cx = mouseEvt[0],
 		x0 = cx - dx / 2,
 		x1 = cx + dx / 2;
 	
-	brushHandle.attr("x", function(d) {
-		if (d.type == "w")
-			return (parseInt(d3.select(".handle--w").attr("x")) + 2.5);
-		else return (parseInt(d3.select(".handle--e").attr("x")) + 1);
+	brushHandle.attr('x', d => {
+		if (d.type == 'w')
+			return (parseInt(d3.select('.handle--w').attr('x')) + 2.5);
+		else return (parseInt(d3.select('.handle--e').attr('x')) + 1);
 	});
-	brushSelection.call(
-		brush.move, x1 > scaleW ? [scaleW - dx, scaleW] : x0 < 0 ? [0, dx] : [x0, x1]
-	);
+	brushSelection.call(brush.move, x1 > scaleW ? [scaleW - dx, scaleW] : x0 < 0 ? [0, dx] : [x0, x1]);
 	
-	rangeChanged = true;
 	getYearLimits(elems);
 }
 
+// Year range slider mousein event handler
 function brushed(evt, elems) {
 	if (!evt.selection) return;
-	var extent = evt.selection.map(x.invert, x);
-	brushHandle.attr("x", function(d) {
-		if (d.type == "w")
-			return (parseInt(d3.select(".handle--w").attr("x")) + 2.5);
-		else return (parseInt(d3.select(".handle--e").attr("x")) + 1);
+	brushHandle.attr('x', d => {
+		if (d.type == 'w')
+			return (parseInt(d3.select('.handle--w').attr('x')) + 2.5);
+		else return (parseInt(d3.select('.handle--e').attr('x')) + 1);
 	});
 	
-	rangeChanged = true;
 	getYearLimits(elems);
 }
 
+// Year range slider mouseout event handler
 function brushended(evt, elems) {
 	if (!evt.sourceEvent) return;
 	if (!evt.selection) return;
@@ -1184,48 +1170,48 @@ function brushended(evt, elems) {
 		d1[1] = d1[0] + 1;
 	}
 	
-	brushHandle.attr("x", function(d) {
-		if (d.type == "w")
-			return (parseInt(d3.select(".handle--w").attr("x")) + 2.5);
-		else return (parseInt(d3.select(".handle--e").attr("x")) + 1);
+	brushHandle.attr('x', d => {
+		if (d.type == 'w')
+			return (parseInt(d3.select('.handle--w').attr('x')) + 2.5);
+		else return (parseInt(d3.select('.handle--e').attr('x')) + 1);
 	});
 	brushSelection.transition().call(brush.move, d1.map(x));
 	
-	rangeChanged = true;
 	getYearLimits(elems);
 }
 
+// Set occupation category filtering
 function gridSelection(rowId) {
-	grid.selectAll("rect")
-		.attr("fill", "#fff")
+	grid.selectAll('rect')
+		.attr('fill', '#fff')
 		
-	occGroupSelected = [];
-	d3.selectAll(".cell")
-		.filter(function(d) {
-			var id = d3.select(this).attr("data-row-id");
+	occupationFilterSelected = [];
+	d3.selectAll('.cell')
+		.filter((_, i, nodes) => {
+			var id = d3.select(nodes[i]).attr('data-row-id');
 			return parseInt(id) == rowId;
 		})
-		.selectAll("rect")
-		.attr("fill", "#00cccc");
+		.selectAll('rect')
+		.attr('fill', '#00cccc');
 	
 	if (rowId == 0) {
-		occGroupSelected.push("all");
-	} else if (rowId == occ_categories.length - 1) {
-		occGroupSelected.push("other");
+		occupationFilterSelected.push('all');
+	} else if (rowId == occupationCategories.length - 1) {
+		occupationFilterSelected.push('other');
 	} else {
-		if (occ_categories[rowId].type == "category") {
-			var subId_last = rowId + 1;
-			while (occ_categories[subId_last].type == "subcategory") {
-				occGroupSelected.push(occ_categories[subId_last].name);
-				subId_last++;
+		if (occupationCategories[rowId].type == 'category') {
+			var lastSubcategoryId = rowId + 1;
+			while (occupationCategories[lastSubcategoryId].type == 'subcategory') {
+				occupationFilterSelected.push(occupationCategories[lastSubcategoryId].name);
+				lastSubcategoryId++;
 			}
-			d3.selectAll(".cell")
-				.filter(function(d) {
-					var id = d3.select(this).attr("data-row-id");
-					return parseInt(id) > rowId && parseInt(id) < subId_last;
+			d3.selectAll('.cell')
+				.filter((_, i, nodes) => {
+					var id = d3.select(nodes[i]).attr('data-row-id');
+					return parseInt(id) > rowId && parseInt(id) < lastSubcategoryId;
 				})
-				.selectAll("rect")
-				.attr("fill", "#97eaea");
-		} else occGroupSelected.push(occ_categories[rowId].name);
+				.selectAll('rect')
+				.attr('fill', '#97eaea');
+		} else occupationFilterSelected.push(occupationCategories[rowId].name);
 	}
 }

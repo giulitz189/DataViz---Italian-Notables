@@ -61,7 +61,6 @@ div#content {
 	box-sizing: border-box;
 	display: inline;
 	font-size: 10px;
-	width: 100%;
 	line-height: 1;
 	content: "\25BC";
 	position: absolute;
