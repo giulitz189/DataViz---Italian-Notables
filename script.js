@@ -271,7 +271,7 @@ var grid = d3.select('#occ-select-grid')
 	.text('Occupazione: ')
 	.append('div')
 		.style('width', '100%')
-		.style('height', '600px')
+		.style('height', '800px')
 		.style('overflow-x', 'hidden')
 		.style('overflow-y', 'auto')
 	.append('svg')
@@ -294,11 +294,8 @@ var column = row.selectAll('.square')
 		.attr('data-type', (_, i) => {
 			switch (i) {
 				case 1: return 'male-count';
-						break;
 				case 2: return 'female-count';
-						break;
 				case 3: return 'other-count';
-						break;
 				default: return 'name';
 			}
 		})
@@ -312,7 +309,7 @@ var column = row.selectAll('.square')
 		.attr('stroke', '#222');
 		
 // Filling all cells
-d3.selectAll('.cell')
+var cellsText = d3.selectAll('.cell')
 	.filter((_, i, nodes) => d3.select(nodes[i]).attr('data-type') == 'name')
 	.append('text')
 	.attr('x', '65')
@@ -321,7 +318,6 @@ d3.selectAll('.cell')
 		var idx = el.dataset.rowId;
 		return '' + ((idx * 30) + 15);
 	})
-	.attr('dominant-baseline', 'middle')
 	.attr('text-anchor', 'middle')
 	.style('font-size', '13px')
 	.style('font-weight', (_, i, nodes) => {
@@ -341,6 +337,9 @@ d3.selectAll('.cell')
 		var idx = el.dataset.rowId;
 		return occupationCategories[idx].name;
 	});
+
+if (navigator.userAgent.indexOf("Edge") != -1) cellsText.attr('dy', 4.5);
+else cellsText.attr('dominant-baseline', 'middle');
 	
 // Occupation categories currently selected
 var occupationFilterSelected = ['all'];
@@ -535,7 +534,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 		}
 		
 		// Write occupation filter grid values
-		d3.selectAll('.cell')
+		var occupationMaleCount = d3.selectAll('.cell')
 			.filter((_, i, nodes) =>  d3.select(nodes[i]).attr('data-type') == 'male-count')
 			.append('text')
 			.attr('x', '145')
@@ -544,7 +543,6 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 				var idx = el.dataset.rowId;
 				return '' + ((idx * 30) + 15);
 			})
-			.attr('dominant-baseline', 'middle')
 			.attr('text-anchor', 'middle')
 			.style('font-size', '11px')
 			.text((_, i, nodes) => {
@@ -553,7 +551,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 				return '' + occupationCategories[idx].m;
 			});
 			
-		d3.selectAll('.cell')
+		var occupationFemaleCount = d3.selectAll('.cell')
 			.filter((_, i, nodes) => d3.select(nodes[i]).attr('data-type') == 'female-count')
 			.append('text')
 			.attr('x', '175')
@@ -562,7 +560,6 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 				var idx = el.dataset.rowId;
 				return '' + ((idx * 30) + 15);
 			})
-			.attr('dominant-baseline', 'middle')
 			.attr('text-anchor', 'middle')
 			.style('font-size', '11px')
 			.text((_, i, nodes) => {
@@ -571,7 +568,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 				return '' + occupationCategories[idx].f;
 			});
 			
-		d3.selectAll('.cell')
+		var occupationOtherCount = d3.selectAll('.cell')
 			.filter((_, i, nodes) => d3.select(nodes[i]).attr('data-type') == 'other-count')
 			.append('text')
 			.attr('x', '205')
@@ -580,7 +577,6 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 				var idx = el.dataset.rowId;
 				return '' + ((idx * 30) + 15);
 			})
-			.attr('dominant-baseline', 'middle')
 			.attr('text-anchor', 'middle')
 			.style('font-size', '11px')
 			.text((_, i, nodes) => {
@@ -588,6 +584,16 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 				var idx = el.dataset.rowId;
 				return '' + occupationCategories[idx].other;
 			});
+
+		if (navigator.userAgent.indexOf("Edge") != -1) {
+			occupationMaleCount.attr('dy', 4.5);
+			occupationFemaleCount.attr('dy', 4.5);
+			occupationOtherCount.attr('dy', 4.5);
+		} else {
+			occupationMaleCount.attr('dominant-baseline', 'middle');
+			occupationFemaleCount.attr('dominant-baseline', 'middle');
+			occupationOtherCount.attr('dominant-baseline', 'middle');
+		}
 		
 		// Creating tipbox for circles 
 		var circleTipbox = d3.tip()
@@ -597,9 +603,9 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 				var genderLetter = '';
 				switch (visiblePoints[i].gender) {
 					case 'maschio': genderLetter = 'M';
-								 break;
+								 	break;
 					case 'femmina': genderLetter = 'F';
-								   break;
+								   	break;
 					default: genderLetter = 'X';
 							 break;
 				}
@@ -640,7 +646,22 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 						default: return '#66FF66';
 					}
 				})
-				.on('mouseover', circleTipbox.show) // show tipbox at mouse hovering
+				.on('mouseover', (d, i) => {
+					var idx = i;
+					circleTipbox.style('background', _ => {
+						switch (visiblePoints[idx].gender) {
+							case 'maschio': return '#00BFFF';
+							case 'femmina': return '#FF1493';
+							default: return '#66FF66';
+						}
+					})
+					circleTipbox.style('color', _ => {
+						if (visiblePoints[idx].gender == 'maschio' || visiblePoints[idx].gender == 'femmina')
+							return '#FFF';
+						else return '#000';
+					});
+					circleTipbox.show(d, idx);
+				}) // show tipbox at mouse hovering
 				.on('mouseout', circleTipbox.hide)
 				// if clicked, show detailed information in red infobox on the right
 				.on('click', (_, i) => writePersonInfo(visiblePoints[i])); 

@@ -45,35 +45,26 @@ div#content {
 	padding: 6px;
 	color: #FFF;
 	border-radius: 4px;
+	border-color: rgba(0, 0, 0, 0.8);
 	font-size: 12px;
 	pointer-events: none;
 }
 
 .d3-tip#map-tip {
-	background: #00cccc;
-}
-
-.d3-tip#circle-tip {
-	background: #ff0000;
+	background: gray;
 }
 
 .d3-tip:after {
 	box-sizing: border-box;
 	display: inline;
 	font-size: 10px;
+	width: 100%;
 	line-height: 1;
+	color: rgba(0, 0, 0, 0.8);
 	content: "\25BC";
 	position: absolute;
 	text-align: center;
 	pointer-events: none;
-}
-
-.d3-tip#map-tip:after {
-	color: #00cccc;
-}
-
-.d3-tip#circle-tip:after {
-	color: #ff0000;
 }
 
 .d3-tip.n:after {
