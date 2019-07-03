@@ -476,7 +476,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 					x: record.coords.x,
 					y: record.coords.y,
 					provinceIndex: provinceElement.id,
-					value: 1
+					value: 100
 				};
 				transformablePointCoords.push(dataPoint);
 				
@@ -677,7 +677,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 		drawAreaChart(visiblePoints);
 		
 		// Heatmap draw
-		var heatmapMaxValue = Math.max.apply(Math, birthplaceDensity.map(o => o.value));
+		var heatmapMaxValue = Math.max.apply(Math, birthplaceDensity.map(o => o.value)) * 100;
 		heatmapInstance.setData({
 			max: heatmapMaxValue,
 			min: 0,
@@ -904,19 +904,19 @@ function updateVisualizedPoints(elems) {
 			}
 			return false;
 		})
-		.attr('display', _ => {
+		.attr('display', _ => { // DOTMAP MODE ONLY
 			if (visualizationFilterValue == 'dotmap') return 'block';
 			else return 'none';
 		});
 		
-	// If heatmap mode is selected, show heatmap over the map
+	// If heatmap mode is selected, show heatmap over the map (HEATMAP MODE ONLY)
 	map.selectAll('image')
 		.attr('display', function(d) {
 			if (visualizationFilterValue == 'heatmap') return 'block';
 			else return 'none';
 		});
 		
-	// Reset province point count
+	// Reset province point count (DENSITY MODE ONLY)
 	map.selectAll('.province')
 		.attr('data-male', 0)
 		.attr('data-female', 0);
@@ -930,17 +930,18 @@ function updateVisualizedPoints(elems) {
 
 		// For each record generate an object with initial cooordinates and a province id
 		// reference: will be used in heatmap generation and dynamic collision resolving
+		// (DOTMAP AND HEATMAP)
 		var dataPoint = {
 			origX: circleElement.coords.x,
 			origY: circleElement.coords.y,
 			idx: idx,
 			x: circleElement.coords.x,
 			y: circleElement.coords.y,
-			value: 1
+			value: 100
 		};
 		transformablePointCoords.push(dataPoint);
 		
-		// Precalculation of the density population for every birthplace
+		// Precalculation of the density population for every birthplace (HEATMAP MODE ONLY)
 		var birthplaceIndex = birthplaceDensity.findIndex(v => v.place == circleElement.pob);
 		if (birthplaceIndex < 0) {
 			var birthplaceRecord = {
@@ -951,7 +952,7 @@ function updateVisualizedPoints(elems) {
 		} else birthplaceDensity[birthplaceIndex].value++;
 	}
 	
-	// For each point, increase their belonging province's gender count by one
+	// For each point, increase their belonging province's gender count by one (DENSITY MODE ONLY)
 	selected.each((_, i, nodes) => {
 		var element = d3.select(nodes[i]);
 		var provinceId = element.attr('data-province-id');
@@ -981,8 +982,8 @@ function updateVisualizedPoints(elems) {
 	// Redraw area chart inside year range slider
 	drawAreaChart(elems);
 	
-	// Heatmap draw
-	var heatmapMaxValue = Math.max.apply(Math, birthplaceDensity.map(o => o.value));
+	// Heatmap draw (HEATMAP MODE ONLY)
+	var heatmapMaxValue = Math.max.apply(Math, birthplaceDensity.map(o => o.value)) * 100;
 	heatmapInstance.setData({
 		max: heatmapMaxValue,
 		min: 0,
@@ -993,7 +994,7 @@ function updateVisualizedPoints(elems) {
 	map.selectAll('.heatmap-image')
 		.attr('xlink:href', heatmapDataURL);
 
-	// Reset and restart collision resolver engine
+	// Reset and restart collision resolver engine (DOTMAP MODE ONLY)
 	simulation.stop();
 	simulation.nodes(transformablePointCoords)
 		.force('collision', d3.forceCollide().radius(circleRadius + 0.2))
@@ -1013,7 +1014,7 @@ function updateVisualizedPoints(elems) {
 		});
 	simulation.alpha(1).restart();
 	
-	// Generate color density
+	// Generate color density (DENSITY MODE ONLY)
 	var maxProvincePeopleNo = 0;
 	map.selectAll('.province')
 		.each((_, i, nodes) => {
