@@ -468,18 +468,6 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 					provinceElement.dataset.female++;
 				visiblePoints.push(record);
 				
-				// For each record generate an object with initial cooordinates and a province id
-				// reference: will be used in heatmap generation and dynamic collision resolving
-				var dataPoint = {
-					origX: record.coords.x,
-					origY: record.coords.y,
-					x: record.coords.x,
-					y: record.coords.y,
-					provinceIndex: provinceElement.id,
-					value: 1
-				};
-				transformablePointCoords.push(dataPoint);
-				
 				// Precalculation of the density population for every birthplace
 				var birthplaceIndex = birthplaceDensity.findIndex(v => v.place == record.pob);
 				if (birthplaceIndex < 0) {
@@ -488,7 +476,24 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 						value: 1
 					};
 					birthplaceDensity.push(birthplaceRecord);
+					birthplaceIndex = birthplaceDensity.length - 1;
 				} else birthplaceDensity[birthplaceIndex].value++;
+
+				// Convert point coordinates in exagonal layout
+				var pointNo = birthplaceDensity[birthplaceIndex].value;
+				var exagonalCoords = getExagonalLayoutCoordinates(pointNo - 1, record.coords.x, record.coords.y);
+
+				// For each record generate an object with initial cooordinates and a province id
+				// reference: will be used in heatmap generation and dynamic collision resolving
+				var dataPoint = {
+					origX: record.coords.x,
+					origY: record.coords.y,
+					x: exagonalCoords.x,
+					y: exagonalCoords.y,
+					provinceIndex: provinceElement.id,
+					value: 1
+				};
+				transformablePointCoords.push(dataPoint);
 
 				// Increment "ALL" occupation filter value by one
 				if (record.gender == 'maschio') occupationCategories[0].m++;
@@ -749,6 +754,59 @@ function stringToFloat(str) {
 	return +str;
 }
 
+function exagonalCenteredNumber(n) {
+	return 1 + 3 * n * (n - 1);
+}
+
+// Given center coordinates and the position in exagonal layout, this function determines x and y coordinates for the specified position
+// (Info about exagonal centered numbers here: https://w.wiki/5fx)
+function getExagonalLayoutCoordinates(pointNo, x0, y0) {
+	if (pointNo == 0) return {x: x0, y: y0};
+	else {
+		// Get minimum and maximum points for each layer
+		var currentLayer = 1;
+		var minPoints = exagonalCenteredNumber(currentLayer);
+		var maxPoints = exagonalCenteredNumber(currentLayer+1);
+		while (pointNo >= maxPoints) {
+			currentLayer++;
+			minPoints = exagonalCenteredNumber(currentLayer);
+			maxPoints = exagonalCenteredNumber(currentLayer+1);
+		}
+
+		// Obtain edge and offset index
+		var edge = Math.floor((pointNo - minPoints) / currentLayer);
+		var offset = (pointNo - minPoints) % currentLayer;		// Calculate resulting x and y position
+		var x = x0, y = y0;
+		switch (edge) {
+			case 0:
+				x += circleRadius * 2 * currentLayer - circleRadius * offset;
+				y -= circleRadius * 2 * offset;
+				break;
+			case 1:
+				x += circleRadius * currentLayer - circleRadius * 2 * offset;
+				y -= circleRadius * 2 * currentLayer;
+				break;
+			case 2:
+				x -= circleRadius * currentLayer - circleRadius * offset;
+				y -= circleRadius * 2 * currentLayer + circleRadius * 2 * offset;
+				break;
+			case 3:
+				x -= circleRadius * 2 * currentLayer + circleRadius * offset;
+				y += circleRadius * 2 * offset;
+				break;
+			case 4:
+				x -= circleRadius * currentLayer + circleRadius * 2 * offset;
+				y += circleRadius * 2 * currentLayer;
+				break;
+			case 5:
+				x += circleRadius * currentLayer + circleRadius * offset;
+				y += circleRadius * 2 * currentLayer - circleRadius * 2 * offset;
+		}
+
+		return {x: x, y: y};
+	}
+}
+
 // Find region and province indexes (province IDs are not sorted by numeric order)
 function findZoneIndexes(regionMetadataArray, provinceId) {
 	var idx = 0;
@@ -928,18 +986,6 @@ function updateVisualizedPoints(elems) {
 		var idx = indexList[i];
 		var circleElement = elems[idx];
 
-		// For each record generate an object with initial cooordinates and a province id
-		// reference: will be used in heatmap generation and dynamic collision resolving
-		var dataPoint = {
-			origX: circleElement.coords.x,
-			origY: circleElement.coords.y,
-			idx: idx,
-			x: circleElement.coords.x,
-			y: circleElement.coords.y,
-			value: 1
-		};
-		transformablePointCoords.push(dataPoint);
-		
 		// Precalculation of the density population for every birthplace
 		var birthplaceIndex = birthplaceDensity.findIndex(v => v.place == circleElement.pob);
 		if (birthplaceIndex < 0) {
@@ -948,7 +994,24 @@ function updateVisualizedPoints(elems) {
 				value: 1
 			};
 			birthplaceDensity.push(birthplaceRecord);
+			birthplaceIndex = birthplaceDensity.length - 1;
 		} else birthplaceDensity[birthplaceIndex].value++;
+
+		// Convert point coordinates in exagonal layout
+		var pointNo = birthplaceDensity[birthplaceIndex].value;
+		var exagonalCoords = getExagonalLayoutCoordinates(pointNo - 1, circleElement.coords.x, circleElement.coords.y);
+
+		// For each record generate an object with initial cooordinates and a province id
+		// reference: will be used in heatmap generation and dynamic collision resolving
+		var dataPoint = {
+			origX: circleElement.coords.x,
+			origY: circleElement.coords.y,
+			idx: idx,
+			x: exagonalCoords.x,
+			y: exagonalCoords.y,
+			value: 1
+		};
+		transformablePointCoords.push(dataPoint);
 	}
 	
 	// For each point, increase their belonging province's gender count by one
