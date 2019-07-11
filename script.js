@@ -442,9 +442,18 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 											return elementId == provinceId ? thisElement : null;
 										}).node();
 				var total = parseInt(provinceElement.dataset.male) + parseInt(provinceElement.dataset.female);
-				return 'Nome: ' + provinceElement.dataset.name + '</br>' +
-					'Popolazione: ' + provinceElement.dataset.population + '</br>' +
-					'Di cui notables: ' + total;
+				return provinceElement.dataset.name + '</br>' + 'Pop. ' + provinceElement.dataset.population + ' (' + total + ')';
+			})
+			.offset((_, i, nodes) => {
+				var thisProvince = nodes[i];
+				switch (thisProvince.id) {
+					case '49': return [(thisProvince.getBoundingClientRect().height / 2) - 10, thisProvince.getBoundingClientRect().width / 4];
+					case '81': return [(thisProvince.getBoundingClientRect().height / 4) - 10, 0];
+					case '82': return [(3 * (thisProvince.getBoundingClientRect().height / 4)) - 10, 0];
+					case '83': return [(3 * (thisProvince.getBoundingClientRect().height / 4)) - 10, 0];
+					case '84': return [(thisProvince.getBoundingClientRect().height / 8) - 10, 0];
+					default: return [(thisProvince.getBoundingClientRect().height / 2) - 10, 0];
+				}
 			});
 
 		map.call(provinceTipbox);
