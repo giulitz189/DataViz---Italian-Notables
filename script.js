@@ -18,6 +18,50 @@ var svgMap = d3.select('.map-box')
 						+ viewBoxMapCoordinates.width + ' ' + viewBoxMapCoordinates.height);
 
 var map = svgMap.append('g');
+
+// Legend box for density map
+var densityLegend = d3.select('.map-box')
+	.append('div')
+		.attr('class', 'legend')
+		.style('display', 'none');
+
+densityLegend.append('div')
+	.style('font-style', 'italic')
+	.style('text-align', 'center')
+	.style('margin-bottom', '10px')
+	.style('padding-top', '5px')
+	.text('Distribuzione notables:');
+
+var rangeSpectrum = densityLegend.append('div')
+	.attr('class', 'container')
+	.attr('id', 'range');
+
+rangeSpectrum.append('div')
+	.style('padding-right', '5px')
+	.text('maschio');
+
+rangeSpectrum.append('div')
+	.attr('class', 'gradient-range');
+
+rangeSpectrum.append('div')
+	.style('padding-left', '5px')
+	.text('femmina');
+
+var densitySpectrum = densityLegend.append('div')
+	.attr('class', 'container')
+	.attr('id', 'density');
+
+densitySpectrum.append('div')
+	.style('padding-left', '15px')
+	.style('padding-right', '5px')
+	.text('0');
+
+densitySpectrum.append('div')
+	.attr('class', 'gradient-density');
+
+densitySpectrum.append('div')
+	.style('padding-left', '5px')
+	.text('max');
 	
 // Geographical Mercator projection function
 var projection = d3.geoMercator()
@@ -978,7 +1022,7 @@ function updateVisualizedPoints(elems) {
 		
 	// If heatmap mode is selected, show heatmap over the map (HEATMAP MODE ONLY)
 	map.selectAll('image')
-		.attr('display', function(d) {
+		.attr('display', _ => {
 			if (visualizationFilterValue == 'heatmap') return 'block';
 			else return 'none';
 		});
@@ -987,6 +1031,11 @@ function updateVisualizedPoints(elems) {
 	map.selectAll('.province')
 		.attr('data-male', 0)
 		.attr('data-female', 0);
+
+	densityLegend.style('display', _ => {
+		if (visualizationFilterValue == 'density') return 'block';
+		else return 'none';
+	});
 	
 	// Get coordinates of visualized points for collision resolving and heatmap generation
 	var transformablePointCoords = [];

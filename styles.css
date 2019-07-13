@@ -30,6 +30,47 @@ div#content {
 	stroke-width: 0.5;
 }
 
+.legend {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	width: 200px;
+	height: 95px;
+	opacity: 0.8;
+	border-style: groove;
+	border-color: #a9a9a9;
+	pointer-events: none;
+}
+
+.container {
+	display: flex;
+	justify-content: center;
+}
+
+#range {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+#density {
+	margin-top: 10px;
+}
+
+.gradient-range {
+	border: 1px solid black;
+	width: 70px;
+	height: 20px;
+	background-image: linear-gradient(to right, #00BFFF, #FF1493);
+}
+
+.gradient-density {
+	border: 1px solid black;
+	width: 70px;
+	height: 20px;
+	background-image: linear-gradient(to right, hsla(270, 100%, 100%), hsla(270, 100%, 50%));
+}
+
+/* Heatmap */
 .heatmap-canvas {
 	display: none;
 }
