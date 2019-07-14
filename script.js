@@ -514,14 +514,8 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 			// For every person we need to know in which province its dot is clipped
 			var provinceElement = svgNodeFromCoordinates(record.coords.x, record.coords.y);
 			if (provinceElement != null && provinceElement.classList[0] == 'province') {
-				// Insert one male or one female in the province record count
-				if (record.gender == 'maschio')
-					provinceElement.dataset.male++;
-				else if (record.gender == 'femmina')
-					provinceElement.dataset.female++;
 				visiblePoints.push(record);
-				
-				// Precalculation of the density population for every birthplace
+
 				var birthplaceIndex = birthplaceDensity.findIndex(v => v.place == record.pob);
 				if (birthplaceIndex < 0) {
 					var birthplaceRecord = {
@@ -531,7 +525,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 					birthplaceDensity.push(birthplaceRecord);
 					birthplaceIndex = birthplaceDensity.length - 1;
 				} else birthplaceDensity[birthplaceIndex].value++;
-
+				
 				// Convert point coordinates in exagonal layout
 				var pointNo = birthplaceDensity[birthplaceIndex].value;
 				var exagonalCoords = getExagonalLayoutCoordinates(pointNo - 1, record.coords.x, record.coords.y);
@@ -733,22 +727,6 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 		
 		// Draw area chart within the year slider
 		drawAreaChart(visiblePoints);
-		
-		// Heatmap draw
-		var heatmapMaxValue = Math.max.apply(Math, birthplaceDensity.map(o => o.value)) * 100;
-		heatmapInstance.setData({
-			max: heatmapMaxValue,
-			min: 0,
-			data: transformablePointCoords
-		});
-		
-		var heatmapDataURL = heatmapInstance.getDataURL();
-		map.append('image')
-			.attr('class', 'heatmap-image')
-			.attr('display', 'none')
-			.attr('width', _ => d3.select('.heatmap-canvas').attr('width'))
-			.attr('height', _ => d3.select('.heatmap-canvas').attr('height'))
-			.attr('xlink:href', heatmapDataURL);
 			
 		// Anti-collision animation (TODO: add time limit to prevent infinite animation)
 		simulation.nodes(transformablePointCoords)
@@ -984,6 +962,48 @@ function drawAreaChart(elems) {
 		.attr('d', d3.area().x(d => x(d.year)).y0(y(0)).y1(d => y(d.f)));
 }
 
+// Get coordinates of visualized points for collision resolving and heatmap generation
+function getDerivatedCoords(idxList, elems) {
+	var transformablePointCoords = [];
+	var birthplaceDensity = [];
+
+	for (var i = 0, len = idxList.length; i < len; i++) {
+		var idx = idxList[i];
+		var circleElement = elems[idx];
+
+		// Precalculation of the density population for every birthplace
+		var birthplaceIndex = birthplaceDensity.findIndex(v => v.place == circleElement.pob);
+		if (birthplaceIndex < 0) {
+			var birthplaceRecord = {
+				place: circleElement.pob,
+				x: circleElement.coords.x,
+				y: circleElement.coords.y,
+				value: 1
+			};
+			birthplaceDensity.push(birthplaceRecord);
+			birthplaceIndex = birthplaceDensity.length - 1;
+		} else birthplaceDensity[birthplaceIndex].value++;
+
+		// Convert point coordinates in exagonal layout
+		var pointNo = birthplaceDensity[birthplaceIndex].value;
+		var exagonalCoords = getExagonalLayoutCoordinates(pointNo - 1, circleElement.coords.x, circleElement.coords.y);
+
+		// For each record generate an object with initial cooordinates and a province id
+		// reference: will be used in heatmap generation and dynamic collision resolving
+		var dataPoint = {
+			origX: circleElement.coords.x,
+			origY: circleElement.coords.y,
+			idx: idx,
+			x: exagonalCoords.x,
+			y: exagonalCoords.y,
+			value: 1
+		};
+		transformablePointCoords.push(dataPoint);
+	}
+
+	return { tpc: transformablePointCoords, bd: birthplaceDensity };
+}
+
 // Update procedure for all visualized data
 function updateVisualizedPoints(elems) {
 	// First of all hide all points on the map
@@ -1014,75 +1034,9 @@ function updateVisualizedPoints(elems) {
 				}
 			}
 			return false;
-		})
-		.attr('display', _ => { // DOTMAP MODE ONLY
-			if (visualizationFilterValue == 'dotmap') return 'block';
-			else return 'none';
 		});
-		
-	// If heatmap mode is selected, show heatmap over the map (HEATMAP MODE ONLY)
-	map.selectAll('image')
-		.attr('display', _ => {
-			if (visualizationFilterValue == 'heatmap') return 'block';
-			else return 'none';
-		});
-		
-	// Reset province point count (DENSITY MODE ONLY)
-	map.selectAll('.province')
-		.attr('data-male', 0)
-		.attr('data-female', 0);
 
-	densityLegend.style('display', _ => {
-		if (visualizationFilterValue == 'density') return 'block';
-		else return 'none';
-	});
-	
-	// Get coordinates of visualized points for collision resolving and heatmap generation
-	var transformablePointCoords = [];
-	var birthplaceDensity = [];
-	for (var i = 0, len = indexList.length; i < len; i++) {
-		var idx = indexList[i];
-		var circleElement = elems[idx];
-
-		// Precalculation of the density population for every birthplace
-		var birthplaceIndex = birthplaceDensity.findIndex(v => v.place == circleElement.pob);
-		if (birthplaceIndex < 0) {
-			var birthplaceRecord = {
-				place: circleElement.pob,
-				value: 1
-			};
-			birthplaceDensity.push(birthplaceRecord);
-			birthplaceIndex = birthplaceDensity.length - 1;
-		} else birthplaceDensity[birthplaceIndex].value++;
-
-		// Convert point coordinates in exagonal layout
-		var pointNo = birthplaceDensity[birthplaceIndex].value;
-		var exagonalCoords = getExagonalLayoutCoordinates(pointNo - 1, circleElement.coords.x, circleElement.coords.y);
-
-		// For each record generate an object with initial cooordinates and a province id
-		// reference: will be used in heatmap generation and dynamic collision resolving
-		var dataPoint = {
-			origX: circleElement.coords.x,
-			origY: circleElement.coords.y,
-			idx: idx,
-			x: exagonalCoords.x,
-			y: exagonalCoords.y,
-			value: 1
-		};
-		transformablePointCoords.push(dataPoint);
-	}
-	
-	// For each point, increase their belonging province's gender count by one (DENSITY MODE ONLY)
-	selected.each((_, i, nodes) => {
-		var element = d3.select(nodes[i]);
-		var provinceId = element.attr('data-province-id');
-		var province = document.querySelector('[id=\'' + provinceId + '\']');
-		if (element.attr('data-gender') == 'maschio') province.dataset.male++;
-		else if (element.attr('data-gender') == 'femmina') province.dataset.female++;
-	});
-
-	// Write in the infobox how many people are currently visualized (FIXME: insert values
-	// from category grid)
+	// Write in the infobox how many people are currently visualized (FIXME: insert values from category grid)
 	var totalCircles = selected.size();
 	var maleCircles = selected.filter((_, i) => {
 		if (i < indexList.length) {
@@ -1101,71 +1055,107 @@ function updateVisualizedPoints(elems) {
 	
 	// Redraw area chart inside year range slider
 	drawAreaChart(elems);
-	
-	// Heatmap draw (HEATMAP MODE ONLY)
-	var heatmapMaxValue = Math.max.apply(Math, birthplaceDensity.map(o => o.value)) * 100;
-	heatmapInstance.setData({
-		max: heatmapMaxValue,
-		min: 0,
-		data: transformablePointCoords
-	});
-	
-	var heatmapDataURL = heatmapInstance.getDataURL();
-	map.selectAll('.heatmap-image')
-		.attr('xlink:href', heatmapDataURL);
 
-	// Reset and restart collision resolver engine (DOTMAP MODE ONLY)
 	simulation.stop();
-	simulation.nodes(transformablePointCoords)
-		.force('collision', d3.forceCollide().radius(circleRadius + 0.2))
-		.force('x', d3.forceX(d => d.origX))
-		.force('y', d3.forceY(d => d.origY))
-		.force('r', d3.forceRadial(0).x(d => d.origX).y(d => d.origY))
-		.on('tick', _ => {
-			map.selectAll('circle')
-				.attr('cx', (_, i) => {
-					var currentIdx = indexList.findIndex(val => val == i);
-					if (currentIdx >= 0) return transformablePointCoords[currentIdx].x;
-				})
-				.attr('cy', (_, i) => {
-					var currentIdx = indexList.findIndex(val => val == i);
-					if (currentIdx >= 0) return transformablePointCoords[currentIdx].y;
-				});
-		});
-	simulation.alpha(1).restart();
-	
-	// Generate color density (DENSITY MODE ONLY)
-	var maxProvincePeopleNo = 0;
-	map.selectAll('.province')
-		.each((_, i, nodes) => {
-			var province = d3.select(nodes[i]).node();
-			var total = parseInt(province.dataset.male) + parseInt(province.dataset.female);
-			if (total > maxProvincePeopleNo) maxProvincePeopleNo = total;
-		});
-	map.selectAll('.province')
-		.style('fill', (_, i, nodes) => {
-			if (visualizationFilterValue == 'density') {
-				var province = d3.select(nodes[i]).node();
-				var m = parseInt(province.dataset.male);
-				var f = parseInt(province.dataset.female);
-				var total = m + f;
+	if (visualizationFilterValue == 'dotmap') {
+		selected.attr('display', 'block');
+		map.selectAll('image').attr('display', 'none');
+		map.selectAll('.province').style('fill', '#FFF');
+		densityLegend.style('display', 'none');
 
-				if (maxProvincePeopleNo > 0 && total > 0) {
-					var h = 240 + Math.floor(60 * (f / total));
-					var l = 100 - Math.ceil(50 * (total / maxProvincePeopleNo));
-					switch (genderFilterValue) {
-						case 'maschio':
-							l = 100 - Math.ceil(50 * (m / maxProvincePeopleNo));
-							return 'hsla(240, 100%, ' + l + '%, 0.8)';
-						case 'femmina':
-							l = 100 - Math.ceil(50 * (f / maxProvincePeopleNo));
-							return 'hsla(300, 100%, ' + l + '%, 0.8)';
-						default: return 'hsla(' + h + ', 100%, ' + l + '%, 0.8)';
+		var pointGroupsElement = getDerivatedCoords(indexList, elems);
+
+		// Reset and restart collision resolver engine
+		simulation.nodes(pointGroupsElement.tpc)
+			.force('collision', d3.forceCollide().radius(circleRadius + 0.2))
+			.force('x', d3.forceX(d => d.origX))
+			.force('y', d3.forceY(d => d.origY))
+			.force('r', d3.forceRadial(0).x(d => d.origX).y(d => d.origY))
+			.on('tick', _ => {
+				map.selectAll('circle')
+					.attr('cx', (_, i) => {
+						var currentIdx = indexList.findIndex(val => val == i);
+						if (currentIdx >= 0) return pointGroupsElement.tpc[currentIdx].x;
+					})
+					.attr('cy', (_, i) => {
+						var currentIdx = indexList.findIndex(val => val == i);
+						if (currentIdx >= 0) return pointGroupsElement.tpc[currentIdx].y;
+					});
+			});
+		simulation.alpha(1).restart();
+	} else if (visualizationFilterValue == 'density') {
+		map.selectAll('image').attr('display', 'none');
+		densityLegend.style('display', 'block');
+
+		// Reset province point count
+		map.selectAll('.province')
+			.attr('data-male', 0)
+			.attr('data-female', 0);
+
+		densityLegend.style('display', 'block');
+
+		// For each point, increase their belonging province's gender count by one
+		selected.each((_, i, nodes) => {
+			var element = d3.select(nodes[i]);
+			var provinceId = element.attr('data-province-id');
+			var province = document.querySelector('[id=\'' + provinceId + '\']');
+			if (element.attr('data-gender') == 'maschio') province.dataset.male++;
+			else if (element.attr('data-gender') == 'femmina') province.dataset.female++;
+		});
+
+		// Generate color density
+		var maxProvincePeopleNo = 0;
+		map.selectAll('.province')
+			.each((_, i, nodes) => {
+				var province = d3.select(nodes[i]).node();
+				var total = parseInt(province.dataset.male) + parseInt(province.dataset.female);
+				if (total > maxProvincePeopleNo) maxProvincePeopleNo = total;
+			});
+		map.selectAll('.province')
+			.style('fill', (_, i, nodes) => {
+				if (visualizationFilterValue == 'density') {
+					var province = d3.select(nodes[i]).node();
+					var m = parseInt(province.dataset.male);
+					var f = parseInt(province.dataset.female);
+					var total = m + f;
+
+					if (maxProvincePeopleNo > 0 && total > 0) {
+						var h = 240 + Math.floor(60 * (f / total));
+						var l = 100 - Math.ceil(50 * (total / maxProvincePeopleNo));
+						switch (genderFilterValue) {
+							case 'maschio':
+								l = 100 - Math.ceil(50 * (m / maxProvincePeopleNo));
+								return 'hsla(240, 100%, ' + l + '%, 0.8)';
+							case 'femmina':
+								l = 100 - Math.ceil(50 * (f / maxProvincePeopleNo));
+								return 'hsla(300, 100%, ' + l + '%, 0.8)';
+							default: return 'hsla(' + h + ', 100%, ' + l + '%, 0.8)';
+						}
 					}
 				}
-			}
-			return '#fff';
+				return '#fff';
+			});
+	} else if (visualizationFilterValue == 'heatmap') {
+		map.selectAll('.province').style('fill', '#FFF');
+		densityLegend.style('display', 'none');
+
+		// If heatmap mode is selected, show heatmap over the map
+		map.selectAll('image').attr('display', 'block');
+
+		var pointGroupsElement = getDerivatedCoords(indexList, elems);
+
+		// Heatmap draw
+		var heatmapMaxValue = Math.max.apply(Math, pointGroupsElement.bd.map(o => o.value));
+		heatmapInstance.setData({
+			max: heatmapMaxValue,
+			min: 0,
+			data: pointGroupsElement.bd
 		});
+
+		var heatmapDataURL = heatmapInstance.getDataURL();
+		map.selectAll('.heatmap-image')
+			.attr('xlink:href', heatmapDataURL);
+	}
 }
 
 // EVENT HANDLERS
