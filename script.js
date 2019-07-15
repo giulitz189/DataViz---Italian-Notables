@@ -739,6 +739,13 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 					.attr('cx', (_, i) => transformablePointCoords[i].x)
 					.attr('cy', (_, i) => transformablePointCoords[i].y);
 			});
+
+		// Heatmap initialization (will be filled with data by changing visualization mode)
+		map.append('image')
+			.attr('class', 'heatmap-image')
+			.attr('display', 'none')
+			.attr('width', _ => d3.select('.heatmap-canvas').attr('width'))
+			.attr('height', _ => d3.select('.heatmap-canvas').attr('height'))
 		
 		// Associate event handlers to page elements
 		svgMap.call(d3.zoom().on('zoom', updateTransform)),
