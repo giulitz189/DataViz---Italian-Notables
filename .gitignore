@@ -1,9 +1,2 @@
-node_modules/.bin/
-node_modules/commander/
-node_modules/d3/
-node_modules/d3-*/
-node_modules/iconv-lite/
-node_modules/node-fetch/
-node_modules/rw/
-node_modules/safer-buffer/
+node_modules/
 package-lock.json

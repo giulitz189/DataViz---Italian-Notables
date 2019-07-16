@@ -429,7 +429,7 @@ function loadProvinces() {
 var provinceDataRequest = loadProvinces();
 var regionShapeDataRequest = d3.json('geodata/italy_reg.json');
 var queryDataRequest = d3.json('query_records/query_results.json');
-var regionMetadataRequest = d3.json('region_dimensions.json');
+var regionMetadataRequest = d3.json('geodata/region_dimensions.json');
 
 // We'll waiting until all data has been loaded from all the files
 Promise.all(provinceDataRequest).then(function(provinceData) {
