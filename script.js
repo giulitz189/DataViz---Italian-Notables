@@ -116,7 +116,7 @@ var brush = d3.brushX()
 // Slider construction
 var slider = svgSlider.append('g')
 	.attr('class', 'slider')
-	.attr('transform', 'translate(50, 10)');
+	.attr('transform', 'translate(30, 10)');
 	
 var areaGraph = slider.append('g');
 	
@@ -140,6 +140,25 @@ var brushHandle = brushSelection.selectAll('.handle--custom')
 		.attr('y', 25)
 		.attr('width', 3)
 		.attr('height', 20);
+
+var resetBtn = svgSlider.append('g')
+	.attr('transform', 'translate(950, 30)');
+
+resetBtn.append('rect')
+	.attr('x', 0)
+	.attr('y', 0)
+	.attr('width', 30)
+	.attr('height', 30)
+	.style('stroke-width', '2px')
+	.style('stroke', '#00cccc')
+	.style('fill', '#fff');
+
+resetBtn.append('image')
+	.attr('xlink:href', 'images/restore_img.png')
+	.attr('x', 5)
+	.attr('y', 5)
+	.attr('width', 20)
+	.attr('height', 20);
 	
 // Horizontal ruler for year values
 slider.append('g')
@@ -748,21 +767,28 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 			.attr('height', _ => d3.select('.heatmap-canvas').attr('height'))
 		
 		// Associate event handlers to page elements
-		svgMap.call(d3.zoom().on('zoom', updateTransform)),
+		svgMap.call(d3.zoom().on('zoom', updateTransform));
 			
 		brush.on('start brush', _ => brushed(d3.event, visiblePoints))
-			.on('end', _ => brushended(d3.event, visiblePoints)),
+			.on('end', _ => brushended(d3.event, visiblePoints));
 			
 		brushSelection.selectAll('.overlay')
 			.each(d => d.type = 'selection')
-			.on('mousedown touchstart', (_, i, nodes) => brushcentered(d3.mouse(nodes[i]), visiblePoints)),
+			.on('mousedown touchstart', (_, i, nodes) => brushcentered(d3.mouse(nodes[i]), visiblePoints));
+
+		resetBtn.on('mousedown', _ => resetBtn.selectAll('rect').style('fill', '#00cccc'))
+			.on('mouseup', _ => {
+				resetBtn.selectAll('rect').style('fill', '#fff');
+				brushSelection.transition().call(brush.move, [1850, nowYear].map(x));
+				getYearLimits(visiblePoints);
+			});
 			
 		d3.select('#visualization-type')
 			.selectAll('input')
 			.on('change', (_, i, nodes) => {
 				visualizationFilterValue = nodes[i].value;
 				updateVisualizedPoints(visiblePoints);
-			}),
+			});
 			
 		d3.select('#gender-sel')
 			.selectAll('input')
@@ -787,17 +813,13 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 });
 
 // UTILITY FUNCTIONS
-// Converts string data to floating point number
-function stringToFloat(str) {
-	return +str;
-}
 
+// Finds the n-th exagonal centered number (further infos here: https://w.wiki/5fx)
 function exagonalCenteredNumber(n) {
 	return 1 + 3 * n * (n - 1);
 }
 
 // Given center coordinates and the position in exagonal layout, this function determines x and y coordinates for the specified position
-// (Info about exagonal centered numbers here: https://w.wiki/5fx)
 function getExagonalLayoutCoordinates(pointNo, x0, y0) {
 	if (pointNo == 0) return {x: x0, y: y0};
 	else {
@@ -817,28 +839,28 @@ function getExagonalLayoutCoordinates(pointNo, x0, y0) {
 		var x = x0, y = y0;
 		switch (edge) {
 			case 0:
-				x += circleRadius * 2 * currentLayer - circleRadius * offset;
-				y -= circleRadius * 2 * offset;
+				x += ((circleRadius * 2) * currentLayer) - (circleRadius * offset);
+				y -= (circleRadius * 2) * offset;
 				break;
 			case 1:
-				x += circleRadius * currentLayer - circleRadius * 2 * offset;
-				y -= circleRadius * 2 * currentLayer;
+				x += (circleRadius * currentLayer) - ((circleRadius * 2) * offset);
+				y -= (circleRadius * 2) * currentLayer;
 				break;
 			case 2:
-				x -= circleRadius * currentLayer - circleRadius * offset;
-				y -= circleRadius * 2 * currentLayer + circleRadius * 2 * offset;
+				x -= (circleRadius * currentLayer) - (circleRadius * offset);
+				y -= ((circleRadius * 2) * currentLayer) + ((circleRadius * 2) * offset);
 				break;
 			case 3:
-				x -= circleRadius * 2 * currentLayer + circleRadius * offset;
-				y += circleRadius * 2 * offset;
+				x -= ((circleRadius * 2) * currentLayer) + (circleRadius * offset);
+				y += (circleRadius * 2) * offset;
 				break;
 			case 4:
-				x -= circleRadius * currentLayer + circleRadius * 2 * offset;
-				y += circleRadius * 2 * currentLayer;
+				x -= (circleRadius * currentLayer) + ((circleRadius * 2) * offset);
+				y += (circleRadius * 2) * currentLayer;
 				break;
 			case 5:
-				x += circleRadius * currentLayer + circleRadius * offset;
-				y += circleRadius * 2 * currentLayer - circleRadius * 2 * offset;
+				x += (circleRadius * currentLayer) + (circleRadius * offset);
+				y += ((circleRadius * 2) * currentLayer) - ((circleRadius * 2) * offset);
 		}
 
 		return {x: x, y: y};
