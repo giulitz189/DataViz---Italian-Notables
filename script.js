@@ -492,7 +492,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 					.attr('data-female', 0) // no. of female notable people, initialized to 0
 		}
 
-		// Provide tip info for every province (FIXME: try to bind tipbox position to cursor position...)
+		// Provide tip info for every province
 		var provinceTipbox = d3.tip()
 			.attr('class', 'd3-tip')
 			.attr('id', 'map-tip')
@@ -533,6 +533,9 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 			// For every person we need to know in which province its dot is clipped
 			var provinceElement = svgNodeFromCoordinates(record.coords.x, record.coords.y);
 			if (provinceElement != null && provinceElement.classList[0] == 'province') {
+				// For each point, increase their belonging province's gender count by one
+				if (record.gender == 'maschio') provinceElement.dataset.male++;
+				else if (record.gender == 'femmina') provinceElement.dataset.female++;
 				visiblePoints.push(record);
 
 				var birthplaceIndex = birthplaceDensity.findIndex(v => v.place == record.pob);
@@ -735,7 +738,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 				}) // show tipbox at mouse hovering
 				.on('mouseout', circleTipbox.hide)
 				// if clicked, show detailed information in red infobox on the right
-				.on('click', (_, i) => writePersonInfo(visiblePoints[i])); 
+				.on('click', (_, i) => writePersonInfo(visiblePoints[i]));
 			
 		// Visualize circle count (FIXME: use occupationCategories values instead of recalculation)
 		var totalCircles = circles.size();
@@ -749,7 +752,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 			
 		// Anti-collision animation (TODO: add time limit to prevent infinite animation)
 		simulation.nodes(transformablePointCoords)
-			.force('collision', d3.forceCollide().radius(circleRadius + 0.2))
+			.force('collision', d3.forceCollide().radius(circleRadius + 0.2).iterations(3))
 			.force('x', d3.forceX(d => d.origX))
 			.force('y', d3.forceY(d => d.origY))
 			.force('r', d3.forceRadial(0).x(d => d.origX).y(d => d.origY))
@@ -799,8 +802,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 
 		sliderHandle.on('onchange', val => {
 				circleRadius = val;
-				d3.selectAll('.person').attr('r', circleRadius);
-				updateVisualizedPoints(visiblePoints);
+				if (visualizationFilterValue == 'dotmap') updateVisualizedPoints(visiblePoints);
 			});
 		radiusSelectorGraphicContainer.call(sliderHandle);
 		
@@ -836,31 +838,30 @@ function getExagonalLayoutCoordinates(pointNo, x0, y0) {
 		// Obtain edge and offset index
 		var edge = Math.floor((pointNo - minPoints) / currentLayer);
 		var offset = (pointNo - minPoints) % currentLayer;		// Calculate resulting x and y position
-		var x = x0, y = y0;
 		switch (edge) {
 			case 0:
-				x += ((circleRadius * 2) * currentLayer) - (circleRadius * offset);
-				y -= (circleRadius * 2) * offset;
+				var x = x0 + ((circleRadius * 2) * currentLayer) - (circleRadius * offset);
+				var y = y0 - ((circleRadius * 2) * offset);
 				break;
 			case 1:
-				x += (circleRadius * currentLayer) - ((circleRadius * 2) * offset);
-				y -= (circleRadius * 2) * currentLayer;
+				var x = x0 + (circleRadius * currentLayer) - ((circleRadius * 2) * offset);
+				var y = y0 - ((circleRadius * 2) * currentLayer);
 				break;
 			case 2:
-				x -= (circleRadius * currentLayer) - (circleRadius * offset);
-				y -= ((circleRadius * 2) * currentLayer) + ((circleRadius * 2) * offset);
+				var x = x0 - (circleRadius * currentLayer) - (circleRadius * offset);
+				var y = y0 - ((circleRadius * 2) * currentLayer) + ((circleRadius * 2) * offset);
 				break;
 			case 3:
-				x -= ((circleRadius * 2) * currentLayer) + (circleRadius * offset);
-				y += (circleRadius * 2) * offset;
+				var x = x0 - ((circleRadius * 2) * currentLayer) + (circleRadius * offset);
+				var y = y0 + ((circleRadius * 2) * offset);
 				break;
 			case 4:
-				x -= (circleRadius * currentLayer) + ((circleRadius * 2) * offset);
-				y += (circleRadius * 2) * currentLayer;
+				var x = x0 - (circleRadius * currentLayer) + ((circleRadius * 2) * offset);
+				var y = y0 + ((circleRadius * 2) * currentLayer);
 				break;
 			case 5:
-				x += (circleRadius * currentLayer) + (circleRadius * offset);
-				y += ((circleRadius * 2) * currentLayer) - ((circleRadius * 2) * offset);
+				var x = x0 + (circleRadius * currentLayer) + (circleRadius * offset);
+				var y = y0 + ((circleRadius * 2) * currentLayer) - ((circleRadius * 2) * offset);
 		}
 
 		return {x: x, y: y};
@@ -1065,6 +1066,20 @@ function updateVisualizedPoints(elems) {
 			return false;
 		});
 
+	// Reset province point count
+	map.selectAll('.province')
+		.attr('data-male', 0)
+		.attr('data-female', 0);
+	
+	// For each point, increase their belonging province's gender count by one
+	selected.each((_, i, nodes) => {
+		var element = d3.select(nodes[i]);
+		var provinceId = element.attr('data-province-id');
+		var province = document.querySelector('[id=\'' + provinceId + '\']');
+		if (element.attr('data-gender') == 'maschio') province.dataset.male++;
+		else if (element.attr('data-gender') == 'femmina') province.dataset.female++;
+	});
+
 	// Write in the infobox how many people are currently visualized (FIXME: insert values from category grid)
 	var totalCircles = selected.size();
 	var maleCircles = selected.filter((_, i) => {
@@ -1090,13 +1105,14 @@ function updateVisualizedPoints(elems) {
 		selected.attr('display', 'block');
 		map.selectAll('image').attr('display', 'none');
 		map.selectAll('.province').style('fill', '#FFF');
+		d3.selectAll('.person').attr('r', circleRadius);
 		densityLegend.style('display', 'none');
 
 		var pointGroupsElement = getDerivatedCoords(indexList, elems);
 
 		// Reset and restart collision resolver engine
 		simulation.nodes(pointGroupsElement.tpc)
-			.force('collision', d3.forceCollide().radius(circleRadius + 0.2))
+			.force('collision', d3.forceCollide().radius(circleRadius + 0.2).iterations(3))
 			.force('x', d3.forceX(d => d.origX))
 			.force('y', d3.forceY(d => d.origY))
 			.force('r', d3.forceRadial(0).x(d => d.origX).y(d => d.origY))
@@ -1115,22 +1131,6 @@ function updateVisualizedPoints(elems) {
 	} else if (visualizationFilterValue == 'density') {
 		map.selectAll('image').attr('display', 'none');
 		densityLegend.style('display', 'block');
-
-		// Reset province point count
-		map.selectAll('.province')
-			.attr('data-male', 0)
-			.attr('data-female', 0);
-
-		densityLegend.style('display', 'block');
-
-		// For each point, increase their belonging province's gender count by one
-		selected.each((_, i, nodes) => {
-			var element = d3.select(nodes[i]);
-			var provinceId = element.attr('data-province-id');
-			var province = document.querySelector('[id=\'' + provinceId + '\']');
-			if (element.attr('data-gender') == 'maschio') province.dataset.male++;
-			else if (element.attr('data-gender') == 'femmina') province.dataset.female++;
-		});
 
 		// Generate color density
 		var maxProvincePeopleNo = 0;
