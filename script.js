@@ -20,48 +20,85 @@ var svgMap = d3.select('.map-box')
 var map = svgMap.append('g');
 
 // Legend box for density map
-var densityLegend = d3.select('.map-box')
+var densityLegendBox = d3.select('.map-box')
 	.append('div')
 		.attr('class', 'legend')
 		.style('display', 'none');
 
-densityLegend.append('div')
-	.style('font-style', 'italic')
-	.style('text-align', 'center')
-	.style('margin-bottom', '10px')
-	.style('padding-top', '5px')
+var densityLegend = densityLegendBox.append('svg')
+		.attr('width', 360)
+		.attr('height', 140)
+	.append('g')
+		.attr('transform', 'translate(180, 70)');
+
+var densityValues = ['0', '20', '40', '60', '80', '100'];
+var genderRatio = ['100% m, 0% f', '75% m, 25% f', '50% m, 50% f', '25% m, 75% f', '0% m, 100% f'];
+
+var legendXAxis = d3.scaleBand()
+	.range([0, 90])
+	.domain(densityValues)
+	.padding(0.05);
+densityLegend.append('g')
+	.style('font-size', 10)
+	.attr('transform', 'translate(-63, 55)')
+	.call(d3.axisBottom(legendXAxis).tickSize(0))
+	.select('.domain').remove();
+
+var legendYAxis = d3.scaleBand()
+	.range([75, 0])
+	.domain(genderRatio.reverse())
+	.padding(0.05);
+densityLegend.append('g')
+	.style('font-size', 12)
+	.attr('transform', 'translate(25, -17)')
+	.call(d3.axisRight(legendYAxis).tickSize(0))
+	.select('.domain').remove();
+
+function generateColors() {
+	// rows corresponds to density, columns to gender ratio
+	var colorArray = [];
+
+	for (var i = 0; i < 5; i++) {
+		for (var j = 0; j < 6; j++) {
+			var h = 240 + (15 * i);
+			var l = 100 - (10 * j);
+			var data = { row: i, column: j, color: 'hsla(' + h + ', 100%, ' + l + '%, 0.8)'};
+			colorArray.push(data);
+		}
+	}
+	return colorArray;
+}
+
+densityLegend.selectAll()
+	.data(_ => generateColors())
+	.enter()
+	.append('rect')
+		.attr('x', d => (d.column * 15) - 60)
+		.attr('y', d => (d.row * 15) - 15)
+		.attr('rx', 2)
+		.attr('ry', 2)
+		.attr('width', 10)
+		.attr('height', 10)
+		.style('fill', d => d.color)
+		.style('stroke-width', 1)
+		.style('stroke', 'black');
+
+densityLegend.append('text')
+	.attr('x', 0)
+	.attr('y', -50)
+	.attr('text-anchor', 'middle')
+	.style('font-size', '22px')
 	.text('Distribuzione notables:');
 
-var rangeSpectrum = densityLegend.append('div')
-	.attr('class', 'container')
-	.attr('id', 'range');
-
-rangeSpectrum.append('div')
-	.style('padding-right', '5px')
-	.text('maschio');
-
-rangeSpectrum.append('div')
-	.attr('class', 'gradient-range');
-
-rangeSpectrum.append('div')
-	.style('padding-left', '5px')
-	.text('femmina');
-
-var densitySpectrum = densityLegend.append('div')
-	.attr('class', 'container')
-	.attr('id', 'density');
-
-densitySpectrum.append('div')
-	.style('padding-left', '15px')
-	.style('padding-right', '5px')
-	.text('0');
-
-densitySpectrum.append('div')
-	.attr('class', 'gradient-density');
-
-densitySpectrum.append('div')
-	.style('padding-left', '5px')
-	.text('max');
+var legendNotes = densityLegend.append('text')
+	.attr('x', 0)
+	.attr('y', -30)
+	.attr('text-anchor', 'middle')
+	.style('font-size', '13px')
+	.style('font-style', 'italic')
+	.style('fill', 'grey')
+	.style('max-width', 400)
+	.text('(m: maschio, f: femmina, max popolazione per provincia: X)');
 	
 // Geographical Mercator projection function
 var projection = d3.geoMercator()
@@ -1106,7 +1143,7 @@ function updateVisualizedPoints(elems) {
 		map.selectAll('image').attr('display', 'none');
 		map.selectAll('.province').style('fill', '#FFF');
 		d3.selectAll('.person').attr('r', circleRadius);
-		densityLegend.style('display', 'none');
+		densityLegendBox.style('display', 'none');
 
 		var pointGroupsElement = getDerivatedCoords(indexList, elems);
 
@@ -1130,7 +1167,7 @@ function updateVisualizedPoints(elems) {
 		simulation.alpha(1).restart();
 	} else if (visualizationFilterValue == 'density') {
 		map.selectAll('image').attr('display', 'none');
-		densityLegend.style('display', 'block');
+		densityLegendBox.style('display', 'block');
 
 		// Generate color density
 		var maxProvincePeopleNo = 0;
@@ -1164,9 +1201,10 @@ function updateVisualizedPoints(elems) {
 				}
 				return '#fff';
 			});
+		legendNotes.text('(m: maschio, f: femmina, max popolazione per provincia: ' + maxProvincePeopleNo + ')');
 	} else if (visualizationFilterValue == 'heatmap') {
 		map.selectAll('.province').style('fill', '#FFF');
-		densityLegend.style('display', 'none');
+		densityLegendBox.style('display', 'none');
 
 		// If heatmap mode is selected, show heatmap over the map
 		map.selectAll('image').attr('display', 'block');

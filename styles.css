@@ -34,9 +34,7 @@ div#content {
 	position: absolute;
 	bottom: 0;
 	right: 0;
-	width: 200px;
-	height: 95px;
-	opacity: 0.8;
+	opacity: 0.9;
 	border-style: groove;
 	border-color: #a9a9a9;
 	pointer-events: none;
