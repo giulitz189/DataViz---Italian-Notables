@@ -776,8 +776,8 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 			
 		// Visualize circle count (FIXME: use occupationCategories values instead of recalculation)
 		var totalCircles = circles.size();
-		var maleCircles = circles.filter((_, i) => visiblePoints[i].gender == 'maschio').size();
-		var femaleCircles = circles.filter((_, i) => visiblePoints[i].gender == 'femmina').size();
+		var maleCircles = circles.filter((_, i, nodes) => nodes[i].dataset.gender == 'maschio').size();
+		var femaleCircles = circles.filter((_, i, nodes) => nodes[i].dataset.gender == 'femmina').size();
 		rangeInfoboxPointQuantity.text(totalCircles + ' persone visualizzate, ' +
 								'di cui ' + maleCircles + ' uomini e ' + femaleCircles + ' donne');
 		
@@ -1120,18 +1120,8 @@ function updateVisualizedPoints(elems) {
 
 	// Write in the infobox how many people are currently visualized (FIXME: insert values from category grid)
 	var totalCircles = selected.size();
-	var maleCircles = selected.filter((_, i) => {
-		if (i < indexList.length) {
-			var idx = indexList[i];
-			return elems[idx].gender == 'maschio';
-		}
-	}).size();
-	var femaleCircles = selected.filter((_, i) => {
-		if (i < indexList.length) {
-			var idx = indexList[i];
-			return elems[idx].gender == 'femmina';
-		}
-	}).size();
+	var maleCircles = selected.filter((_, i, nodes) => nodes[i].dataset.gender == 'maschio').size();
+	var femaleCircles = selected.filter((_, i, nodes) => nodes[i].dataset.gender == 'femmina').size();
 	rangeInfoboxPointQuantity.text(totalCircles + ' persone visualizzate, ' +
 							'di cui ' + maleCircles + ' uomini e ' + femaleCircles + ' donne');
 	
