@@ -21,54 +21,44 @@ class SPARQLQueryDispatcher {
 
 const ENDPOINT_URL = 'https://query.wikidata.org/sparql';
 
-// Query for living people (Source link: https://w.wiki/5Mh)
+// Query for living people (Source link with comments: https://w.wiki/5Mh)
 const QUERY_LIVING_PEOPLE = 'SELECT DISTINCT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno) ?pobLabel ?coord ?articolo WHERE {\
-  ?persona wdt:P27 wd:Q38;         # All people with Italian citizenship\
-           wdt:P1412 wd:Q652;      # with Italian as spoken language\
-           wdt:P21 ?gender;        # fetch gender data value\
-           wdt:P106 ?occupazione;  # fetch occupation data value\
-		   wdt:P19 ?pob.           # fetch place of birth data value\
-  ?pob wdt:P625 ?coord.            # specify place of birth coordinates\
-  \
-  # that has at least a sitelink in Italian Wikipedia\
-  ?articolo schema:about ?persona;\
-            schema:isPartOf <https://it.wikipedia.org/>.\
-  \
-  FILTER EXISTS { ?persona wdt:P569 ?data_nascita. }   # that have a date of birth field\
-  FILTER NOT EXISTS { ?persona wdt:P570 ?data_morte. } # that don"t have a date of death field\
-  \
-  # only people with age minus that 110 (in order to avoid results with undefined or inconsistent birth year)\
-  ?persona wdt:P569 ?dob. BIND(YEAR(now()) - YEAR(?dob) as ?age)\
-  FILTER(?age <= 110)\
-  \
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "it,en". } # with element label in Italian or in English\
-} ORDER BY ?personaLabel';
+	?persona wdt:P31 wd:Q5;\
+			 wdt:P27 wd:Q38;\
+			 wdt:P1412 wd:Q652;\
+			 wdt:P21 ?gender;\
+			 wdt:P106 ?occupazione;\
+			 wdt:P19 ?pob.\
+	?pob wdt:P625 ?coord.\
+	?articolo schema:about ?persona;\
+			  schema:isPartOf <https://it.wikipedia.org/>.\
+	FILTER EXISTS { ?persona wdt:P569 ?data_nascita. }\
+	FILTER NOT EXISTS { ?persona wdt:P570 ?data_morte. }\
+	?persona wdt:P569 ?dob. BIND(YEAR(now()) - YEAR(?dob) as ?age)\
+	FILTER(?age <= 110)\
+	SERVICE wikibase:label { bd:serviceParam wikibase:language "it,en". }\
+  } ORDER BY ?personaLabel';
 
-// Query for dead people (Source link: https://bit.ly/2X5fGDP)
+// Query for dead people (Source link with comments: https://bit.ly/2X5fGDP)
 const QUERY_DEAD_PEOPLE = 'SELECT DISTINCT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno_nascita) (YEAR(?dod) AS ?anno_morte) ?pobLabel ?coord ?articolo WHERE {\
-  ?persona wdt:P27 wd:Q38;         # All people with Italian citizenship\
-           wdt:P1412 wd:Q652;      # with Italian as spoken language\
-           wdt:P21 ?gender;        # fetch gender data value\
-           wdt:P106 ?occupazione;  # fetch occupation data value\
-		   wdt:P19 ?pob.           # fetch place of birth data value\
-  ?pob wdt:P625 ?coord.            # specify place of birth coordinates\
-  \
-  # that has at least a sitelink in any language of Wikipedia\
-  ?articolo schema:about ?persona;\
-            schema:isPartOf <https://it.wikipedia.org/>.\
-  \
-  FILTER EXISTS { ?persona wdt:P569 ?data_nascita. } # that have a date of birth field\
-  FILTER EXISTS { ?persona wdt:P570 ?data_morte. }   # that have a date of death field\
-  \
-  # only people with birth and death year above 1849\
-  ?persona wdt:P569 ?dob;\
-           wdt:P570 ?dod.\
-  BIND(YEAR(?dob) as ?yob)\
-  BIND(YEAR(?dod) as ?yod)\
-  FILTER(?yob >= 1850 && ?yod >= 1850)\
-  \
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "it,en". } # with element label in Italian or in English\
-} ORDER BY ?personaLabel';
+	?persona wdt:P31 wd:Q5;\
+			 wdt:P27 wd:Q38;\
+			 wdt:P1412 wd:Q652;\
+			 wdt:P21 ?gender;\
+			 wdt:P106 ?occupazione;\
+			 wdt:P19 ?pob.\
+	?pob wdt:P625 ?coord.\
+	?articolo schema:about ?persona;\
+			  schema:isPartOf <https://it.wikipedia.org/>.\
+	FILTER EXISTS { ?persona wdt:P569 ?data_nascita. }\
+	FILTER EXISTS { ?persona wdt:P570 ?data_morte. }\
+	?persona wdt:P569 ?dob;\
+			 wdt:P570 ?dod.\
+	BIND(YEAR(?dob) - 1850 as ?yob)\
+	BIND(YEAR(?dod) - 1850 as ?yod)\
+	FILTER(?yob >= 0 && ?yod >= 0)\
+	SERVICE wikibase:label { bd:serviceParam wikibase:language "it,en". }\
+  } ORDER BY ?personaLabel';
 
 // Data fetch phase: people lists are fetched via promise functions, occupation lists
 // are read by Node.js file system module
