@@ -21,44 +21,44 @@ class SPARQLQueryDispatcher {
 
 const ENDPOINT_URL = 'https://query.wikidata.org/sparql';
 
-// Query for living people (Source link with comments: https://w.wiki/5Mh)
-const QUERY_LIVING_PEOPLE = 'SELECT DISTINCT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno) ?pobLabel ?coord ?articolo WHERE {\
-	?persona wdt:P31 wd:Q5;\
-			 wdt:P27 wd:Q38;\
-			 wdt:P1412 wd:Q652;\
-			 wdt:P21 ?gender;\
-			 wdt:P106 ?occupazione;\
-			 wdt:P19 ?pob.\
-	?pob wdt:P625 ?coord.\
-	?articolo schema:about ?persona;\
-			  schema:isPartOf <https://it.wikipedia.org/>.\
-	FILTER EXISTS { ?persona wdt:P569 ?data_nascita. }\
-	FILTER NOT EXISTS { ?persona wdt:P570 ?data_morte. }\
-	?persona wdt:P569 ?dob. BIND(YEAR(now()) - YEAR(?dob) as ?age)\
-	FILTER(?age <= 110)\
-	SERVICE wikibase:label { bd:serviceParam wikibase:language "it,en". }\
-  } ORDER BY ?personaLabel';
+// Query for living people (Source link with comments: https://bit.ly/30QVZSi)
+const QUERY_LIVING_PEOPLE = 'SELECT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno) ?pobLabel ?coord ?articolo WHERE {\
+  ?persona wdt:P1412 wd:Q652;\
+           wdt:P27 wd:Q38;\
+           wdt:P31 wd:Q5.\
+  FILTER EXISTS { ?persona wdt:P569 ?data_nascita. }\
+  FILTER NOT EXISTS { ?persona wdt:P570 ?data_morte. }\
+  ?articolo schema:about ?persona;\
+            schema:isPartOf <https://it.wikipedia.org/>.\
+  ?persona wdt:P569 ?dob. BIND(YEAR(now()) - YEAR(?dob) as ?age)\
+  FILTER(?age <= 110)\
+  ?persona wdt:P21 ?gender;\
+		   wdt:P106 ?occupazione;\
+		   wdt:P19 ?pob.\
+  ?pob wdt:P625 ?coord.\
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "it,en". }\
+} ORDER BY ?personaLabel';
 
-// Query for dead people (Source link with comments: https://bit.ly/2X5fGDP)
+// Query for dead people (Source link with comments: https://bit.ly/2yd67Zp)
 const QUERY_DEAD_PEOPLE = 'SELECT DISTINCT ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno_nascita) (YEAR(?dod) AS ?anno_morte) ?pobLabel ?coord ?articolo WHERE {\
-	?persona wdt:P31 wd:Q5;\
-			 wdt:P27 wd:Q38;\
-			 wdt:P1412 wd:Q652;\
-			 wdt:P21 ?gender;\
-			 wdt:P106 ?occupazione;\
-			 wdt:P19 ?pob.\
-	?pob wdt:P625 ?coord.\
-	?articolo schema:about ?persona;\
-			  schema:isPartOf <https://it.wikipedia.org/>.\
-	FILTER EXISTS { ?persona wdt:P569 ?data_nascita. }\
-	FILTER EXISTS { ?persona wdt:P570 ?data_morte. }\
-	?persona wdt:P569 ?dob;\
-			 wdt:P570 ?dod.\
-	BIND(YEAR(?dob) - 1850 as ?yob)\
-	BIND(YEAR(?dod) - 1850 as ?yod)\
-	FILTER(?yob >= 0 && ?yod >= 0)\
-	SERVICE wikibase:label { bd:serviceParam wikibase:language "it,en". }\
-  } ORDER BY ?personaLabel';
+  ?persona wdt:P1412 wd:Q652;\
+           wdt:P27 wd:Q38;\
+           wdt:P31 wd:Q5.\
+  FILTER EXISTS { ?persona wdt:P569 ?data_nascita. }\
+  FILTER EXISTS { ?persona wdt:P570 ?data_morte. }\
+  ?persona wdt:P569 ?dob.\
+  hint:Prior hint:rangeSafe true.\
+  ?persona wdt:P570 ?dod.\
+  hint:Prior hint:rangeSafe true.\
+  FILTER(?dob >= "1850-00-00"^^xsd:dateTime && ?dod >= "1850-00-00"^^xsd:dateTime)\
+  ?articolo schema:about ?persona;\
+	  	    schema:isPartOf <https://it.wikipedia.org/>.\
+  ?persona wdt:P21 ?gender;\
+	       wdt:P106 ?occupazione;\
+		   wdt:P19 ?pob.\
+  ?pob wdt:P625 ?coord.\
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "it,en". }\
+} ORDER BY ?personaLabel';
 
 // Data fetch phase: people lists are fetched via promise functions, occupation lists
 // are read by Node.js file system module
