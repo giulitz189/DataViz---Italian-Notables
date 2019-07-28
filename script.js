@@ -444,6 +444,9 @@ else cellsText.attr('dominant-baseline', 'middle');
 // Occupation categories currently selected
 var occupationFilterSelected = ['all'];
 	
+// Force simulation init
+var simulation = d3.forceSimulation();
+	
 // DATA LOAD PHASE
 var provinceDataFiles = [
 	'abruzzo.json',
@@ -785,21 +788,16 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 		drawAreaChart(visiblePoints);
 			
 		// Anti-collision animation (TODO: add time limit to prevent infinite animation)
-		var worker = new Worker('worker.js');
-
-		worker.postMessage({
-			nodes: transformablePointCoords,
-			radius: circleRadius
-		});
-
-		worker.onmessage = event => onTick(event.data.nodes);
-
-		// Update position of map points according to collision engine results
-		function onTick(elems) {
-			map.selectAll('circle')
-				.attr('cx', (_, i) => elems[i].x)
-				.attr('cy', (_, i) => elems[i].y);
-		}
+		simulation.nodes(transformablePointCoords)
+			.force('collision', d3.forceCollide().radius(circleRadius + 0.2).iterations(3))
+			.force('x', d3.forceX(d => d.origX))
+			.force('y', d3.forceY(d => d.origY))
+			.force('r', d3.forceRadial(0).x(d => d.origX).y(d => d.origY))
+			.on('tick', _ => {
+				map.selectAll('circle')
+					.attr('cx', (_, i) => transformablePointCoords[i].x)
+					.attr('cy', (_, i) => transformablePointCoords[i].y);
+			});
 
 		// Heatmap initialization (will be filled with data by changing visualization mode)
 		map.append('image')
@@ -854,6 +852,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 });
 
 // UTILITY FUNCTIONS
+
 // Finds the n-th exagonal centered number (further infos here: https://w.wiki/5fx)
 function exagonalCenteredNumber(n) {
 	return 1 + 3 * n * (n - 1);
@@ -1128,6 +1127,7 @@ function updateVisualizedPoints(elems) {
 	// Redraw area chart inside year range slider
 	drawAreaChart(elems);
 
+	simulation.stop();
 	if (visualizationFilterValue == 'dotmap') {
 		selected.attr('display', 'block');
 		map.selectAll('image').attr('display', 'none');
@@ -1138,26 +1138,23 @@ function updateVisualizedPoints(elems) {
 		var pointGroupsElement = getDerivatedCoords(indexList, elems);
 
 		// Reset and restart collision resolver engine
-		var worker = new Worker('worker.js');
-
-		worker.postMessage({
-			nodes: pointGroupsElement.tpc,
-			radius: circleRadius
-		});
-
-		worker.onmessage = event => onTick(event.data.nodes);
-
-		function onTick(elems) {
-			map.selectAll('circle')
-				.attr('cx', (_, i) => {
-					var currentIdx = indexList.findIndex(val => val == i);
-					if (currentIdx >= 0) return elems[currentIdx].x;
-				})
-				.attr('cy', (_, i) => {
-					var currentIdx = indexList.findIndex(val => val == i);
-					if (currentIdx >= 0) return elems[currentIdx].y;
-				});
-		}
+		simulation.nodes(pointGroupsElement.tpc)
+			.force('collision', d3.forceCollide().radius(circleRadius + 0.2).iterations(3))
+			.force('x', d3.forceX(d => d.origX))
+			.force('y', d3.forceY(d => d.origY))
+			.force('r', d3.forceRadial(0).x(d => d.origX).y(d => d.origY))
+			.on('tick', _ => {
+				map.selectAll('circle')
+					.attr('cx', (_, i) => {
+						var currentIdx = indexList.findIndex(val => val == i);
+						if (currentIdx >= 0) return pointGroupsElement.tpc[currentIdx].x;
+					})
+					.attr('cy', (_, i) => {
+						var currentIdx = indexList.findIndex(val => val == i);
+						if (currentIdx >= 0) return pointGroupsElement.tpc[currentIdx].y;
+					});
+			});
+		simulation.alpha(1).restart();
 	} else if (visualizationFilterValue == 'density') {
 		map.selectAll('image').attr('display', 'none');
 		densityLegendBox.style('display', 'block');
