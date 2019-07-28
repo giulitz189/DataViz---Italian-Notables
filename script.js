@@ -27,30 +27,31 @@ var densityLegendBox = d3.select('.map-box')
 
 var densityLegend = densityLegendBox.append('svg')
 		.attr('width', 360)
-		.attr('height', 140)
+		.attr('height', 165)
 	.append('g')
 		.attr('transform', 'translate(180, 70)');
 
-var densityValues = ['0', '20', '40', '60', '80', '100'];
+var densityValues = [0, 20, 40, 60, 80, 100];
 var genderRatio = ['100% m, 0% f', '75% m, 25% f', '50% m, 50% f', '25% m, 75% f', '0% m, 100% f'];
 
 var legendXAxis = d3.scaleBand()
-	.range([0, 90])
+	.range([0, 120])
 	.domain(densityValues)
 	.padding(0.05);
 densityLegend.append('g')
-	.style('font-size', 10)
-	.attr('transform', 'translate(-63, 55)')
+	.attr('class', 'x-axis')
+	.attr('transform', 'translate(-63, 80)')
+	.style('font-size', '10px')
 	.call(d3.axisBottom(legendXAxis).tickSize(0))
 	.select('.domain').remove();
 
 var legendYAxis = d3.scaleBand()
-	.range([75, 0])
+	.range([100, 0])
 	.domain(genderRatio.reverse())
 	.padding(0.05);
 densityLegend.append('g')
-	.style('font-size', 12)
-	.attr('transform', 'translate(25, -17)')
+	.style('font-size', '12px')
+	.attr('transform', 'translate(55, -17)')
 	.call(d3.axisRight(legendYAxis).tickSize(0))
 	.select('.domain').remove();
 
@@ -73,12 +74,12 @@ densityLegend.selectAll()
 	.data(_ => generateColors())
 	.enter()
 	.append('rect')
-		.attr('x', d => (d.column * 15) - 60)
-		.attr('y', d => (d.row * 15) - 15)
+		.attr('x', d => (d.column * 20) - 60)
+		.attr('y', d => (d.row * 20) - 15)
 		.attr('rx', 2)
 		.attr('ry', 2)
-		.attr('width', 10)
-		.attr('height', 10)
+		.attr('width', 15)
+		.attr('height', 15)
 		.style('fill', d => d.color)
 		.style('stroke-width', 1)
 		.style('stroke', 'black');
@@ -1191,6 +1192,25 @@ function updateVisualizedPoints(elems) {
 				}
 				return '#fff';
 			});
+		
+		var labelArray = [];
+		for (var i = 0; i <= 100; i = i + 20) {
+			var value = Math.floor((maxProvincePeopleNo / 100) * i)
+			labelArray.push(value);
+		}
+
+		legendXAxis.domain(labelArray);
+		densityLegend.select('.x-axis').remove();
+		densityLegend.append('g')
+			.attr('class', 'x-axis')
+			.attr('transform', 'translate(-63, 80)')
+			.style('font-size', _ => {
+				if (maxProvincePeopleNo >= 1000) return '8px';
+				else return '10px';
+			})
+			.call(d3.axisBottom(legendXAxis).tickSize(0))
+			.select('.domain').remove();
+
 		legendNotes.text('(m: maschio, f: femmina, max popolazione per provincia: ' + maxProvincePeopleNo + ')');
 	} else if (visualizationFilterValue == 'heatmap') {
 		map.selectAll('.province').style('fill', '#FFF');
