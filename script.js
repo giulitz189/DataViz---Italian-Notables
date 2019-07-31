@@ -878,28 +878,28 @@ function getExagonalLayoutCoordinates(pointNo, x0, y0) {
 		var offset = (pointNo - minPoints) % currentLayer;		// Calculate resulting x and y position
 		switch (edge) {
 			case 0:
-				var x = x0 + ((circleRadius * 2) * currentLayer) - (circleRadius * offset);
-				var y = y0 - ((circleRadius * 2) * offset);
+				var x = x0 + (((circleRadius * 1.5) * 2) * currentLayer) - ((circleRadius * 1.5) * offset);
+				var y = y0 - (((circleRadius * 1.5) * 2) * offset);
 				break;
 			case 1:
-				var x = x0 + (circleRadius * currentLayer) - ((circleRadius * 2) * offset);
-				var y = y0 - ((circleRadius * 2) * currentLayer);
+				var x = x0 + ((circleRadius * 1.5) * currentLayer) - (((circleRadius * 1.5) * 2) * offset);
+				var y = y0 - (((circleRadius * 1.5) * 2) * currentLayer);
 				break;
 			case 2:
-				var x = x0 - (circleRadius * currentLayer) - (circleRadius * offset);
-				var y = y0 - ((circleRadius * 2) * currentLayer) + ((circleRadius * 2) * offset);
+				var x = x0 - ((circleRadius * 1.5) * currentLayer) - ((circleRadius * 1.5) * offset);
+				var y = y0 - (((circleRadius * 1.5) * 2) * currentLayer) + (((circleRadius + * 1.5) * 2) * offset);
 				break;
 			case 3:
-				var x = x0 - ((circleRadius * 2) * currentLayer) + (circleRadius * offset);
-				var y = y0 + ((circleRadius * 2) * offset);
+				var x = x0 - (((circleRadius * 1.5) * 2) * currentLayer) + ((circleRadius * 1.5) * offset);
+				var y = y0 + (((circleRadius * 1.5) * 2) * offset);
 				break;
 			case 4:
-				var x = x0 - (circleRadius * currentLayer) + ((circleRadius * 2) * offset);
-				var y = y0 + ((circleRadius * 2) * currentLayer);
+				var x = x0 - ((circleRadius * 1.5) * currentLayer) + (((circleRadius * 1.5) * 2) * offset);
+				var y = y0 + (((circleRadius * 1.5) * 2) * currentLayer);
 				break;
 			case 5:
-				var x = x0 + (circleRadius * currentLayer) + (circleRadius * offset);
-				var y = y0 + ((circleRadius * 2) * currentLayer) - ((circleRadius * 2) * offset);
+				var x = x0 + ((circleRadius * 1.5) * currentLayer) + ((circleRadius * 1.5) * offset);
+				var y = y0 + (((circleRadius * 1.5) * 2) * currentLayer) - (((circleRadius * 1.5) * 2) * offset);
 		}
 
 		return {x: x, y: y};
