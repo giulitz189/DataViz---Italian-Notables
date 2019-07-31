@@ -790,9 +790,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 			
 		// Anti-collision animation (TODO: add time limit to prevent infinite animation)
 		simulation.nodes(transformablePointCoords)
-			.force('collision', d3.forceCollide().radius(circleRadius + 0.2).iterations(3))
-			.force('x', d3.forceX(d => d.origX))
-			.force('y', d3.forceY(d => d.origY))
+			.force('collision', d3.forceCollide().radius(circleRadius * 1.5).iterations(3))
 			.force('r', d3.forceRadial(0).x(d => d.origX).y(d => d.origY))
 			.on('tick', _ => {
 				map.selectAll('circle')
@@ -887,7 +885,7 @@ function getExagonalLayoutCoordinates(pointNo, x0, y0) {
 				break;
 			case 2:
 				var x = x0 - ((circleRadius * 1.5) * currentLayer) - ((circleRadius * 1.5) * offset);
-				var y = y0 - (((circleRadius * 1.5) * 2) * currentLayer) + (((circleRadius + * 1.5) * 2) * offset);
+				var y = y0 - (((circleRadius * 1.5) * 2) * currentLayer) + (((circleRadius * 1.5) * 2) * offset);
 				break;
 			case 3:
 				var x = x0 - (((circleRadius * 1.5) * 2) * currentLayer) + ((circleRadius * 1.5) * offset);
@@ -1140,9 +1138,7 @@ function updateVisualizedPoints(elems) {
 
 		// Reset and restart collision resolver engine
 		simulation.nodes(pointGroupsElement.tpc)
-			.force('collision', d3.forceCollide().radius(circleRadius + 0.2).iterations(3))
-			.force('x', d3.forceX(d => d.origX))
-			.force('y', d3.forceY(d => d.origY))
+			.force('collision', d3.forceCollide().radius(circleRadius * 1.5).iterations(3))
 			.force('r', d3.forceRadial(0).x(d => d.origX).y(d => d.origY))
 			.on('tick', _ => {
 				map.selectAll('circle')
