@@ -8,7 +8,7 @@ var viewBoxMapCoordinates = {
 };
 
 // Point radius
-var circleRadius = 0.5;
+var circleRadius = 0.3;
 
 // SVG viewport creation
 var svgMap = d3.select('.map-box')
@@ -228,7 +228,7 @@ var sliderHandle = d3.sliderBottom()
 	.width(160)
 	.tickFormat(d3.format('.1'))
 	.ticks(9)
-	.default(0.5)
+	.default(circleRadius)
 	.handle(
 		d3.symbol()
 			.type(d3.symbolCircle)
