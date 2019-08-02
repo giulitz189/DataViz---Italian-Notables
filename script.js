@@ -927,35 +927,79 @@ function svgNodeFromCoordinates(x, y) {
 	return document.elementFromPoint(position.x, position.y);
 }
 
+// Javascript class for Wikidata query dispatcher
+class SPARQLQueryDispatcher {
+	constructor(endpoint) {
+		this.endpoint = endpoint;
+	}
+
+	query(sparqlQuery) {
+		const fullUrl = this.endpoint + '?query=' + encodeURIComponent(sparqlQuery);
+		const headers = { 'Accept': 'application/sparql-results+json' };
+
+		return fetch(fullUrl, { headers }).then(body => body.json());
+	}
+}
+
+// Function that fetch from Wikidata all Wikipedia links of a specific person
+function fetchArticle(data) {
+	var endpointUrl = 'https://query.wikidata.org/sparql';
+	var sparqlQuery = 'SELECT ?articolo WHERE {\
+	  VALUES (?persona) {(wd:' + data.wiki_id + ')}\
+	  ?articolo schema:about ?persona.\
+	  FILTER (SUBSTR(str(?articolo), 11, 15) = ".wikipedia.org/").\
+	}';
+
+	var queryDispatcher = new SPARQLQueryDispatcher(endpointUrl);
+	return queryDispatcher.query(sparqlQuery);
+}
+
 // Writes detailed information about a person visualized on the map
 function writePersonInfo(data) {
-	circleInfobox.selectAll('.section')
-		.html((_, i) => {
-			switch (i) {
-				case 0:
-					return '<b>Nome:</b> ' + data.name;
-				case 1:
-					return '<b>Sesso:</b> ' + data.gender;
-				case 2:
-					var str = '<b>Occupazioni:</b> ';
-					for (idx = 0; idx < data.professions.occupations.length; idx++) {
-						if (idx == data.professions.occupations.length - 1)
-							str += data.professions.occupations[idx];
-						else str += data.professions.occupations[idx] + ', ';
-					}
-					return str;
-				case 3:
-					return '<b>Anno di nascita:</b> ' + data.dob;
-				case 4:
-					if (data.dod == 0) return '<b>Anno di morte:</b> -';
-					else return '<b>Anno di morte:</b> ' + data.dod;
-				case 5:
-					return '<b>Luogo di nascita:</b> ' + data.pob;
-				case 6:
-					return '<b>Articolo Wikipedia:</b> <a href="' + data.article +
-							'" target="_blank">' + data.article + '</a>';
-			}
-		});
+	var fetchedRecords = fetchArticle(data); // Treat fetchArticle funcion as a Promise in order to wait for results
+	Promise.all([fetchedRecords]).then(articles => {
+		circleInfobox.selectAll('.section')
+			.html((_, i) => {
+				switch (i) {
+					case 0:
+						return '<b>Nome:</b> ' + data.name;
+					case 1:
+						return '<b>Sesso:</b> ' + data.gender;
+					case 2:
+						var str = '<b>Occupazioni:</b> ';
+						for (idx = 0; idx < data.professions.occupations.length; idx++) {
+							if (idx == data.professions.occupations.length - 1)
+								str += data.professions.occupations[idx];
+							else str += data.professions.occupations[idx] + ', ';
+						}
+						return str;
+					case 3:
+						return '<b>Anno di nascita:</b> ' + data.dob;
+					case 4:
+						if (data.dod == 0) return '<b>Anno di morte:</b> -';
+						else return '<b>Anno di morte:</b> ' + data.dod;
+					case 5:
+						return '<b>Luogo di nascita:</b> ' + data.pob;
+					case 6:
+						var links = articles[0].results.bindings;
+						var idx = -1;
+						idx = links.findIndex(el => el.articolo.value.includes('it.wikipedia.org'));
+						if (idx >= 0) {
+							return '<b>Articolo Wikipedia:</b> <a href="' + links[idx].articolo.value +
+									'" target="_blank">' + links[idx].articolo.value + '</a>';
+						} else {
+							idx = links.findIndex(el => el.articolo.value.includes('en.wikipedia.org'));
+							if (idx >= 0) {
+								return '<b>Articolo Wikipedia:</b> <a href="' + links[idx].articolo.value +
+										'" target="_blank">' + links[idx].articolo.value + '</a>';
+							} else {
+								return '<b>Articolo Wikipedia:</b> <a href="' + links[0].articolo.value +
+									'" target="_blank">' + links[0].articolo.value + '</a>';
+							}
+						}
+				}
+			});
+	});
 }
 
 // Draw area chart inside the year slider rectangle and adjust y-axis ruler
