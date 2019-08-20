@@ -2,76 +2,72 @@
 <html>
   <head>
     <meta charset="utf-8" />
-	<title>D3.js DataViz: Born distribution of living notable italians</title>
-	
-	<!-- D3.js library -->
-	<script src="https://d3js.org/d3.v5.min.js"></script>
-	
-	<!-- Topojson library -->
-	<script src="https://d3js.org/topojson.v2.min.js"></script>
-	
-	<!-- Libraries for panning and zooming -->
-	<script src="https://d3js.org/d3-color.v1.min.js"></script>
-	<script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
-	<script src="https://d3js.org/d3-ease.v1.min.js"></script>
-	<script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
-	<script src="https://d3js.org/d3-selection.v1.min.js"></script>
-	<script src="https://d3js.org/d3-timer.v1.min.js"></script>
-	<script src="https://d3js.org/d3-transition.v1.min.js"></script>
-	<script src="https://d3js.org/d3-drag.v1.min.js"></script>
-	<script src="https://d3js.org/d3-zoom.v1.min.js"></script>
-	
-	<!-- d3.tip extension library -->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
-	
-	<!-- d3-simple-slider extension library -->
-	<script src="https://unpkg.com/d3-simple-slider"></script>
+		<title>D3.js DataViz: Born distribution of living notable italians</title>
+		
+		<!-- D3.js library -->
+		<script src="https://d3js.org/d3.v5.min.js"></script>
+		
+		<!-- Topojson library -->
+		<script src="https://d3js.org/topojson.v2.min.js"></script>
+		
+		<!-- Libraries for panning and zooming -->
+		<script src="https://d3js.org/d3-color.v1.min.js"></script>
+		<script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
+		<script src="https://d3js.org/d3-ease.v1.min.js"></script>
+		<script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
+		<script src="https://d3js.org/d3-selection.v1.min.js"></script>
+		<script src="https://d3js.org/d3-timer.v1.min.js"></script>
+		<script src="https://d3js.org/d3-transition.v1.min.js"></script>
+		<script src="https://d3js.org/d3-drag.v1.min.js"></script>
+		<script src="https://d3js.org/d3-zoom.v1.min.js"></script>
+		
+		<!-- d3.tip extension library -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
+		
+		<!-- d3-simple-slider extension library -->
+		<script src="https://unpkg.com/d3-simple-slider"></script>
 
-	<script src="lib/heatmap.js"></script>
-
-	<link rel="stylesheet" href="styles.css"/>
+		<link rel="stylesheet" href="styles.css"/>
   </head>
   <body>
-	<div id="wrapper">
-	  <div id="controls">
-		  <form class="selector">
-			<div class="section" id="visualization-type">
-				Tipo visualizzazione:
-				<div class="switch-field">
-					<input type="radio" id="dotmap-btn" name="mapviz" value="dotmap" checked />
-					<label for="dotmap-btn">A punti</label>
-					<input type="radio" id="density-btn" name="mapviz" value="density"/>
-					<label for="density-btn">Densità</label>
-					<input type="radio" id="heatmap-btn" name="mapviz" value="heatmap"/>
-					<label for="heatmap-btn">Heatmap</label>
+		<div id="wrapper">
+			<div id="controls">
+				<form class="selector">
+				<div class="section" id="visualization-type">
+					Tipo visualizzazione:
+					<div class="switch-field">
+						<input type="radio" id="dotmap-btn" name="mapviz" value="dotmap" checked />
+						<label for="dotmap-btn">A punti</label>
+						<input type="radio" id="density-btn" name="mapviz" value="density"/>
+						<label for="density-btn">Densità</label>
+					</div>
 				</div>
-			</div>
-			<div class="section" id="gender-sel">
-				Sesso:
-				<div class="switch-field">
-					<input type="radio" id="male-btn" name="gender" value="maschio"/>
-					<label for="male-btn">Uomini</label>
-					<input type="radio" id="all-btn" name="gender" value="all" checked />
-					<label for="all-btn">Tutti</label>
-					<input type="radio" id="female-btn" name="gender" value="femmina"/>
-					<label for="female-btn">Donne</label>
+				<div class="section" id="gender-sel">
+					Sesso:
+					<div class="switch-field">
+						<input type="radio" id="male-btn" name="gender" value="maschio"/>
+						<label for="male-btn">Uomini</label>
+						<input type="radio" id="all-btn" name="gender" value="all" checked />
+						<label for="all-btn">Tutti</label>
+						<input type="radio" id="female-btn" name="gender" value="femmina"/>
+						<label for="female-btn">Donne</label>
+					</div>
 				</div>
+				</form>
+				<div class="circleInfo"></div>
+				<div class="rangeInfo"></div>
 			</div>
-		  </form>
-		  <div class="circleInfo"></div>
-		  <div class="rangeInfo"></div>
-	  </div>
-	  <div id="occ-select-grid"></div>
-	  <div id="content">
-	  	<div class="map-box"></div>
-		<div class="slider-box"></div>
-	  </div>
-	</div>
-	<footer>
-	  <small>
-        @2019 By Giuliano Gradilone. Link progetto Github: <a href="https://github.com/giulitz189/Notable-Italians">https://github.com/giulitz189/Notable-Italians</a>
-      </small>
-	</footer>
-	<script src="script.js"></script>
+			<div id="occ-select-grid"></div>
+			<div id="content">
+				<div class="map-box" style="position: relative;"></div>
+			<div class="slider-box"></div>
+			</div>
+		</div>
+		<footer>
+			<small>
+				@2019 By Giuliano Gradilone. Link progetto Github: <a href="https://github.com/giulitz189/Notable-Italians">https://github.com/giulitz189/Notable-Italians</a>
+			</small>
+		</footer>
+		<script type="module" src="script.js"></script>
   </body>
 </html>

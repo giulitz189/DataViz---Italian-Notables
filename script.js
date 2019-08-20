@@ -1,120 +1,20 @@
-// INITIALIZATION PHASE - MAP
-// Map box dimensions
-var viewBoxMapCoordinates = {
-	x: 0,
-	y: 0,
-	width: 1000,
-	height: 500
-};
+import * as mapUtils from './modules/map.js';
 
-// Point radius
-var circleRadius = 0.3;
+// Map instance generation
+var svgMap = mapUtils.getMapBox();
+var map = mapUtils.getDrawableMap(svgMap);
 
-// SVG viewport creation
-var svgMap = d3.select('.map-box')
-	.append('svg')
-		.attr('preserveAspectRatio', 'xMinYMin meet')
-		.attr('viewBox', viewBoxMapCoordinates.x + ' ' + viewBoxMapCoordinates.y + ' ' +
-						+ viewBoxMapCoordinates.width + ' ' + viewBoxMapCoordinates.height);
+var projectionPath = mapUtils.generateProjectionPath();
 
-var map = svgMap.append('g');
+// Density map generation
+var densityLegendBox = mapUtils.getDensityLegendBox();
+var densityLegend = mapUtils.getDensityLegendSvg(densityLegendBox);
 
-// Legend box for density map
-var densityLegendBox = d3.select('.map-box')
-	.append('div')
-		.attr('class', 'legend')
-		.style('display', 'none');
+var legendXAxis = mapUtils.generateLegendXAxis();
+var legendNotes = mapUtils.getLegendNotes(densityLegend);
 
-var densityLegend = densityLegendBox.append('svg')
-		.attr('width', 360)
-		.attr('height', 165)
-	.append('g')
-		.attr('transform', 'translate(180, 70)');
+mapUtils.initDensityLegend(densityLegend, legendXAxis);
 
-var densityValues = [0, 20, 40, 60, 80, 100];
-var genderRatio = ['100% m, 0% f', '75% m, 25% f', '50% m, 50% f', '25% m, 75% f', '0% m, 100% f'];
-
-var legendXAxis = d3.scaleBand()
-	.range([0, 120])
-	.domain(densityValues)
-	.padding(0.05);
-densityLegend.append('g')
-	.attr('class', 'x-axis')
-	.attr('transform', 'translate(-63, 80)')
-	.style('font-size', '10px')
-	.call(d3.axisBottom(legendXAxis).tickSize(0))
-	.select('.domain').remove();
-
-var legendYAxis = d3.scaleBand()
-	.range([100, 0])
-	.domain(genderRatio.reverse())
-	.padding(0.05);
-densityLegend.append('g')
-	.style('font-size', '12px')
-	.attr('transform', 'translate(55, -17)')
-	.call(d3.axisRight(legendYAxis).tickSize(0))
-	.select('.domain').remove();
-
-function generateColors() {
-	// rows corresponds to density, columns to gender ratio
-	var colorArray = [];
-
-	for (var i = 0; i < 5; i++) {
-		for (var j = 0; j < 6; j++) {
-			var h = 240 + (15 * i);
-			var l = 100 - (10 * j);
-			var data = { row: i, column: j, color: 'hsla(' + h + ', 100%, ' + l + '%, 0.8)'};
-			colorArray.push(data);
-		}
-	}
-	return colorArray;
-}
-
-densityLegend.selectAll()
-	.data(_ => generateColors())
-	.enter()
-	.append('rect')
-		.attr('x', d => (d.column * 20) - 60)
-		.attr('y', d => (d.row * 20) - 15)
-		.attr('rx', 2)
-		.attr('ry', 2)
-		.attr('width', 15)
-		.attr('height', 15)
-		.style('fill', d => d.color)
-		.style('stroke-width', 1)
-		.style('stroke', 'black');
-
-densityLegend.append('text')
-	.attr('x', 0)
-	.attr('y', -50)
-	.attr('text-anchor', 'middle')
-	.style('font-size', '22px')
-	.text('Distribuzione notables:');
-
-var legendNotes = densityLegend.append('text')
-	.attr('x', 0)
-	.attr('y', -30)
-	.attr('text-anchor', 'middle')
-	.style('font-size', '13px')
-	.style('font-style', 'italic')
-	.style('fill', 'grey')
-	.style('max-width', 400)
-	.text('(m: maschio, f: femmina, max popolazione per provincia: X)');
-	
-// Geographical Mercator projection function
-var projection = d3.geoMercator()
-	.translate([viewBoxMapCoordinates.width/2, viewBoxMapCoordinates.height/2])
-	.center([12, 42.1])
-	.scale(1950);
-	
-var path = d3.geoPath()
-	.projection(projection);
-	
-// Heatmap initialization
-var heatmapInstance = h337.create({
-	container: document.querySelector('.map-box')
-});
-	
 // INITIALIZATION PHASE - YEAR RANGE SLIDER
 // Slider box dimensions
 var viewBoxSliderCoordinates = {
@@ -228,7 +128,7 @@ var sliderHandle = d3.sliderBottom()
 	.width(160)
 	.tickFormat(d3.format('.1'))
 	.ticks(9)
-	.default(circleRadius)
+	.default(mapUtils.getCircleRadius())
 	.handle(
 		d3.symbol()
 			.type(d3.symbolCircle)
@@ -348,7 +248,7 @@ function generateGridLayout() {
 	var width = 0;
 	var height = 30;
 	
-	for (var row = 0; row < occupationCategories.length; row++) {
+	for (var row = 0, len = occupationCategories.length; row < len; row++) {
 		data.push(new Array());
 		for (var column = 0; column < 4; column++) {
 			width = column == 0 ? 130 : 30;
@@ -386,7 +286,7 @@ var row = grid.selectAll('.row')
 	.attr('class', 'row')
 	.style('cursor', 'pointer');
 	
-var column = row.selectAll('.square')
+row.selectAll('.square')
 	.data(d => d)
 	.enter()
 	.append('g')
@@ -475,7 +375,7 @@ var provinceDataFiles = [
 // Fetching data from province files (map shapes in TopoJSON)...
 function loadProvinces() {
 	var provinces = [];
-	for (i = 0; i < provinceDataFiles.length; i++) {
+	for (var i = 0, len = provinceDataFiles.length; i < len; i++) {
 		var provinceShape = d3.json('geodata/' + provinceDataFiles[i]);
 		provinces.push(provinceShape);
 	}
@@ -486,90 +386,35 @@ function loadProvinces() {
 var provinceDataRequest = loadProvinces();
 var regionShapeDataRequest = d3.json('geodata/italy_reg.json');
 var queryDataRequest = d3.json('query_records/query_results.json');
-var regionMetadataRequest = d3.json('geodata/region_dimensions.json');
+var metadataRequest = d3.json('geodata/region_dimensions.json');
 
 // We'll waiting until all data has been loaded from all the files
 Promise.all(provinceDataRequest).then(function(provinceData) {
-	Promise.all([regionShapeDataRequest, queryDataRequest, regionMetadataRequest]).then(function(data) {
+	Promise.all([regionShapeDataRequest, queryDataRequest, metadataRequest]).then(function(data) {
 		var regionShapeData = data[0];
 		var queryData = data[1].results;
 		// Region metadata records needs to be sorted by region ID for simpler access
-		var regionMetadata = data[2].regions.sort((a, b) => {
+		var metadata = data[2].regions.sort((a, b) => {
 			a = a.RID;
 			b = b.RID;
 			return a < b ? -1 : a > b ? 1 : 0;
 		});
-		
-		// Map drawing by path string extraction - Regions
-		map.selectAll('.region')
-			.data(topojson.feature(regionShapeData, regionShapeData.objects.sub).features)
-			.enter()
-			.append('path')
-				.attr('class', 'region')
-				.attr('id', (_, i) => regionMetadata[i].regionLabel)
-				.attr('d', path);
-		
-		// Map drawing by path string extraction - Provinces
-		for (i = 0; i < provinceData.length; i++) {
-			map.selectAll('.prov')
-				.data(topojson.feature(provinceData[i], provinceData[i].objects.sub).features)
-				.enter()
-				.append('path')
-					.attr('class', 'province')
-					.attr('id', d => d.id) // IDs are used to further accesses
-					.attr('d', path)
-					.attr('data-name', d => { // add province name as HTML5 dataset metadata
-						var provinceIndex = findZoneIndexes(regionMetadata, d.id);
-						return regionMetadata[provinceIndex.r].provinces[provinceIndex.p].provinceLabel;
-					})
-					.attr('data-population', d => { // add total population as HTML5 dataset metadata
-						var provinceIndex = findZoneIndexes(regionMetadata, d.id);
-						return regionMetadata[provinceIndex.r].provinces[provinceIndex.p].population;
-					})
-					.attr('data-male', 0) // no. of male notable people, initialized to 0
-					.attr('data-female', 0) // no. of female notable people, initialized to 0
-		}
+    
+    // draw regions and provinces
+    mapUtils.generateRegions(map, projectionPath, regionShapeData, metadata);
+		mapUtils.generateProvinces(map, projectionPath, provinceData, metadata);
 
 		// Provide tip info for every province
-		var provinceTipbox = d3.tip()
-			.attr('class', 'd3-tip')
-			.attr('id', 'map-tip')
-			.html(d => {
-				var provinceId = d.id;
-				var provinceElement = map.selectAll('.province')
-										.select((_, i, nodes) => {
-											var thisElement = nodes[i];
-											var elementId = d3.select(thisElement).attr('id');
-											return elementId == provinceId ? thisElement : null;
-										}).node();
-				var total = parseInt(provinceElement.dataset.male) + parseInt(provinceElement.dataset.female);
-				return provinceElement.dataset.name + '</br>' + 'Pop. ' + provinceElement.dataset.population + ' (' + total + ')';
-			})
-			.offset((_, i, nodes) => {
-				var thisProvince = nodes[i];
-				switch (thisProvince.id) {
-					case '49': return [(thisProvince.getBoundingClientRect().height / 2) - 10, thisProvince.getBoundingClientRect().width / 4];
-					case '81': return [(thisProvince.getBoundingClientRect().height / 4) - 10, 0];
-					case '82': return [(3 * (thisProvince.getBoundingClientRect().height / 4)) - 10, 0];
-					case '83': return [(3 * (thisProvince.getBoundingClientRect().height / 4)) - 10, 0];
-					case '84': return [(thisProvince.getBoundingClientRect().height / 8) - 10, 0];
-					default: return [(thisProvince.getBoundingClientRect().height / 2) - 10, 0];
-				}
-			});
-
-		map.call(provinceTipbox);
-		map.selectAll('.province')
-			.on('mouseover', provinceTipbox.show) // show tipbox if mouse is hovering upon this element
-			.on('mouseout', provinceTipbox.hide);
+		mapUtils.generateProvinceTipbox(map);
 		
 		// Finding valid points (all people born within Italian territory)
 		var visiblePoints = [];
 		var transformablePointCoords = [];
 		var birthplaceDensity = [];
-		for (var i = 0, len = queryData.length; i < len; i++) {
+		for (var i = 0, len1 = queryData.length; i < len1; i++) {
 			var record = queryData[i];
 			// For every person we need to know in which province its dot is clipped
-			var provinceElement = svgNodeFromCoordinates(record.coords.x, record.coords.y);
+			var provinceElement = mapUtils.svgNodeFromCoordinates(record.coords.x, record.coords.y);
 			if (provinceElement != null && provinceElement.classList[0] == 'province') {
 				// For each point, increase their belonging province's gender count by one
 				if (record.gender == 'maschio') provinceElement.dataset.male++;
@@ -588,17 +433,16 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 				
 				// Convert point coordinates in exagonal layout
 				var pointNo = birthplaceDensity[birthplaceIndex].value;
-				var exagonalCoords = getExagonalLayoutCoordinates(pointNo - 1, record.coords.x, record.coords.y);
+				var exagonalCoords = mapUtils.getExagonalLayoutCoordinates(pointNo - 1, record.coords.x, record.coords.y);
 
 				// For each record generate an object with initial cooordinates and a province id
-				// reference: will be used in heatmap generation and dynamic collision resolving
+				// reference: will be used in dynamic collision resolving
 				var dataPoint = {
 					origX: record.coords.x,
 					origY: record.coords.y,
 					x: exagonalCoords.x,
 					y: exagonalCoords.y,
 					provinceIndex: provinceElement.id,
-					value: 1
 				};
 				transformablePointCoords.push(dataPoint);
 
@@ -616,7 +460,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 					else occupationCategories[l-1].other++;
 				} else {
 					var previousCategoryIndex = -1;
-					for (var j = 0; j < record.professions.categories.length; j++) {
+					for (var j = 0, len2 = record.professions.categories.length; j < len2; j++) {
 						var currentSubcategory = record.professions.categories[j];
 						var idx = occupationCategories.findIndex(cat => cat.name == currentSubcategory);
 						var categoryIndex = idx;
@@ -645,7 +489,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 			}
 		}
 		
-		// Write occupation filter grid values
+		// Write occupation filter grid values (SELECTOR)
 		var occupationMaleCount = d3.selectAll('.cell')
 			.filter((_, i, nodes) =>  d3.select(nodes[i]).attr('data-type') == 'male-count')
 			.append('text')
@@ -707,76 +551,14 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 			occupationOtherCount.attr('dominant-baseline', 'middle');
 		}
 		
-		// Creating tipbox for circles 
-		var circleTipbox = d3.tip()
-			.attr('class', 'd3-tip')
-			.attr('id', 'circle-tip')
-			.html((_, i) => {
-				var genderLetter = '';
-				switch (visiblePoints[i].gender) {
-					case 'maschio': genderLetter = 'M';
-								 	break;
-					case 'femmina': genderLetter = 'F';
-								   	break;
-					default: genderLetter = 'X';
-							 break;
-				}
-				if (visiblePoints[i].dod > 0) {
-					return visiblePoints[i].name + ' (' + genderLetter + ')</br>' + visiblePoints[i].pob +
-						' ' + visiblePoints[i].dob + ' - ' + visiblePoints[i].dod;
-				} else {
-					return visiblePoints[i].name + ' (' + genderLetter + ')</br>' + visiblePoints[i].pob +
-						' ' + visiblePoints[i].dob + ' -';
-				}
-			});
+		// Creating tipbox for circles
+		var circleTipbox = mapUtils.createCircleTipbox(visiblePoints);
 		map.call(circleTipbox);
 		
 		// Point insertion into the map
-		var circles = map.selectAll('circle')
-			.data(transformablePointCoords)
-			.enter()
-			.append('circle')
-				.attr('class', 'person')
-				.attr('display', 'block')
-				.attr('cx', d => d.x)
-				.attr('cy', d => d.y)
-				.attr('r', circleRadius)
-				.attr('data-province-id', d => d.provinceIndex) // index of belonging province
-				.attr('data-year', (_, i) => visiblePoints[i].dob) // year of birth
-				.attr('data-gender', (_, i) => visiblePoints[i].gender) // gender
-				.attr('data-categories', (_, i) => { // professional categories (for filtering purposes)
-					var cat = visiblePoints[i].professions.categories;
-					if (cat.length > 0) return JSON.stringify(cat);
-					else return '["other"]';
-				})
-				.style('stroke', 'black')
-				.style('stroke-width', 0.1)
-				.style('fill', (_, i) => { // point color identifies the gender
-					switch (visiblePoints[i].gender) {
-						case 'maschio': return '#00BFFF';
-						case 'femmina': return '#FF1493';
-						default: return '#66FF66';
-					}
-				})
-				.on('mouseover', (d, i) => {
-					var idx = i;
-					circleTipbox.style('background', _ => {
-						switch (visiblePoints[idx].gender) {
-							case 'maschio': return '#00BFFF';
-							case 'femmina': return '#FF1493';
-							default: return '#66FF66';
-						}
-					})
-					circleTipbox.style('color', _ => {
-						if (visiblePoints[idx].gender == 'maschio' || visiblePoints[idx].gender == 'femmina')
-							return '#FFF';
-						else return '#000';
-					});
-					circleTipbox.show(d, idx);
-				}) // show tipbox at mouse hovering
-				.on('mouseout', circleTipbox.hide)
-				// if clicked, show detailed information in red infobox on the right
-				.on('click', (_, i) => writePersonInfo(visiblePoints[i]));
+		var circles = mapUtils.insertPointArray(map, transformablePointCoords, visiblePoints, circleTipbox);
+		// if clicked, show detailed information in red infobox on the right
+		circles.on('click', (_, i) => writePersonInfo(visiblePoints[i]));
 			
 		// Visualize circle count (FIXME: use occupationCategories values instead of recalculation)
 		var totalCircles = circles.size();
@@ -788,22 +570,15 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 		// Draw area chart within the year slider
 		drawAreaChart(visiblePoints);
 			
-		// Anti-collision animation (TODO: add time limit to prevent infinite animation)
+		// Anti-collision animation
 		simulation.nodes(transformablePointCoords)
-			.force('collision', d3.forceCollide().radius(circleRadius * 1.5).iterations(3))
+			.force('collision', d3.forceCollide().radius(_ => mapUtils.getCircleRadius() * 1.5).iterations(3))
 			.force('r', d3.forceRadial(0).x(d => d.origX).y(d => d.origY))
 			.on('tick', _ => {
 				map.selectAll('circle')
 					.attr('cx', (_, i) => transformablePointCoords[i].x)
 					.attr('cy', (_, i) => transformablePointCoords[i].y);
 			});
-
-		// Heatmap initialization (will be filled with data by changing visualization mode)
-		map.append('image')
-			.attr('class', 'heatmap-image')
-			.attr('display', 'none')
-			.attr('width', _ => d3.select('.heatmap-canvas').attr('width'))
-			.attr('height', _ => d3.select('.heatmap-canvas').attr('height'))
 		
 		// Associate event handlers to page elements
 		svgMap.call(d3.zoom().on('zoom', updateTransform));
@@ -837,9 +612,9 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 			});
 
 		sliderHandle.on('onchange', val => {
-				circleRadius = val;
-				if (visualizationFilterValue == 'dotmap') updateVisualizedPoints(visiblePoints);
-			});
+			mapUtils.setCircleRadius(val);
+			if (visualizationFilterValue == 'dotmap') updateVisualizedPoints(visiblePoints);
+		});
 		radiusSelectorGraphicContainer.call(sliderHandle);
 		
 		d3.selectAll('.row')
@@ -851,93 +626,18 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 });
 
 // UTILITY FUNCTIONS
-
-// Finds the n-th exagonal centered number (further infos here: https://w.wiki/5fx)
-function exagonalCenteredNumber(n) {
-	return 1 + 3 * n * (n - 1);
-}
-
-// Given center coordinates and the position in exagonal layout, this function determines x and y coordinates for the specified position
-function getExagonalLayoutCoordinates(pointNo, x0, y0) {
-	if (pointNo == 0) return {x: x0, y: y0};
-	else {
-		// Get minimum and maximum points for each layer
-		var currentLayer = 1;
-		var minPoints = exagonalCenteredNumber(currentLayer);
-		var maxPoints = exagonalCenteredNumber(currentLayer+1);
-		while (pointNo >= maxPoints) {
-			currentLayer++;
-			minPoints = exagonalCenteredNumber(currentLayer);
-			maxPoints = exagonalCenteredNumber(currentLayer+1);
-		}
-
-		// Obtain edge and offset index
-		var edge = Math.floor((pointNo - minPoints) / currentLayer);
-		var offset = (pointNo - minPoints) % currentLayer;		// Calculate resulting x and y position
-		switch (edge) {
-			case 0:
-				var x = x0 + (((circleRadius * 1.5) * 2) * currentLayer) - ((circleRadius * 1.5) * offset);
-				var y = y0 - (((circleRadius * 1.5) * 2) * offset);
-				break;
-			case 1:
-				var x = x0 + ((circleRadius * 1.5) * currentLayer) - (((circleRadius * 1.5) * 2) * offset);
-				var y = y0 - (((circleRadius * 1.5) * 2) * currentLayer);
-				break;
-			case 2:
-				var x = x0 - ((circleRadius * 1.5) * currentLayer) - ((circleRadius * 1.5) * offset);
-				var y = y0 - (((circleRadius * 1.5) * 2) * currentLayer) + (((circleRadius * 1.5) * 2) * offset);
-				break;
-			case 3:
-				var x = x0 - (((circleRadius * 1.5) * 2) * currentLayer) + ((circleRadius * 1.5) * offset);
-				var y = y0 + (((circleRadius * 1.5) * 2) * offset);
-				break;
-			case 4:
-				var x = x0 - ((circleRadius * 1.5) * currentLayer) + (((circleRadius * 1.5) * 2) * offset);
-				var y = y0 + (((circleRadius * 1.5) * 2) * currentLayer);
-				break;
-			case 5:
-				var x = x0 + ((circleRadius * 1.5) * currentLayer) + ((circleRadius * 1.5) * offset);
-				var y = y0 + (((circleRadius * 1.5) * 2) * currentLayer) - (((circleRadius * 1.5) * 2) * offset);
-		}
-
-		return {x: x, y: y};
-	}
-}
-
-// Find region and province indexes (province IDs are not sorted by numeric order)
-function findZoneIndexes(regionMetadataArray, provinceId) {
-	var idx = 0;
-	while (idx < regionMetadataArray.length) {
-		var provinceArray = regionMetadataArray[idx].provinces;
-		var check = provinceArray.findIndex(p => p.PID == provinceId);
-		if (check < 0) idx++;
-		else return { r: idx, p: check };
-	}
-	return { r: -1, p: -1 };
-}
-
-// Find an SVG province by x and y coordinates
-function svgNodeFromCoordinates(x, y) {
-	var root = document.getElementsByClassName('map-box')[0]
-						.getElementsByTagName('svg')[0];
-	var rootPosition = root.createSVGPoint();
-	rootPosition.x = x;
-	rootPosition.y = y;
-	var position = rootPosition.matrixTransform(root.getScreenCTM());
-	return document.elementFromPoint(position.x, position.y);
-}
-
 // Javascript class for Wikidata query dispatcher
 class SPARQLQueryDispatcher {
 	constructor(endpoint) {
 		this.endpoint = endpoint;
 	}
 
-	query(sparqlQuery) {
+	async query(sparqlQuery) {
 		const fullUrl = this.endpoint + '?query=' + encodeURIComponent(sparqlQuery);
 		const headers = { 'Accept': 'application/sparql-results+json' };
 
-		return fetch(fullUrl, { headers }).then(body => body.json());
+		const body = await fetch(fullUrl, { headers });
+		return await body.json();
 	}
 }
 
@@ -967,7 +667,7 @@ function writePersonInfo(data) {
 						return '<b>Sesso:</b> ' + data.gender;
 					case 2:
 						var str = '<b>Occupazioni:</b> ';
-						for (idx = 0; idx < data.professions.occupations.length; idx++) {
+						for (var idx = 0, len = data.professions.occupations.length; idx < len; idx++) {
 							if (idx == data.professions.occupations.length - 1)
 								str += data.professions.occupations[idx];
 							else str += data.professions.occupations[idx] + ', ';
@@ -1007,14 +707,14 @@ function drawAreaChart(elems) {
 	var areaValues = [];
 	// For every year determine how many people are born, filtering results by selected occupation category
 	// or subcategory
-	for (i = 1850; i < nowYear; i++) {
+	for (var i = 1850; i < nowYear; i++) {
 		var maleCircles = elems.filter(el => {
 			if (el.gender == 'maschio' && el.dob == i) {
 				var cat = el.professions.categories;
 				if (occupationFilterSelected[0] == 'all' ||	(occupationFilterSelected[0] == 'other' && cat.length == 0))
 					return true;
 				else {
-					for (var idx = 0; idx < cat.length; idx++) {
+					for (var idx = 0, len = cat.length; idx < len; idx++) {
 						if (occupationFilterSelected.findIndex(v => v == cat[idx]) >= 0)
 							return true;
 					}
@@ -1028,7 +728,7 @@ function drawAreaChart(elems) {
 				if (occupationFilterSelected[0] == 'all' || (occupationFilterSelected[0] == 'other' && cat.length == 0))
 					return true;
 				else {
-					for (var idx = 0; idx < cat.length; idx++) {
+					for (var idx = 0, len = cat.length; idx < len; idx++) {
 						if (occupationFilterSelected.findIndex(v => v == cat[idx]) >= 0)
 							return true;
 					}
@@ -1072,48 +772,6 @@ function drawAreaChart(elems) {
 		.attr('d', d3.area().x(d => x(d.year)).y0(y(0)).y1(d => y(d.f)));
 }
 
-// Get coordinates of visualized points for collision resolving and heatmap generation
-function getDerivatedCoords(idxList, elems) {
-	var transformablePointCoords = [];
-	var birthplaceDensity = [];
-
-	for (var i = 0, len = idxList.length; i < len; i++) {
-		var idx = idxList[i];
-		var circleElement = elems[idx];
-
-		// Precalculation of the density population for every birthplace
-		var birthplaceIndex = birthplaceDensity.findIndex(v => v.place == circleElement.pob);
-		if (birthplaceIndex < 0) {
-			var birthplaceRecord = {
-				place: circleElement.pob,
-				x: circleElement.coords.x,
-				y: circleElement.coords.y,
-				value: 1
-			};
-			birthplaceDensity.push(birthplaceRecord);
-			birthplaceIndex = birthplaceDensity.length - 1;
-		} else birthplaceDensity[birthplaceIndex].value++;
-
-		// Convert point coordinates in exagonal layout
-		var pointNo = birthplaceDensity[birthplaceIndex].value;
-		var exagonalCoords = getExagonalLayoutCoordinates(pointNo - 1, circleElement.coords.x, circleElement.coords.y);
-
-		// For each record generate an object with initial cooordinates and a province id
-		// reference: will be used in heatmap generation and dynamic collision resolving
-		var dataPoint = {
-			origX: circleElement.coords.x,
-			origY: circleElement.coords.y,
-			idx: idx,
-			x: exagonalCoords.x,
-			y: exagonalCoords.y,
-			value: 1
-		};
-		transformablePointCoords.push(dataPoint);
-	}
-
-	return { tpc: transformablePointCoords, bd: birthplaceDensity };
-}
-
 // Update procedure for all visualized data
 function updateVisualizedPoints(elems) {
 	// First of all hide all points on the map
@@ -1135,7 +793,7 @@ function updateVisualizedPoints(elems) {
 						return true;
 					}
 				} else {
-					for (var idx = 0; idx < cat.length; idx++) {
+					for (var idx = 0, len = cat.length; idx < len; idx++) {
 						if (occupationFilterSelected.findIndex(v => v == cat[idx]) >= 0 && el.dob >= minYear && el.dob <= maxYear) {
 							indexList.push(i);
 							return true;
@@ -1175,14 +833,14 @@ function updateVisualizedPoints(elems) {
 		selected.attr('display', 'block');
 		map.selectAll('image').attr('display', 'none');
 		map.selectAll('.province').style('fill', '#FFF');
-		d3.selectAll('.person').attr('r', circleRadius);
+		d3.selectAll('.person').attr('r', mapUtils.getCircleRadius());
 		densityLegendBox.style('display', 'none');
 
-		var pointGroupsElement = getDerivatedCoords(indexList, elems);
+		var pointGroupsElement = mapUtils.getDerivatedCoords(indexList, elems);
 
 		// Reset and restart collision resolver engine
 		simulation.nodes(pointGroupsElement.tpc)
-			.force('collision', d3.forceCollide().radius(circleRadius * 1.5).iterations(3))
+			.force('collision', d3.forceCollide().radius(_ => mapUtils.getCircleRadius() * 1.5).iterations(3))
 			.force('r', d3.forceRadial(0).x(d => d.origX).y(d => d.origY))
 			.on('tick', _ => {
 				map.selectAll('circle')
@@ -1252,26 +910,6 @@ function updateVisualizedPoints(elems) {
 			.select('.domain').remove();
 
 		legendNotes.text('(m: maschio, f: femmina, max popolazione per provincia: ' + maxProvincePeopleNo + ')');
-	} else if (visualizationFilterValue == 'heatmap') {
-		map.selectAll('.province').style('fill', '#FFF');
-		densityLegendBox.style('display', 'none');
-
-		// If heatmap mode is selected, show heatmap over the map
-		map.selectAll('image').attr('display', 'block');
-
-		var pointGroupsElement = getDerivatedCoords(indexList, elems);
-
-		// Heatmap draw
-		var heatmapMaxValue = Math.max.apply(Math, pointGroupsElement.bd.map(o => o.value));
-		heatmapInstance.setData({
-			max: heatmapMaxValue,
-			min: 0,
-			data: pointGroupsElement.bd
-		});
-
-		var heatmapDataURL = heatmapInstance.getDataURL();
-		map.selectAll('.heatmap-image')
-			.attr('xlink:href', heatmapDataURL);
 	}
 }
 
@@ -1285,7 +923,7 @@ function updateTransform() {
 function getYearLimits(elems) {
 	// Update min and max limits
 	var lx = +d3.select('.selection').attr('x'),
-		width = +d3.select('.selection').attr('width');
+			width = +d3.select('.selection').attr('width');
 	minYear = Math.floor(x.invert(lx));
 	maxYear = Math.floor(x.invert(lx + width));
 	
@@ -1293,13 +931,13 @@ function getYearLimits(elems) {
 	rangeInfoboxYearRange.text('Intervallo nascite: dal ' + minYear + ' al ' + maxYear);
 	
 	// Reset occupation categories values
-	for (var i = 0; i < occupationCategories.length; i++) {
+	for (var i = 0, len = occupationCategories.length; i < len; i++) {
 		occupationCategories[i].m = 0;
 		occupationCategories[i].f = 0;
 		occupationCategories[i].other = 0;
 	}
 	 
-	for (var i = 0; i < elems.length; i++) {
+	for (var i = 0, len1 = elems.length; i < len1; i++) {
 		var record = elems[i];
 		
 		if (record.dob >= minYear && record.dob <= maxYear) {
@@ -1317,7 +955,7 @@ function getYearLimits(elems) {
 				else occupationCategories[l-1].other++;
 			} else {
 				var previousCategoryIndex = -1;
-				for (var j = 0; j < record.professions.categories.length; j++) {
+				for (var j = 0, len2 = record.professions.categories.length; j < len2; j++) {
 					var currentSubcategory = record.professions.categories[j];
 					var idx = occupationCategories.findIndex(cat => cat.name == currentSubcategory);
 					var categoryIndex = idx;
