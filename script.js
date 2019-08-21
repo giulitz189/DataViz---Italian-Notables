@@ -1,4 +1,8 @@
 import * as mapUtils from './modules/map.js';
+import * as sliderUtils from './modules/slider.js';
+
+// Define radius for all circles on the map
+var circleRadius = new mapUtils.CircleRadius();
 
 // Map instance generation
 var svgMap = mapUtils.getMapBox();
@@ -15,99 +19,29 @@ var legendNotes = mapUtils.getLegendNotes(densityLegend);
 
 mapUtils.initDensityLegend(densityLegend, legendXAxis);
 
-// INITIALIZATION PHASE - YEAR RANGE SLIDER
-// Slider box dimensions
-var viewBoxSliderCoordinates = {
-	x: 0,
-	y: 0,
-	width: 1000,
-	height: 100
-};
-
-// SVG box creation
-var svgSlider = d3.select('.slider-box')
-	.append('svg')
-		.attr('xmlns', 'http://www.w3.org/2000/svg')
-		.attr('xmlns:xlink', 'http://www.w3.org/1999/xlink')
-		.attr('preserveAspectRatio', 'xMinYMin meet')
-		.attr('viewBox', viewBoxSliderCoordinates.x + ' ' + viewBoxSliderCoordinates.y + ' ' +
-						+ viewBoxSliderCoordinates.width + ' ' + viewBoxSliderCoordinates.height);
-						
-var scaleW = viewBoxSliderCoordinates.width - 100;
-var scaleH = viewBoxSliderCoordinates.height - 30;
-
-// Minimum and maximum year of birth
-var nowYear = new Date().getFullYear();
-
-var minYear = 1850;
-var maxYear = nowYear;
+// Slider dimension and year limits definition
+var sliderDim = new sliderUtils.SliderDimension();
+var yearBounds = new sliderUtils.YearBounds();
 	
-// Slider range definition
-var x = d3.scaleLinear()
-	.domain([minYear, maxYear])
-	.range([0, scaleW]);
+// Slider scale factor definition
+var x = sliderUtils.createXAxisScaleFactor(yearBounds, sliderDim);
 	
 // Brush rectangle definition
-var brush = d3.brushX()
-	.extent([[0, 0], [scaleW, scaleH]]);
+var brush = sliderUtils.createXAxisBrush(sliderDim);
 	
 // Slider construction
-var slider = svgSlider.append('g')
-	.attr('class', 'slider')
-	.attr('transform', 'translate(30, 10)');
+var svgSlider = sliderUtils.createSliderInstance();
+var slider = sliderUtils.createDrawableSliderBox(svgSlider);
 	
 var areaGraph = slider.append('g');
+var brushSelection = sliderUtils.createSelectionRectangle(slider, brush, yearBounds, x);
 	
-var brushSelection = slider.append('g')
-	.attr('class', 'brush')
-	.call(brush)
-	.call(brush.move, [minYear, maxYear].map(x));
-	
-// Rectangular selection handles, useful if you don't know where to click and drag
-var brushHandle = brushSelection.selectAll('.handle--custom')
-	.data([{type: 'w'}, {type: 'e'}])
-	.enter().append('rect')
-		.attr('class', 'handle--custom')
-		.attr('fill', 'red')
-		.attr('cursor', 'ew-resize')
-		.attr('x', d => {
-			if (d.type == 'w')
-				return (parseInt(d3.select('.handle--w').attr('x')) + 2.5);
-			else return (parseInt(d3.select('.handle--e').attr('x')) + 1);
-		})
-		.attr('y', 25)
-		.attr('width', 3)
-		.attr('height', 20);
-
-var resetBtn = svgSlider.append('g')
-	.attr('transform', 'translate(950, 30)');
-
-resetBtn.append('rect')
-	.attr('x', 0)
-	.attr('y', 0)
-	.attr('width', 30)
-	.attr('height', 30)
-	.style('stroke-width', '2px')
-	.style('stroke', '#00cccc')
-	.style('fill', '#fff');
-
-resetBtn.append('image')
-	.attr('xlink:href', 'images/restore_img.png')
-	.attr('x', 5)
-	.attr('y', 5)
-	.attr('width', 20)
-	.attr('height', 20);
+// Selection box controls
+var brushHandle = sliderUtils.createSelectionHandles(brushSelection);
+var resetBtn = sliderUtils.createResetButton(svgSlider);
 	
 // Horizontal ruler for year values
-slider.append('g')
-	.attr('class', 'x axis')
-	.attr('transform', 'translate(0, ' + scaleH + ')')
-	.call(d3.axisBottom(x)
-			.ticks(maxYear - minYear)
-			.tickFormat(d => (d % 10 != 0) ? '' : d.toString()));
-			
-d3.selectAll('g.x.axis g.tick line')
-	.attr('y2', d => (d % 10 == 0) ? 6 : (d % 10 == 5) ? 4 : 2);
+sliderUtils.createSliderRuler(slider, sliderDim, x, yearBounds);
 
 // INITIALIZATION PHASE - SELECTORS
 // Point radius regulator
@@ -128,7 +62,7 @@ var sliderHandle = d3.sliderBottom()
 	.width(160)
 	.tickFormat(d3.format('.1'))
 	.ticks(9)
-	.default(mapUtils.getCircleRadius())
+	.default(circleRadius.radius)
 	.handle(
 		d3.symbol()
 			.type(d3.symbolCircle)
@@ -183,7 +117,7 @@ var rangeInfobox = d3.select('.rangeInfo');
 
 var rangeInfoboxYearRange = rangeInfobox.append('div')
 	.attr('class', 'section')
-	.text('Intervallo nascite: dal ' + minYear + ' al ' + maxYear);
+	.text('Intervallo nascite: dal ' + yearBounds.min + ' al ' + yearBounds.max);
 	
 var rangeInfoboxPointQuantity = rangeInfobox.append('div')
 	.attr('class', 'section');
@@ -433,7 +367,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 				
 				// Convert point coordinates in exagonal layout
 				var pointNo = birthplaceDensity[birthplaceIndex].value;
-				var exagonalCoords = mapUtils.getExagonalLayoutCoordinates(pointNo - 1, record.coords.x, record.coords.y);
+				var exagonalCoords = mapUtils.getExagonalLayoutCoordinates(pointNo - 1, record.coords.x, record.coords.y, circleRadius);
 
 				// For each record generate an object with initial cooordinates and a province id
 				// reference: will be used in dynamic collision resolving
@@ -556,7 +490,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 		map.call(circleTipbox);
 		
 		// Point insertion into the map
-		var circles = mapUtils.insertPointArray(map, transformablePointCoords, visiblePoints, circleTipbox);
+		var circles = mapUtils.insertPointArray(map, transformablePointCoords, visiblePoints, circleTipbox, circleRadius);
 		// if clicked, show detailed information in red infobox on the right
 		circles.on('click', (_, i) => writePersonInfo(visiblePoints[i]));
 			
@@ -568,11 +502,11 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 								'di cui ' + maleCircles + ' uomini e ' + femaleCircles + ' donne');
 		
 		// Draw area chart within the year slider
-		drawAreaChart(visiblePoints);
+		sliderUtils.drawAreaChart(visiblePoints, occupationFilterSelected, slider, areaGraph, x, sliderDim);
 			
 		// Anti-collision animation
 		simulation.nodes(transformablePointCoords)
-			.force('collision', d3.forceCollide().radius(_ => mapUtils.getCircleRadius() * 1.5).iterations(3))
+			.force('collision', d3.forceCollide().radius(_ => circleRadius.radius * 1.5).iterations(3))
 			.force('r', d3.forceRadial(0).x(d => d.origX).y(d => d.origY))
 			.on('tick', _ => {
 				map.selectAll('circle')
@@ -592,8 +526,9 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 
 		resetBtn.on('mousedown', _ => resetBtn.selectAll('rect').style('fill', '#00cccc'))
 			.on('mouseup', _ => {
+				var now = new Date().getFullYear();
 				resetBtn.selectAll('rect').style('fill', '#fff');
-				brushSelection.transition().call(brush.move, [1850, nowYear].map(x));
+				brushSelection.transition().call(brush.move, [1850, now].map(x));
 				getYearLimits(visiblePoints);
 			});
 			
@@ -612,7 +547,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 			});
 
 		sliderHandle.on('onchange', val => {
-			mapUtils.setCircleRadius(val);
+			circleRadius.radius = val;
 			if (visualizationFilterValue == 'dotmap') updateVisualizedPoints(visiblePoints);
 		});
 		radiusSelectorGraphicContainer.call(sliderHandle);
@@ -626,7 +561,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 });
 
 // UTILITY FUNCTIONS
-// Javascript class for Wikidata query dispatcher
+// Javascript class for Wikidata query dispatcher (SELECTOR)
 class SPARQLQueryDispatcher {
 	constructor(endpoint) {
 		this.endpoint = endpoint;
@@ -641,7 +576,7 @@ class SPARQLQueryDispatcher {
 	}
 }
 
-// Function that fetch from Wikidata all Wikipedia links of a specific person
+// Function that fetch from Wikidata all Wikipedia links of a specific person (SELECTOR)
 function fetchArticle(data) {
 	var endpointUrl = 'https://query.wikidata.org/sparql';
 	var sparqlQuery = 'SELECT ?articolo WHERE {\
@@ -654,7 +589,7 @@ function fetchArticle(data) {
 	return queryDispatcher.query(sparqlQuery);
 }
 
-// Writes detailed information about a person visualized on the map
+// Writes detailed information about a person visualized on the map (SELECTOR)
 function writePersonInfo(data) {
 	var fetchedRecords = fetchArticle(data); // Treat fetchArticle funcion as a Promise in order to wait for results
 	Promise.all([fetchedRecords]).then(articles => {
@@ -702,76 +637,6 @@ function writePersonInfo(data) {
 	});
 }
 
-// Draw area chart inside the year slider rectangle and adjust y-axis ruler
-function drawAreaChart(elems) {
-	var areaValues = [];
-	// For every year determine how many people are born, filtering results by selected occupation category
-	// or subcategory
-	for (var i = 1850; i < nowYear; i++) {
-		var maleCircles = elems.filter(el => {
-			if (el.gender == 'maschio' && el.dob == i) {
-				var cat = el.professions.categories;
-				if (occupationFilterSelected[0] == 'all' ||	(occupationFilterSelected[0] == 'other' && cat.length == 0))
-					return true;
-				else {
-					for (var idx = 0, len = cat.length; idx < len; idx++) {
-						if (occupationFilterSelected.findIndex(v => v == cat[idx]) >= 0)
-							return true;
-					}
-				}
-				return false;
-			}
-		}).length;
-		var femaleCircles = elems.filter(el => {
-			if (el.gender == 'femmina' && el.dob == i) {
-				var cat = el.professions.categories;
-				if (occupationFilterSelected[0] == 'all' || (occupationFilterSelected[0] == 'other' && cat.length == 0))
-					return true;
-				else {
-					for (var idx = 0, len = cat.length; idx < len; idx++) {
-						if (occupationFilterSelected.findIndex(v => v == cat[idx]) >= 0)
-							return true;
-					}
-				}
-				return false;
-			}
-		}).length;
-		areaValues.push({ year: i, m: maleCircles, f: femaleCircles });
-	}
-	
-	// Generate y-axis ruler for area chart
-	var yMax = d3.max(areaValues, d => d.m > d.f ? d.m + 1 : d.f + 1);
-	var y = d3.scaleLinear()
-		.domain([0, yMax])
-		.range([scaleH, 0]);
-		
-	slider.select('.y-axis').remove();
-		
-	slider.append('g')
-		.attr('class', 'y-axis')
-		.call(d3.axisLeft(y).ticks(Math.floor(yMax / 50) + 1));
-				
-	// Redraw area chart
-	areaGraph.select('.male-graph').remove();
-	areaGraph.select('.female-graph').remove();
-	
-	areaGraph.append('path')
-		.datum(areaValues)
-		.attr('class', 'male-graph')
-		.attr('fill', 'rgba(0, 191, 255, 0.5)')
-		.attr('stroke', 'rgba(0, 191, 255, 1)')
-		.attr('stroke-width', 1.5)
-		.attr('d', d3.area().x(d => x(d.year)).y0(y(0)).y1(d => y(d.m)));
-		
-	areaGraph.append('path')
-		.datum(areaValues)
-		.attr('class', 'female-graph')
-		.attr('fill', 'rgba(255, 20, 147, 0.5)')
-		.attr('stroke', 'rgba(255, 20, 147, 1)')
-		.attr('stroke-width', 1.5)
-		.attr('d', d3.area().x(d => x(d.year)).y0(y(0)).y1(d => y(d.f)));
-}
-
 // Update procedure for all visualized data
 function updateVisualizedPoints(elems) {
 	// First of all hide all points on the map
@@ -788,13 +653,13 @@ function updateVisualizedPoints(elems) {
 			if (genderFilterValue == 'all' || el.gender == genderFilterValue) {
 				var cat = el.professions.categories;
 				if (occupationFilterSelected[0] == 'all' || (occupationFilterSelected[0] == 'other' && cat.length == 0)) {
-					if (el.dob >= minYear && el.dob <= maxYear) {
+					if (yearBounds.isValueInInterval(el.dob)) {
 						indexList.push(i);
 						return true;
 					}
 				} else {
 					for (var idx = 0, len = cat.length; idx < len; idx++) {
-						if (occupationFilterSelected.findIndex(v => v == cat[idx]) >= 0 && el.dob >= minYear && el.dob <= maxYear) {
+						if (occupationFilterSelected.findIndex(v => v == cat[idx]) >= 0 && yearBounds.isValueInInterval(el.dob)) {
 							indexList.push(i);
 							return true;
 						}
@@ -826,21 +691,21 @@ function updateVisualizedPoints(elems) {
 							'di cui ' + maleCircles + ' uomini e ' + femaleCircles + ' donne');
 	
 	// Redraw area chart inside year range slider
-	drawAreaChart(elems);
+	sliderUtils.drawAreaChart(elems, occupationFilterSelected, slider, areaGraph, x, sliderDim);
 
 	simulation.stop();
 	if (visualizationFilterValue == 'dotmap') {
 		selected.attr('display', 'block');
 		map.selectAll('image').attr('display', 'none');
 		map.selectAll('.province').style('fill', '#FFF');
-		d3.selectAll('.person').attr('r', mapUtils.getCircleRadius());
+		d3.selectAll('.person').attr('r', circleRadius.radius)
 		densityLegendBox.style('display', 'none');
 
-		var pointGroupsElement = mapUtils.getDerivatedCoords(indexList, elems);
+		var pointGroupsElement = mapUtils.getDerivatedCoords(indexList, elems, circleRadius);
 
 		// Reset and restart collision resolver engine
 		simulation.nodes(pointGroupsElement.tpc)
-			.force('collision', d3.forceCollide().radius(_ => mapUtils.getCircleRadius() * 1.5).iterations(3))
+			.force('collision', d3.forceCollide().radius(_ => circleRadius.radius * 1.5).iterations(3))
 			.force('r', d3.forceRadial(0).x(d => d.origX).y(d => d.origY))
 			.on('tick', _ => {
 				map.selectAll('circle')
@@ -924,11 +789,11 @@ function getYearLimits(elems) {
 	// Update min and max limits
 	var lx = +d3.select('.selection').attr('x'),
 			width = +d3.select('.selection').attr('width');
-	minYear = Math.floor(x.invert(lx));
-	maxYear = Math.floor(x.invert(lx + width));
+	yearBounds.min = Math.floor(x.invert(lx));
+	yearBounds.max = Math.floor(x.invert(lx + width));
 	
 	// Visualize updated limits in an infobox
-	rangeInfoboxYearRange.text('Intervallo nascite: dal ' + minYear + ' al ' + maxYear);
+	rangeInfoboxYearRange.text('Intervallo nascite: dal ' + yearBounds.min + ' al ' + yearBounds.max);
 	
 	// Reset occupation categories values
 	for (var i = 0, len = occupationCategories.length; i < len; i++) {
@@ -940,7 +805,7 @@ function getYearLimits(elems) {
 	for (var i = 0, len1 = elems.length; i < len1; i++) {
 		var record = elems[i];
 		
-		if (record.dob >= minYear && record.dob <= maxYear) {
+		if (yearBounds.isValueInInterval(record.dob)) {
 			// Increment "ALL" occupation filter value by one
 			if (record.gender == 'maschio') occupationCategories[0].m++;
 			else if (record.gender == 'femmina') occupationCategories[0].f++;
@@ -1028,7 +893,7 @@ function brushcentered(mouseEvt, elems) {
 			return (parseInt(d3.select('.handle--w').attr('x')) + 2.5);
 		else return (parseInt(d3.select('.handle--e').attr('x')) + 1);
 	});
-	brushSelection.call(brush.move, x1 > scaleW ? [scaleW - dx, scaleW] : x0 < 0 ? [0, dx] : [x0, x1]);
+	brushSelection.call(brush.move, x1 > sliderDim.width ? [sliderDim.width - dx, sliderDim.width] : x0 < 0 ? [0, dx] : [x0, x1]);
 	
 	getYearLimits(elems);
 }
@@ -1067,7 +932,7 @@ function brushended(evt, elems) {
 	getYearLimits(elems);
 }
 
-// Set occupation category filtering
+// Set occupation category filtering (SELECTOR)
 function gridSelection(rowId) {
 	grid.selectAll('rect')
 		.attr('fill', '#fff')

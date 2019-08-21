@@ -9,21 +9,21 @@ const VIEWBOX_MAP_COORDINATES = {
 };
 
 /**
- * Map point radius
+ * Radius value of all circles of the map
  */
-var circleRadius = 0.3;
+export class CircleRadius {
+  constructor() {
+    this.rad = 0.3;
+  }
 
-/**
- * Getter function for circleRadius variable
- */
-export let getCircleRadius = _ => circleRadius
+  get radius() {
+    return this.rad;
+  }
 
-/**
- * Setter function for circleRadius variable
- * 
- * @param {number} val - new value for circleRadius
- */
-export let setCircleRadius = val => circleRadius = val;
+  set radius(v) {
+    if (typeof(v) == 'number') this.rad = v;
+  }
+}
 
 /**
  * Create SVG container element for map
@@ -48,7 +48,7 @@ export let getDrawableMap = svgMap => svgMap.append('g')
  */
 let generateColors = _ => {
 	// rows corresponds to density, columns to gender ratio
-	var colorArray = [];
+  var colorArray = [];
 
 	for (var i = 0; i < 5; i++) {
 		for (var j = 0; j < 6; j++) {
@@ -316,12 +316,13 @@ export let createCircleTipbox = peopleArray => {
 /**
  * Inserts an array of points in the specified map instance, adding infos from metadata array to be visualized by tipbox.
  * 
- * @param  {Selection<SVGSVGElement, any, HTMLElement, any>} map - SVG map instance
- * @param  {any[]} coords - array for coordinates and other map information
- * @param  {any[]} metadata - array for metadata people information
- * @param  {any} tipbox - tipbox instance for circles
+ * @param {Selection<SVGSVGElement, any, HTMLElement, any>} map - SVG map instance
+ * @param {any[]} coords - array for coordinates and other map information
+ * @param {any[]} metadata - array for metadata people information
+ * @param {any} tipbox - tipbox instance for circles
+ * @param {CircleRadius} radius - point radius
  */
-export let insertPointArray = (map, coords, metadata, tipbox) => {
+export let insertPointArray = (map, coords, metadata, tipbox, radius) => {
   return map.selectAll('circle')
     .data(coords)
     .enter()
@@ -330,7 +331,7 @@ export let insertPointArray = (map, coords, metadata, tipbox) => {
       .attr('display', 'block')
       .attr('cx', d => d.x)
       .attr('cy', d => d.y)
-      .attr('r', circleRadius)
+      .attr('r', radius.radius)
       .attr('data-province-id', d => d.provinceIndex) // index of belonging province
       .attr('data-year', (_, i) => metadata[i].dob) // year of birth
       .attr('data-gender', (_, i) => metadata[i].gender) // gender
@@ -381,8 +382,9 @@ let exagonalCenteredNumber = n => 1 + 3 * n * (n - 1)
  * @param {number} pointNo - cardinal number of the position
  * @param {number} x0 - starting x-axis coordinate
  * @param {number} y0 - starting y-axis coordinate
+ * @param {CircleRadius} radius - the radius of every point on the map
  */
-export let getExagonalLayoutCoordinates = (pointNo, x0, y0) => {
+export let getExagonalLayoutCoordinates = (pointNo, x0, y0, radius) => {
 	if (pointNo == 0) return {x: x0, y: y0};
 	else {
 		// Get minimum and maximum points for each layer
@@ -400,28 +402,28 @@ export let getExagonalLayoutCoordinates = (pointNo, x0, y0) => {
 		var offset = (pointNo - minPoints) % currentLayer;		// Calculate resulting x and y position
 		switch (edge) {
 			case 0:
-				var x = x0 + (((circleRadius * 1.5) * 2) * currentLayer) - ((circleRadius * 1.5) * offset);
-				var y = y0 - (((circleRadius * 1.5) * 2) * offset);
+				var x = x0 + (((radius.radius * 1.5) * 2) * currentLayer) - ((radius.radius * 1.5) * offset);
+				var y = y0 - (((radius.radius * 1.5) * 2) * offset);
 				break;
 			case 1:
-				var x = x0 + ((circleRadius * 1.5) * currentLayer) - (((circleRadius * 1.5) * 2) * offset);
-				var y = y0 - (((circleRadius * 1.5) * 2) * currentLayer);
+				var x = x0 + ((radius.radius * 1.5) * currentLayer) - (((radius.radius * 1.5) * 2) * offset);
+				var y = y0 - (((radius.radius * 1.5) * 2) * currentLayer);
 				break;
 			case 2:
-				var x = x0 - ((circleRadius * 1.5) * currentLayer) - ((circleRadius * 1.5) * offset);
-				var y = y0 - (((circleRadius * 1.5) * 2) * currentLayer) + (((circleRadius * 1.5) * 2) * offset);
+				var x = x0 - ((radius.radius * 1.5) * currentLayer) - ((radius.radius * 1.5) * offset);
+				var y = y0 - (((radius.radius * 1.5) * 2) * currentLayer) + (((radius.radius * 1.5) * 2) * offset);
 				break;
 			case 3:
-				var x = x0 - (((circleRadius * 1.5) * 2) * currentLayer) + ((circleRadius * 1.5) * offset);
-				var y = y0 + (((circleRadius * 1.5) * 2) * offset);
+				var x = x0 - (((radius.radius * 1.5) * 2) * currentLayer) + ((radius.radius * 1.5) * offset);
+				var y = y0 + (((radius.radius * 1.5) * 2) * offset);
 				break;
 			case 4:
-				var x = x0 - ((circleRadius * 1.5) * currentLayer) + (((circleRadius * 1.5) * 2) * offset);
-				var y = y0 + (((circleRadius * 1.5) * 2) * currentLayer);
+				var x = x0 - ((radius.radius * 1.5) * currentLayer) + (((radius.radius * 1.5) * 2) * offset);
+				var y = y0 + (((radius.radius * 1.5) * 2) * currentLayer);
 				break;
 			case 5:
-				var x = x0 + ((circleRadius * 1.5) * currentLayer) + ((circleRadius * 1.5) * offset);
-				var y = y0 + (((circleRadius * 1.5) * 2) * currentLayer) - (((circleRadius * 1.5) * 2) * offset);
+				var x = x0 + ((radius.radius * 1.5) * currentLayer) + ((radius.radius * 1.5) * offset);
+				var y = y0 + (((radius.radius * 1.5) * 2) * currentLayer) - (((radius.radius * 1.5) * 2) * offset);
 		}
 
 		return {x: x, y: y};
@@ -449,8 +451,9 @@ export let svgNodeFromCoordinates = (x, y) => {
  * 
  * @param {number[]} idxList - list of indexes of all the selected items
  * @param {any[]} elems - list of all points in the map
+ * @param {CircleRadius} radius - radius of every point on the map
  */
-export let getDerivatedCoords = (idxList, elems) => {
+export let getDerivatedCoords = (idxList, elems, radius) => {
 	var transformablePointCoords = [];
 	var birthplaceDensity = [];
 
@@ -473,7 +476,7 @@ export let getDerivatedCoords = (idxList, elems) => {
 
 		// Convert point coordinates in exagonal layout
 		var pointNo = birthplaceDensity[birthplaceIndex].value;
-		var exagonalCoords = getExagonalLayoutCoordinates(pointNo - 1, circleElement.coords.x, circleElement.coords.y);
+		var exagonalCoords = getExagonalLayoutCoordinates(pointNo - 1, circleElement.coords.x, circleElement.coords.y, radius);
 
 		// For each record generate an object with initial cooordinates and a province id
 		// reference: will be used in dynamic collision resolving
