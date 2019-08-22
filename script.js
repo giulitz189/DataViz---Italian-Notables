@@ -1,5 +1,6 @@
 import * as mapUtils from './modules/map.js';
 import * as sliderUtils from './modules/slider.js';
+import * as selectorUtils from './modules/selectors.js';
 
 // Define radius for all circles on the map
 var circleRadius = new mapUtils.CircleRadius();
@@ -44,240 +45,41 @@ var resetBtn = sliderUtils.createResetButton(svgSlider);
 sliderUtils.createSliderRuler(slider, sliderDim, x, yearBounds);
 
 // INITIALIZATION PHASE - SELECTORS
-// Point radius regulator
-d3.select('.selector')
-	.append('div')
-		.attr('class', 'section')
-		.text('Raggio dei punti:')
-	.append('div')
-		.attr('class', 'radius-slider');
-		
-// Tick values, and possible choices for circle radius
-var radiusOptions = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
-
 // Circular handle
-var sliderHandle = d3.sliderBottom()
-	.min(d3.min(radiusOptions))
-	.max(d3.max(radiusOptions))
-	.width(160)
-	.tickFormat(d3.format('.1'))
-	.ticks(9)
-	.default(circleRadius.radius)
-	.handle(
-		d3.symbol()
-			.type(d3.symbolCircle)
-			.size(100)()
-	);
+var sliderHandle = selectorUtils.addCircularHandle(circleRadius);
 	
 // Graphic container of the slider
-var radiusSelectorGraphicContainer = d3.select('.radius-slider')
-	.append('svg')
-		.attr('width', '200')
-		.attr('height', '50')
-	.append('g')
-		.attr('transform', 'translate(20, 10)');
+var radiusSelectorGraphicContainer = selectorUtils.addRadiusRegulator();
 
 // Filtering values, respectively for type of visualization and gender
-var visualizationFilterValue = 'dotmap';
-var genderFilterValue = 'all';
+var VisualizationMode = selectorUtils.VisualizationMode;
+var Gender = selectorUtils.Gender;
+
+var visualizationFilterValue = VisualizationMode.DOTMAP;
+var genderFilterValue = Gender.ALL;
 
 // Circle infobox
-var circleInfobox = d3.select('.circleInfo');
-
-circleInfobox.append('div')
-	.attr('class', 'section')
-	.html('<b>Nome:</b> ');
-	
-circleInfobox.append('div')
-	.attr('class', 'section')
-	.html('<b>Sesso:</b> ');
-	
-circleInfobox.append('div')
-	.attr('class', 'section')
-	.html('<b>Occupazioni:</b> ');
-	
-circleInfobox.append('div')
-	.attr('class', 'section')
-	.html('<b>Anno di nascita:</b> ');
-	
-circleInfobox.append('div')
-	.attr('class', 'section')
-	.html('<b>Anno di morte:</b> ');
-	
-circleInfobox.append('div')
-	.attr('class', 'section')
-	.html('<b>Luogo di nascita:</b> ');
-	
-circleInfobox.append('div')
-	.attr('class', 'section')
-	.html('<b>Articolo Wikipedia:</b> ');
+var circleInfobox = selectorUtils.addCircleInfobox();
 	
 // Data range infobox
-var rangeInfobox = d3.select('.rangeInfo');
+var rangeInfoboxYearRange = selectorUtils.addYearRangeLine(yearBounds);
+var rangeInfoboxPointQuantity = selectorUtils.addPointQuantityLine();
 
-var rangeInfoboxYearRange = rangeInfobox.append('div')
-	.attr('class', 'section')
-	.text('Intervallo nascite: dal ' + yearBounds.min + ' al ' + yearBounds.max);
-	
-var rangeInfoboxPointQuantity = rangeInfobox.append('div')
-	.attr('class', 'section');
-	
 // Occupation grid selector
-var occupationCategories = [
-	{ name: 'TUTTO', type: 'special', m: 0, f: 0, other: 0 },
-	{ name: 'Figure Sportive', type: 'category', m: 0, f: 0, other: 0 },
-	{ name: 'Calciatore', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Allenatore', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Pilota', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Ciclista', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Tennista', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Arbitro', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Sciatore', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Artisti', type: 'category', m: 0, f: 0, other: 0 },
-	{ name: 'Cantante', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Attore', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Compositore', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Regista', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Direttore d\'Orchestra', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Architetto', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Stilista', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Fumettista', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Pittore', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Fotografo', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Istituzioni', type: 'category', m: 0, f: 0, other: 0 },
-	{ name: 'Politico', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Figura Religiosa', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Militare', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Giudice', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Agente Diplomatico', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Umanistica', type: 'category', m: 0, f: 0, other: 0 },
-	{ name: 'Scrittore', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Giornalista', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Filosofo', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Scienza e Tecnologia', type: 'category', m: 0, f: 0, other: 0 },
-	{ name: 'Biologo', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Fisico', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Economista', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Matematico', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Chimico', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Medico', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Astronomo', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Ingegnere', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Figure Pubbliche', type: 'category', m: 0, f: 0, other: 0 },
-	{ name: 'Modello', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Business', type: 'category', m: 0, f: 0, other: 0 },
-	{ name: 'Produttore', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Affarista', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Esplorazione', type: 'category', m: 0, f: 0, other: 0 },
-	{ name: 'Astronauta', type: 'subcategory', m: 0, f: 0, other: 0 },
-	{ name: 'Altro', type: 'special', m: 0, f: 0, other: 0 }
-];
-
-// This function generates the grid layout, returns an array that contain infos about dimension and position
-// of every cell
-function generateGridLayout() {
-	var data = new Array();
-	var xPos = 0;
-	var yPos = 0;
-	var width = 0;
-	var height = 30;
-	
-	for (var row = 0, len = occupationCategories.length; row < len; row++) {
-		data.push(new Array());
-		for (var column = 0; column < 4; column++) {
-			width = column == 0 ? 130 : 30;
-			data[row].push({
-				x: xPos,
-				y: yPos,
-				width: width,
-				height: height,
-				rowIndex: row
-			})
-			xPos += width;
-		}
-		xPos = 0;
-		yPos += height;
-	}
-	return data;
-}
+var occCats = selectorUtils.occupationCategories;
 
 // Drawing the grid (TODO: can we convert this grid into an hidden checkbox field?)
-var grid = d3.select('#occ-select-grid')
-	.text('Occupazione: ')
-	.append('div')
-		.style('width', '100%')
-		.style('height', '800px')
-		.style('overflow-x', 'hidden')
-		.style('overflow-y', 'auto')
-	.append('svg')
-		.attr('width', '100%')
-		.attr('height', _ => '' + (occupationCategories.length * 30))
-		.style('margin', '2px 2px 2px 2px');
-	
-var row = grid.selectAll('.row')
-	.data(generateGridLayout)
-	.enter().append('g')
-	.attr('class', 'row')
-	.style('cursor', 'pointer');
-	
-row.selectAll('.square')
-	.data(d => d)
-	.enter()
-	.append('g')
-		.attr('class', 'cell')
-		.attr('data-row-id', d => d.rowIndex)
-		.attr('data-type', (_, i) => {
-			switch (i) {
-				case 1: return 'male-count';
-				case 2: return 'female-count';
-				case 3: return 'other-count';
-				default: return 'name';
-			}
-		})
-	.append('rect')
-		.attr('class', 'square')
-		.attr('x', d => d.x)
-		.attr('y', d => d.y)
-		.attr('width', d => d.width)
-		.attr('height', d => d.height)
-		.attr('fill', '#fff')
-		.attr('stroke', '#222');
+var grid = selectorUtils.drawGridBorder();
+selectorUtils.createRowsAndColumns(grid);
 		
 // Filling all cells
-var cellsText = d3.selectAll('.cell')
-	.filter((_, i, nodes) => d3.select(nodes[i]).attr('data-type') == 'name')
-	.append('text')
-	.attr('x', '65')
-	.attr('y', (_, i, nodes) => {
-		var el = d3.select(nodes[i]).node().parentNode;
-		var idx = el.dataset.rowId;
-		return '' + ((idx * 30) + 15);
-	})
-	.attr('text-anchor', 'middle')
-	.style('font-size', '13px')
-	.style('font-weight', (_, i, nodes) => {
-		var el = d3.select(nodes[i]).node().parentNode;
-		var idx = el.dataset.rowId;
-		if (occupationCategories[idx].type == 'category') return 'bold';
-		else return 'normal';
-	})
-	.style('font-style', (_, i, nodes) => {
-		var el = d3.select(nodes[i]).node().parentNode;
-		var idx = el.dataset.rowId;
-		if (occupationCategories[idx].type == 'special') return 'italic';
-		else return 'normal';
-	})
-	.text((_, i, nodes) => {
-		var el = d3.select(nodes[i]).node().parentNode;
-		var idx = el.dataset.rowId;
-		return occupationCategories[idx].name;
-	});
-
-if (navigator.userAgent.indexOf("Edge") != -1) cellsText.attr('dy', 4.5);
-else cellsText.attr('dominant-baseline', 'middle');
+selectorUtils.fillOccupationDataCells(occCats);
 	
 // Occupation categories currently selected
-var occupationFilterSelected = ['all'];
+var occupationFilterSelected = {
+	index: 0,
+	categoryList: ['all']
+}
 	
 // Force simulation init
 var simulation = d3.forceSimulation();
@@ -381,40 +183,40 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 				transformablePointCoords.push(dataPoint);
 
 				// Increment "ALL" occupation filter value by one
-				if (record.gender == 'maschio') occupationCategories[0].m++;
-				else if (record.gender == 'femmina') occupationCategories[0].f++;
-				else occupationCategories[0].other++;
+				if (record.gender == 'maschio') occCats[0].m++;
+				else if (record.gender == 'femmina') occCats[0].f++;
+				else occCats[0].other++;
 				
 				// For each occupation category and subcategory in which this record belongs, increment
 				// respective filter value by one (FIXME: don't count records multiple times in categories)
 				if (record.professions.categories.length == 0) {
-					var l = occupationCategories.length;
-					if (record.gender == 'maschio') occupationCategories[l-1].m++;
-					else if (record.gender == 'femmina') occupationCategories[l-1].f++;
-					else occupationCategories[l-1].other++;
+					var l = occCats.length;
+					if (record.gender == 'maschio') occCats[l-1].m++;
+					else if (record.gender == 'femmina') occCats[l-1].f++;
+					else occCats[l-1].other++;
 				} else {
 					var previousCategoryIndex = -1;
 					for (var j = 0, len2 = record.professions.categories.length; j < len2; j++) {
 						var currentSubcategory = record.professions.categories[j];
-						var idx = occupationCategories.findIndex(cat => cat.name == currentSubcategory);
+						var idx = occCats.findIndex(cat => cat.name == currentSubcategory);
 						var categoryIndex = idx;
-						while (occupationCategories[categoryIndex].type != 'category') categoryIndex--;
+						while (occCats[categoryIndex].type != 'category') categoryIndex--;
 						if (record.gender == 'maschio') {
-							occupationCategories[idx].m++;
+							occCats[idx].m++;
 							if (previousCategoryIndex != categoryIndex) {
-								occupationCategories[categoryIndex].m++;
+								occCats[categoryIndex].m++;
 								previousCategoryIndex = categoryIndex;
 							}
 						} else if (record.gender == 'femmina') {
-							occupationCategories[idx].f++;
+							occCats[idx].f++;
 							if (previousCategoryIndex != categoryIndex) {
-								occupationCategories[categoryIndex].f++;
+								occCats[categoryIndex].f++;
 								previousCategoryIndex = categoryIndex;
 							}
 						} else {
-							occupationCategories[idx].other++;
+							occCats[idx].other++;
 							if (previousCategoryIndex != categoryIndex) {
-								occupationCategories[categoryIndex].other++;
+								occCats[categoryIndex].other++;
 								previousCategoryIndex = categoryIndex;
 							}
 						}
@@ -423,67 +225,10 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 			}
 		}
 		
-		// Write occupation filter grid values (SELECTOR)
-		var occupationMaleCount = d3.selectAll('.cell')
-			.filter((_, i, nodes) =>  d3.select(nodes[i]).attr('data-type') == 'male-count')
-			.append('text')
-			.attr('x', '145')
-			.attr('y', (_, i, nodes) => {
-				var el = d3.select(nodes[i]).node().parentNode;
-				var idx = el.dataset.rowId;
-				return '' + ((idx * 30) + 15);
-			})
-			.attr('text-anchor', 'middle')
-			.style('font-size', '11px')
-			.text((_, i, nodes) => {
-				var el = d3.select(nodes[i]).node().parentNode;
-				var idx = el.dataset.rowId;
-				return '' + occupationCategories[idx].m;
-			});
-			
-		var occupationFemaleCount = d3.selectAll('.cell')
-			.filter((_, i, nodes) => d3.select(nodes[i]).attr('data-type') == 'female-count')
-			.append('text')
-			.attr('x', '175')
-			.attr('y', (_, i, nodes) => {
-				var el = d3.select(nodes[i]).node().parentNode;
-				var idx = el.dataset.rowId;
-				return '' + ((idx * 30) + 15);
-			})
-			.attr('text-anchor', 'middle')
-			.style('font-size', '11px')
-			.text((_, i, nodes) => {
-				var el = d3.select(nodes[i]).node().parentNode;
-				var idx = el.dataset.rowId;
-				return '' + occupationCategories[idx].f;
-			});
-			
-		var occupationOtherCount = d3.selectAll('.cell')
-			.filter((_, i, nodes) => d3.select(nodes[i]).attr('data-type') == 'other-count')
-			.append('text')
-			.attr('x', '205')
-			.attr('y', (_, i, nodes) => {
-				var el = d3.select(nodes[i]).node().parentNode;
-				var idx = el.dataset.rowId;
-				return '' + ((idx * 30) + 15);
-			})
-			.attr('text-anchor', 'middle')
-			.style('font-size', '11px')
-			.text((_, i, nodes) => {
-				var el = d3.select(nodes[i]).node().parentNode;
-				var idx = el.dataset.rowId;
-				return '' + occupationCategories[idx].other;
-			});
-
-		if (navigator.userAgent.indexOf("Edge") != -1) {
-			occupationMaleCount.attr('dy', 4.5);
-			occupationFemaleCount.attr('dy', 4.5);
-			occupationOtherCount.attr('dy', 4.5);
-		} else {
-			occupationMaleCount.attr('dominant-baseline', 'middle');
-			occupationFemaleCount.attr('dominant-baseline', 'middle');
-			occupationOtherCount.attr('dominant-baseline', 'middle');
-		}
+		// Write occupation filter grid values
+		selectorUtils.fillMaleCountCells(occCats);
+		selectorUtils.fillFemaleCountCells(occCats);
+		selectorUtils.fillOtherCountCells(occCats);
 		
 		// Creating tipbox for circles
 		var circleTipbox = mapUtils.createCircleTipbox(visiblePoints);
@@ -492,12 +237,12 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 		// Point insertion into the map
 		var circles = mapUtils.insertPointArray(map, transformablePointCoords, visiblePoints, circleTipbox, circleRadius);
 		// if clicked, show detailed information in red infobox on the right
-		circles.on('click', (_, i) => writePersonInfo(visiblePoints[i]));
+		circles.on('click', (_, i) => selectorUtils.writePersonInfo(visiblePoints[i], circleInfobox));
 			
-		// Visualize circle count (FIXME: use occupationCategories values instead of recalculation)
-		var totalCircles = circles.size();
-		var maleCircles = circles.filter((_, i, nodes) => nodes[i].dataset.gender == 'maschio').size();
-		var femaleCircles = circles.filter((_, i, nodes) => nodes[i].dataset.gender == 'femmina').size();
+		// Visualize circle count
+		var maleCircles = occCats[0].m;
+		var femaleCircles = occCats[0].f;
+		var totalCircles = maleCircles + femaleCircles + occCats[0].other;
 		rangeInfoboxPointQuantity.text(totalCircles + ' persone visualizzate, ' +
 								'di cui ' + maleCircles + ' uomini e ' + femaleCircles + ' donne');
 		
@@ -515,7 +260,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 			});
 		
 		// Associate event handlers to page elements
-		svgMap.call(d3.zoom().on('zoom', updateTransform));
+		svgMap.call(d3.zoom().on('zoom', _ => map.attr('transform', d3.event.transform)));
 			
 		brush.on('start brush', _ => brushed(d3.event, visiblePoints))
 			.on('end', _ => brushended(d3.event, visiblePoints));
@@ -535,110 +280,59 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 		d3.select('#visualization-type')
 			.selectAll('input')
 			.on('change', (_, i, nodes) => {
-				visualizationFilterValue = nodes[i].value;
+				switch (nodes[i].value) {
+					case 'dotmap':
+						visualizationFilterValue = VisualizationMode.DOTMAP;
+						break;
+					case 'density':
+						visualizationFilterValue = VisualizationMode.DENSITY;
+						break;
+					default: ;
+				}
+				nodes[i].value;
 				updateVisualizedPoints(visiblePoints);
 			});
 			
 		d3.select('#gender-sel')
 			.selectAll('input')
 			.on('change', (_, i, nodes) => {
-				genderFilterValue = nodes[i].value;
+				switch (nodes[i].value) {
+					case 'all':
+						genderFilterValue = Gender.ALL;
+						break;
+					case 'maschio':
+						genderFilterValue = Gender.MALE;
+						break;
+					case 'femmina':
+						genderFilterValue = Gender.FEMALE;
+						break;
+					default: ;
+				}
 				updateVisualizedPoints(visiblePoints);
 			});
 
 		sliderHandle.on('onchange', val => {
 			circleRadius.radius = val;
-			if (visualizationFilterValue == 'dotmap') updateVisualizedPoints(visiblePoints);
+			if (visualizationFilterValue == VisualizationMode.DOTMAP) updateVisualizedPoints(visiblePoints);
 		});
 		radiusSelectorGraphicContainer.call(sliderHandle);
 		
 		d3.selectAll('.row')
 			.on('click', (_, i) => {
-				gridSelection(i);
+				occupationFilterSelected.index = i;
+				selectorUtils.gridSelection(grid, i, occupationFilterSelected);
 				updateVisualizedPoints(visiblePoints);
 			});
 	});
 });
 
 // UTILITY FUNCTIONS
-// Javascript class for Wikidata query dispatcher (SELECTOR)
-class SPARQLQueryDispatcher {
-	constructor(endpoint) {
-		this.endpoint = endpoint;
-	}
-
-	async query(sparqlQuery) {
-		const fullUrl = this.endpoint + '?query=' + encodeURIComponent(sparqlQuery);
-		const headers = { 'Accept': 'application/sparql-results+json' };
-
-		const body = await fetch(fullUrl, { headers });
-		return await body.json();
-	}
-}
-
-// Function that fetch from Wikidata all Wikipedia links of a specific person (SELECTOR)
-function fetchArticle(data) {
-	var endpointUrl = 'https://query.wikidata.org/sparql';
-	var sparqlQuery = 'SELECT ?articolo WHERE {\
-	  VALUES (?persona) {(wd:' + data.wiki_id + ')}\
-	  ?articolo schema:about ?persona.\
-	  FILTER (SUBSTR(str(?articolo), 11, 15) = ".wikipedia.org/").\
-	}';
-
-	var queryDispatcher = new SPARQLQueryDispatcher(endpointUrl);
-	return queryDispatcher.query(sparqlQuery);
-}
-
-// Writes detailed information about a person visualized on the map (SELECTOR)
-function writePersonInfo(data) {
-	var fetchedRecords = fetchArticle(data); // Treat fetchArticle funcion as a Promise in order to wait for results
-	Promise.all([fetchedRecords]).then(articles => {
-		circleInfobox.selectAll('.section')
-			.html((_, i) => {
-				switch (i) {
-					case 0:
-						return '<b>Nome:</b> ' + data.name;
-					case 1:
-						return '<b>Sesso:</b> ' + data.gender;
-					case 2:
-						var str = '<b>Occupazioni:</b> ';
-						for (var idx = 0, len = data.professions.occupations.length; idx < len; idx++) {
-							if (idx == data.professions.occupations.length - 1)
-								str += data.professions.occupations[idx];
-							else str += data.professions.occupations[idx] + ', ';
-						}
-						return str;
-					case 3:
-						return '<b>Anno di nascita:</b> ' + data.dob;
-					case 4:
-						if (data.dod == 0) return '<b>Anno di morte:</b> -';
-						else return '<b>Anno di morte:</b> ' + data.dod;
-					case 5:
-						return '<b>Luogo di nascita:</b> ' + data.pob;
-					case 6:
-						var links = articles[0].results.bindings;
-						var idx = -1;
-						idx = links.findIndex(el => el.articolo.value.includes('it.wikipedia.org'));
-						if (idx >= 0) {
-							return '<b>Articolo Wikipedia:</b> <a href="' + links[idx].articolo.value +
-									'" target="_blank">' + links[idx].articolo.value + '</a>';
-						} else {
-							idx = links.findIndex(el => el.articolo.value.includes('en.wikipedia.org'));
-							if (idx >= 0) {
-								return '<b>Articolo Wikipedia:</b> <a href="' + links[idx].articolo.value +
-										'" target="_blank">' + links[idx].articolo.value + '</a>';
-							} else {
-								return '<b>Articolo Wikipedia:</b> <a href="' + links[0].articolo.value +
-									'" target="_blank">' + links[0].articolo.value + '</a>';
-							}
-						}
-				}
-			});
-	});
-}
-
-// Update procedure for all visualized data
-function updateVisualizedPoints(elems) {
+/**
+ * Update procedure for all visualized data.
+ * 
+ * @param {any[]} elems - list of all people on the map
+ */
+let updateVisualizedPoints = elems => {
 	// First of all hide all points on the map
 	map.selectAll('circle')
 		.filter((_, i, nodes) => d3.select(nodes[i]).attr('display') == 'block')
@@ -650,16 +344,16 @@ function updateVisualizedPoints(elems) {
 	var selected = map.selectAll('circle')
 		.filter((_, i) => {
 			var el = elems[i];
-			if (genderFilterValue == 'all' || el.gender == genderFilterValue) {
+			if (genderFilterValue == Gender.ALL || el.gender == Gender.properties[genderFilterValue].radio_value) {
 				var cat = el.professions.categories;
-				if (occupationFilterSelected[0] == 'all' || (occupationFilterSelected[0] == 'other' && cat.length == 0)) {
+				if (occupationFilterSelected.categoryList[0] == 'all' || (occupationFilterSelected.categoryList[0] == 'other' && cat.length == 0)) {
 					if (yearBounds.isValueInInterval(el.dob)) {
 						indexList.push(i);
 						return true;
 					}
 				} else {
 					for (var idx = 0, len = cat.length; idx < len; idx++) {
-						if (occupationFilterSelected.findIndex(v => v == cat[idx]) >= 0 && yearBounds.isValueInInterval(el.dob)) {
+						if (occupationFilterSelected.categoryList.findIndex(v => v == cat[idx]) >= 0 && yearBounds.isValueInInterval(el.dob)) {
 							indexList.push(i);
 							return true;
 						}
@@ -683,10 +377,10 @@ function updateVisualizedPoints(elems) {
 		else if (element.attr('data-gender') == 'femmina') province.dataset.female++;
 	});
 
-	// Write in the infobox how many people are currently visualized (FIXME: insert values from category grid)
-	var totalCircles = selected.size();
-	var maleCircles = selected.filter((_, i, nodes) => nodes[i].dataset.gender == 'maschio').size();
-	var femaleCircles = selected.filter((_, i, nodes) => nodes[i].dataset.gender == 'femmina').size();
+	// Write in the infobox how many people are currently visualized
+	var maleCircles = occCats[occupationFilterSelected.index].m;
+	var femaleCircles = occCats[occupationFilterSelected.index].f;
+	var totalCircles = maleCircles + femaleCircles + occCats[occupationFilterSelected.index].other;
 	rangeInfoboxPointQuantity.text(totalCircles + ' persone visualizzate, ' +
 							'di cui ' + maleCircles + ' uomini e ' + femaleCircles + ' donne');
 	
@@ -694,7 +388,7 @@ function updateVisualizedPoints(elems) {
 	sliderUtils.drawAreaChart(elems, occupationFilterSelected, slider, areaGraph, x, sliderDim);
 
 	simulation.stop();
-	if (visualizationFilterValue == 'dotmap') {
+	if (visualizationFilterValue == VisualizationMode.DOTMAP) {
 		selected.attr('display', 'block');
 		map.selectAll('image').attr('display', 'none');
 		map.selectAll('.province').style('fill', '#FFF');
@@ -719,7 +413,7 @@ function updateVisualizedPoints(elems) {
 					});
 			});
 		simulation.alpha(1).restart();
-	} else if (visualizationFilterValue == 'density') {
+	} else if (visualizationFilterValue == VisualizationMode.DENSITY) {
 		map.selectAll('image').attr('display', 'none');
 		densityLegendBox.style('display', 'block');
 
@@ -733,7 +427,7 @@ function updateVisualizedPoints(elems) {
 			});
 		map.selectAll('.province')
 			.style('fill', (_, i, nodes) => {
-				if (visualizationFilterValue == 'density') {
+				if (visualizationFilterValue == VisualizationMode.DENSITY) {
 					var province = d3.select(nodes[i]).node();
 					var m = parseInt(province.dataset.male);
 					var f = parseInt(province.dataset.female);
@@ -743,10 +437,10 @@ function updateVisualizedPoints(elems) {
 						var h = 240 + Math.floor(60 * (f / total));
 						var l = 100 - Math.ceil(50 * (total / maxProvincePeopleNo));
 						switch (genderFilterValue) {
-							case 'maschio':
+							case Gender.MALE:
 								l = 100 - Math.ceil(50 * (m / maxProvincePeopleNo));
 								return 'hsla(240, 100%, ' + l + '%, 0.8)';
-							case 'femmina':
+							case Gender.FEMALE:
 								l = 100 - Math.ceil(50 * (f / maxProvincePeopleNo));
 								return 'hsla(300, 100%, ' + l + '%, 0.8)';
 							default: return 'hsla(' + h + ', 100%, ' + l + '%, 0.8)';
@@ -779,13 +473,12 @@ function updateVisualizedPoints(elems) {
 }
 
 // EVENT HANDLERS
-// Apply transform matrix to all map elements
-function updateTransform() {
-	map.attr('transform', d3.event.transform);
-}
-
-// Modifies birthyear limits
-function getYearLimits(elems) {
+/**
+ * Modifies birthyear limits.
+ * 
+ * @param {any[]} elems - list of all people on the map
+ */
+let getYearLimits = elems => {
 	// Update min and max limits
 	var lx = +d3.select('.selection').attr('x'),
 			width = +d3.select('.selection').attr('width');
@@ -796,10 +489,10 @@ function getYearLimits(elems) {
 	rangeInfoboxYearRange.text('Intervallo nascite: dal ' + yearBounds.min + ' al ' + yearBounds.max);
 	
 	// Reset occupation categories values
-	for (var i = 0, len = occupationCategories.length; i < len; i++) {
-		occupationCategories[i].m = 0;
-		occupationCategories[i].f = 0;
-		occupationCategories[i].other = 0;
+	for (var i = 0, len = occCats.length; i < len; i++) {
+		occCats[i].m = 0;
+		occCats[i].f = 0;
+		occCats[i].other = 0;
 	}
 	 
 	for (var i = 0, len1 = elems.length; i < len1; i++) {
@@ -807,40 +500,40 @@ function getYearLimits(elems) {
 		
 		if (yearBounds.isValueInInterval(record.dob)) {
 			// Increment "ALL" occupation filter value by one
-			if (record.gender == 'maschio') occupationCategories[0].m++;
-			else if (record.gender == 'femmina') occupationCategories[0].f++;
-			else occupationCategories[0].other++;
+			if (record.gender == 'maschio') occCats[0].m++;
+			else if (record.gender == 'femmina') occCats[0].f++;
+			else occCats[0].other++;
 			
 			// For each occupation category and subcategory in which this record belongs, increment
 			// respective filter value by one (FIXME: don't count records multiple times in categories)
 			if (record.professions.categories.length == 0) {
-				var l = occupationCategories.length;
-				if (record.gender == 'maschio') occupationCategories[l-1].m++;
-				else if (record.gender == 'femmina') occupationCategories[l-1].f++;
-				else occupationCategories[l-1].other++;
+				var l = occCats.length;
+				if (record.gender == 'maschio') occCats[l-1].m++;
+				else if (record.gender == 'femmina') occCats[l-1].f++;
+				else occCats[l-1].other++;
 			} else {
 				var previousCategoryIndex = -1;
 				for (var j = 0, len2 = record.professions.categories.length; j < len2; j++) {
 					var currentSubcategory = record.professions.categories[j];
-					var idx = occupationCategories.findIndex(cat => cat.name == currentSubcategory);
+					var idx = occCats.findIndex(cat => cat.name == currentSubcategory);
 					var categoryIndex = idx;
-					while (occupationCategories[categoryIndex].type != 'category') categoryIndex--;
+					while (occCats[categoryIndex].type != 'category') categoryIndex--;
 					if (record.gender == 'maschio') {
-						occupationCategories[idx].m++;
+						occCats[idx].m++;
 						if (previousCategoryIndex != categoryIndex) {
-							occupationCategories[categoryIndex].m++;
+							occCats[categoryIndex].m++;
 							previousCategoryIndex = categoryIndex;
 						}
 					} else if (record.gender == 'femmina') {
-						occupationCategories[idx].f++;
+						occCats[idx].f++;
 						if (previousCategoryIndex != categoryIndex) {
-							occupationCategories[categoryIndex].f++;
+							occCats[categoryIndex].f++;
 							previousCategoryIndex = categoryIndex;
 						}
 					} else {
-						occupationCategories[idx].other++;
+						occCats[idx].other++;
 						if (previousCategoryIndex != categoryIndex) {
-							occupationCategories[categoryIndex].other++;
+							occCats[categoryIndex].other++;
 							previousCategoryIndex = categoryIndex;
 						}
 					}
@@ -856,7 +549,7 @@ function getYearLimits(elems) {
 		.text((_, i, nodes) => {
 			var el = d3.select(nodes[i]).node().parentNode;
 			var idx = el.dataset.rowId;
-			return '' + occupationCategories[idx].m;
+			return '' + occCats[idx].m;
 		});
 		
 	d3.selectAll('.cell')
@@ -865,7 +558,7 @@ function getYearLimits(elems) {
 		.text((_, i, nodes) => {
 			var el = d3.select(nodes[i]).node().parentNode;
 			var idx = el.dataset.rowId;
-			return '' + occupationCategories[idx].f;
+			return '' + occCats[idx].f;
 		});
 		
 	d3.selectAll('.cell')
@@ -874,15 +567,20 @@ function getYearLimits(elems) {
 		.text((_, i, nodes) => {
 			var el = d3.select(nodes[i]).node().parentNode;
 			var idx = el.dataset.rowId;
-			return '' + occupationCategories[idx].other;
+			return '' + occCats[idx].other;
 		});
 	
 	// Apply to points
 	updateVisualizedPoints(elems);
 }
 
-// Year range slider event handler for click on unselected spaces
-function brushcentered(mouseEvt, elems) {
+/**
+ * Year range slider event handler for click on unselected spaces.
+ * 
+ * @param {[number, number]} mouseEvt - event coordinates of the mouse
+ * @param {any[]} elems - list of all people on the map
+ */
+let brushcentered = (mouseEvt, elems) => {
 	var dx = x(1860) - x(1850),
 		cx = mouseEvt[0],
 		x0 = cx - dx / 2,
@@ -898,8 +596,13 @@ function brushcentered(mouseEvt, elems) {
 	getYearLimits(elems);
 }
 
-// Year range slider mousein event handler
-function brushed(evt, elems) {
+/**
+ * Year range slider mousein event handler
+ * 
+ * @param {any} evt - event object
+ * @param {any[]} elems - list of all people on the map
+ */
+let brushed = (evt, elems) => {
 	if (!evt.selection) return;
 	brushHandle.attr('x', d => {
 		if (d.type == 'w')
@@ -910,8 +613,13 @@ function brushed(evt, elems) {
 	getYearLimits(elems);
 }
 
-// Year range slider mouseout event handler
-function brushended(evt, elems) {
+/**
+ * Year range slider mouseout event handler
+ * 
+ * @param {any} evt - event object
+ * @param {any[]} elems - list of all people on the map
+ */
+let brushended = (evt, elems) => {
 	if (!evt.sourceEvent) return;
 	if (!evt.selection) return;
 	var d0 = evt.selection.map(x.invert),
@@ -930,40 +638,4 @@ function brushended(evt, elems) {
 	brushSelection.transition().call(brush.move, d1.map(x));
 	
 	getYearLimits(elems);
-}
-
-// Set occupation category filtering (SELECTOR)
-function gridSelection(rowId) {
-	grid.selectAll('rect')
-		.attr('fill', '#fff')
-		
-	occupationFilterSelected = [];
-	d3.selectAll('.cell')
-		.filter((_, i, nodes) => {
-			var id = d3.select(nodes[i]).attr('data-row-id');
-			return parseInt(id) == rowId;
-		})
-		.selectAll('rect')
-		.attr('fill', '#00cccc');
-	
-	if (rowId == 0) {
-		occupationFilterSelected.push('all');
-	} else if (rowId == occupationCategories.length - 1) {
-		occupationFilterSelected.push('other');
-	} else {
-		if (occupationCategories[rowId].type == 'category') {
-			var lastSubcategoryId = rowId + 1;
-			while (occupationCategories[lastSubcategoryId].type == 'subcategory') {
-				occupationFilterSelected.push(occupationCategories[lastSubcategoryId].name);
-				lastSubcategoryId++;
-			}
-			d3.selectAll('.cell')
-				.filter((_, i, nodes) => {
-					var id = d3.select(nodes[i]).attr('data-row-id');
-					return parseInt(id) > rowId && parseInt(id) < lastSubcategoryId;
-				})
-				.selectAll('rect')
-				.attr('fill', '#97eaea');
-		} else occupationFilterSelected.push(occupationCategories[rowId].name);
-	}
 }

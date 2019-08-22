@@ -226,7 +226,7 @@ export let createSliderRuler = (slider, dim, xscale, bounds) => {
  * Draw area chart inside the year slider rectangle and adjust y-axis ruler.
  * 
  * @param {any[]} elems - data group for which we need to extrapolate the graph
- * @param {string[]} occSelected - list of currently selected occupation groups
+ * @param {any} occSelected - list of currently selected occupation groups
  * @param {Selection<SVGSVGElement, any, HTMLElement, any>} slider - the SVG slider element
  * @param {Selection<SVGSVGElement, any, HTMLElement, any>} areaGraph - area reserved for graph drawing
  * @param {ScaleLinear<number, number>} xscale - x-axis scaling factor
@@ -240,11 +240,11 @@ export let drawAreaChart = (elems, occSelected, slider, areaGraph, xscale, dim) 
 		var maleCircles = elems.filter(el => {
 			if (el.gender == 'maschio' && el.dob == i) {
 				var cat = el.professions.categories;
-				if (occSelected[0] == 'all' ||	(occSelected[0] == 'other' && cat.length == 0))
+				if (occSelected.categoryList[0] == 'all' ||	(occSelected.categoryList[0] == 'other' && cat.length == 0))
 					return true;
 				else {
 					for (var idx = 0, len = cat.length; idx < len; idx++) {
-						if (occSelected.findIndex(v => v == cat[idx]) >= 0)
+						if (occSelected.categoryList.findIndex(v => v == cat[idx]) >= 0)
 							return true;
 					}
 				}
@@ -254,11 +254,11 @@ export let drawAreaChart = (elems, occSelected, slider, areaGraph, xscale, dim) 
 		var femaleCircles = elems.filter(el => {
 			if (el.gender == 'femmina' && el.dob == i) {
 				var cat = el.professions.categories;
-				if (occSelected[0] == 'all' || (occSelected[0] == 'other' && cat.length == 0))
+				if (occSelected.categoryList[0] == 'all' || (occSelected.categoryList[0] == 'other' && cat.length == 0))
 					return true;
 				else {
 					for (var idx = 0, len = cat.length; idx < len; idx++) {
-						if (occSelected.findIndex(v => v == cat[idx]) >= 0)
+						if (occSelected.categoryList.findIndex(v => v == cat[idx]) >= 0)
 							return true;
 					}
 				}
