@@ -1,6 +1,6 @@
-import * as mapUtils from './modules/map.js';
-import * as sliderUtils from './modules/slider.js';
-import * as selectorUtils from './modules/selectors.js';
+import * as mapUtils from './lib/map.js';
+import * as sliderUtils from './lib/slider.js';
+import * as selectorUtils from './lib/selectors.js';
 
 // Define radius for all circles on the map
 var circleRadius = new mapUtils.CircleRadius();
