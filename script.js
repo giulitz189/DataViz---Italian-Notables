@@ -2,6 +2,7 @@ import * as mapUtils from './lib/map.js';
 import * as sliderUtils from './lib/slider.js';
 import * as selectorUtils from './lib/selectors.js';
 
+// INITIALIZATION PHASE - MAP
 // Define radius for all circles on the map
 var circleRadius = new mapUtils.CircleRadius();
 
@@ -20,6 +21,7 @@ var legendNotes = mapUtils.getLegendNotes(densityLegend);
 
 mapUtils.initDensityLegend(densityLegend, legendXAxis);
 
+// INITIALIZATION PHASE - SLIDER
 // Slider dimension and year limits definition
 var sliderDim = new sliderUtils.SliderDimension();
 var yearBounds = new sliderUtils.YearBounds();
@@ -135,7 +137,8 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 			b = b.RID;
 			return a < b ? -1 : a > b ? 1 : 0;
 		});
-    
+		
+		// WEBPAGE GENERATION PHASE
     // draw regions and provinces
     mapUtils.generateRegions(map, projectionPath, regionShapeData, metadata);
 		mapUtils.generateProvinces(map, projectionPath, provinceData, metadata);
@@ -150,7 +153,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 		for (var i = 0, len1 = queryData.length; i < len1; i++) {
 			var record = queryData[i];
 			// For every person we need to know in which province its dot is clipped
-			var provinceElement = mapUtils.svgNodeFromCoordinates(record.coords.x, record.coords.y);
+			var provinceElement = mapUtils.getProvinceFromCoordinates(record.coords.x, record.coords.y);
 			if (provinceElement != null && provinceElement.classList[0] == 'province') {
 				// For each point, increase their belonging province's gender count by one
 				if (record.gender == 'maschio') provinceElement.dataset.male++;
