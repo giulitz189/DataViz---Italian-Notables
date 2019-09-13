@@ -57,7 +57,7 @@ var radiusSelectorGraphicContainer = selectorUtils.addRadiusRegulator();
 var VisualizationMode = selectorUtils.VisualizationMode;
 var Gender = selectorUtils.Gender;
 
-var visualizationFilterValue = VisualizationMode.DOTMAP;
+var visualizationFilterValue = VisualizationMode.DENSITY;
 var genderFilterValue = Gender.ALL;
 
 // Circle infobox
@@ -70,7 +70,7 @@ var rangeInfoboxPointQuantity = selectorUtils.addPointQuantityLine();
 // Occupation grid selector
 var occCats = selectorUtils.occupationCategories;
 
-// Drawing the grid (TODO: can we convert this grid into an hidden checkbox field?)
+// Drawing the grid
 var grid = selectorUtils.drawGridBorder();
 selectorUtils.createRowsAndColumns(grid);
 		
@@ -84,7 +84,8 @@ var occupationFilterSelected = {
 }
 	
 // Force simulation init
-var simulation = d3.forceSimulation();
+var simulation = d3.forceSimulation()
+	.alphaDecay(0.05);
 	
 // DATA LOAD PHASE
 var provinceDataFiles = [
@@ -138,7 +139,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 			return a < b ? -1 : a > b ? 1 : 0;
 		});
 		
-		// WEBPAGE GENERATION PHASE
+		// MAP GENERATION PHASE
     // draw regions and provinces
     mapUtils.generateRegions(map, projectionPath, regionShapeData, metadata);
 		mapUtils.generateProvinces(map, projectionPath, provinceData, metadata);
@@ -177,8 +178,6 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 				// For each record generate an object with initial cooordinates and a province id
 				// reference: will be used in dynamic collision resolving
 				var dataPoint = {
-					origX: record.coords.x,
-					origY: record.coords.y,
 					x: exagonalCoords.x,
 					y: exagonalCoords.y,
 					provinceIndex: provinceElement.id,
@@ -191,7 +190,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 				else occCats[0].other++;
 				
 				// For each occupation category and subcategory in which this record belongs, increment
-				// respective filter value by one (FIXME: don't count records multiple times in categories)
+				// respective filter value by one
 				if (record.professions.categories.length == 0) {
 					var l = occCats.length;
 					if (record.gender == 'maschio') occCats[l-1].m++;
@@ -251,16 +250,60 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 		
 		// Draw area chart within the year slider
 		sliderUtils.drawAreaChart(visiblePoints, occupationFilterSelected, slider, areaGraph, x, sliderDim);
-			
-		// Anti-collision animation
-		simulation.nodes(transformablePointCoords)
-			.force('collision', d3.forceCollide().radius(_ => circleRadius.radius * 1.5).iterations(3))
-			.force('r', d3.forceRadial(0).x(d => d.origX).y(d => d.origY))
-			.on('tick', _ => {
-				map.selectAll('circle')
-					.attr('cx', (_, i) => transformablePointCoords[i].x)
-					.attr('cy', (_, i) => transformablePointCoords[i].y);
+
+		map.selectAll('image').attr('display', 'none');
+		densityLegendBox.style('display', 'block');
+
+		// Generate color density
+		var maxProvincePeopleNo = 0;
+		map.selectAll('.province')
+			.each((_, i, nodes) => {
+				var province = d3.select(nodes[i]).node();
+				var total = parseInt(province.dataset.male) + parseInt(province.dataset.female);
+				if (total > maxProvincePeopleNo) maxProvincePeopleNo = total;
 			});
+		map.selectAll('.province')
+			.style('fill', (_, i, nodes) => {
+				var province = d3.select(nodes[i]).node();
+				var m = parseInt(province.dataset.male);
+				var f = parseInt(province.dataset.female);
+				var total = m + f;
+
+				if (maxProvincePeopleNo > 0 && total > 0) {
+					var h = 240 + Math.floor(60 * (f / total));
+					var l = 100 - Math.ceil(50 * (total / maxProvincePeopleNo));
+					switch (genderFilterValue) {
+						case Gender.MALE:
+							l = 100 - Math.ceil(50 * (m / maxProvincePeopleNo));
+							return 'hsla(240, 100%, ' + l + '%, 0.8)';
+						case Gender.FEMALE:
+							l = 100 - Math.ceil(50 * (f / maxProvincePeopleNo));
+							return 'hsla(300, 100%, ' + l + '%, 0.8)';
+						default: return 'hsla(' + h + ', 100%, ' + l + '%, 0.8)';
+					}
+				}
+				return '#fff';
+			});
+		
+		var labelArray = [];
+		for (var i = 0; i <= 100; i = i + 20) {
+			var value = Math.floor((maxProvincePeopleNo / 100) * i)
+			labelArray.push(value);
+		}
+
+		legendXAxis.domain(labelArray);
+		densityLegend.select('.x-axis').remove();
+		densityLegend.append('g')
+			.attr('class', 'x-axis')
+			.attr('transform', 'translate(-63, 80)')
+			.style('font-size', _ => {
+				if (maxProvincePeopleNo >= 1000) return '8px';
+				else return '10px';
+			})
+			.call(d3.axisBottom(legendXAxis).tickSize(0))
+			.select('.domain').remove();
+
+		legendNotes.text('(m: maschio, f: femmina, max popolazione per provincia: ' + maxProvincePeopleNo + ')');
 		
 		// Associate event handlers to page elements
 		svgMap.call(d3.zoom().on('zoom', _ => map.attr('transform', d3.event.transform)));
@@ -323,6 +366,8 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 		d3.selectAll('.row')
 			.on('click', (_, i) => {
 				occupationFilterSelected.index = i;
+				if (occupationFilterSelected.index != 0) d3.select('#dotmap-btn').property('disabled', false);
+				else d3.select('#dotmap-btn').property('disabled', true);
 				selectorUtils.gridSelection(grid, i, occupationFilterSelected);
 				updateVisualizedPoints(visiblePoints);
 			});
@@ -336,6 +381,8 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
  * @param {any[]} elems - list of all people on the map
  */
 let updateVisualizedPoints = elems => {
+	simulation.stop();
+
 	// First of all hide all points on the map
 	map.selectAll('circle')
 		.filter((_, i, nodes) => d3.select(nodes[i]).attr('display') == 'block')
@@ -390,7 +437,6 @@ let updateVisualizedPoints = elems => {
 	// Redraw area chart inside year range slider
 	sliderUtils.drawAreaChart(elems, occupationFilterSelected, slider, areaGraph, x, sliderDim);
 
-	simulation.stop();
 	if (visualizationFilterValue == VisualizationMode.DOTMAP) {
 		selected.attr('display', 'block');
 		map.selectAll('image').attr('display', 'none');
@@ -401,19 +447,12 @@ let updateVisualizedPoints = elems => {
 		var pointGroupsElement = mapUtils.getDerivatedCoords(indexList, elems, circleRadius);
 
 		// Reset and restart collision resolver engine
-		simulation.nodes(pointGroupsElement.tpc)
-			.force('collision', d3.forceCollide().radius(_ => circleRadius.radius * 1.5).iterations(3))
+		simulation.nodes(pointGroupsElement)
+			.force('collision', d3.forceCollide().radius(_ => circleRadius.radius * 1.5))
 			.force('r', d3.forceRadial(0).x(d => d.origX).y(d => d.origY))
 			.on('tick', _ => {
-				map.selectAll('circle')
-					.attr('cx', (_, i) => {
-						var currentIdx = indexList.findIndex(val => val == i);
-						if (currentIdx >= 0) return pointGroupsElement.tpc[currentIdx].x;
-					})
-					.attr('cy', (_, i) => {
-						var currentIdx = indexList.findIndex(val => val == i);
-						if (currentIdx >= 0) return pointGroupsElement.tpc[currentIdx].y;
-					});
+				selected.attr('cx', (_, i) => pointGroupsElement[i].x)
+					.attr('cy', (_, i) => pointGroupsElement[i].y);
 			});
 		simulation.alpha(1).restart();
 	} else if (visualizationFilterValue == VisualizationMode.DENSITY) {
@@ -430,24 +469,22 @@ let updateVisualizedPoints = elems => {
 			});
 		map.selectAll('.province')
 			.style('fill', (_, i, nodes) => {
-				if (visualizationFilterValue == VisualizationMode.DENSITY) {
-					var province = d3.select(nodes[i]).node();
-					var m = parseInt(province.dataset.male);
-					var f = parseInt(province.dataset.female);
-					var total = m + f;
+				var province = d3.select(nodes[i]).node();
+				var m = parseInt(province.dataset.male);
+				var f = parseInt(province.dataset.female);
+				var total = m + f;
 
-					if (maxProvincePeopleNo > 0 && total > 0) {
-						var h = 240 + Math.floor(60 * (f / total));
-						var l = 100 - Math.ceil(50 * (total / maxProvincePeopleNo));
-						switch (genderFilterValue) {
-							case Gender.MALE:
-								l = 100 - Math.ceil(50 * (m / maxProvincePeopleNo));
-								return 'hsla(240, 100%, ' + l + '%, 0.8)';
-							case Gender.FEMALE:
-								l = 100 - Math.ceil(50 * (f / maxProvincePeopleNo));
-								return 'hsla(300, 100%, ' + l + '%, 0.8)';
-							default: return 'hsla(' + h + ', 100%, ' + l + '%, 0.8)';
-						}
+				if (maxProvincePeopleNo > 0 && total > 0) {
+					var h = 240 + Math.floor(60 * (f / total));
+					var l = 100 - Math.ceil(50 * (total / maxProvincePeopleNo));
+					switch (genderFilterValue) {
+						case Gender.MALE:
+							l = 100 - Math.ceil(50 * (m / maxProvincePeopleNo));
+							return 'hsla(240, 100%, ' + l + '%, 0.8)';
+						case Gender.FEMALE:
+							l = 100 - Math.ceil(50 * (f / maxProvincePeopleNo));
+							return 'hsla(300, 100%, ' + l + '%, 0.8)';
+						default: return 'hsla(' + h + ', 100%, ' + l + '%, 0.8)';
 					}
 				}
 				return '#fff';
@@ -508,7 +545,7 @@ let getYearLimits = elems => {
 			else occCats[0].other++;
 			
 			// For each occupation category and subcategory in which this record belongs, increment
-			// respective filter value by one (FIXME: don't count records multiple times in categories)
+			// respective filter value by one
 			if (record.professions.categories.length == 0) {
 				var l = occCats.length;
 				if (record.gender == 'maschio') occCats[l-1].m++;

@@ -184,6 +184,10 @@ div#occ-select-grid {
 	box-shadow: none;
 }
 
+.switch-field input:disabled + label {
+	cursor: not-allowed;
+}
+
 .switch-field label:first-of-type {
 	border-radius: 4px 0 0 4px;
 }
