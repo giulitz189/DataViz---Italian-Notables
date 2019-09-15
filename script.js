@@ -17,9 +17,9 @@ var densityLegendBox = mapUtils.getDensityLegendBox();
 var densityLegend = mapUtils.getDensityLegendSvg(densityLegendBox);
 
 var legendXAxis = mapUtils.generateLegendXAxis();
-var legendNotes = mapUtils.getLegendNotes(densityLegend);
+mapUtils.getLegendNotes(densityLegend);
 
-mapUtils.initDensityLegend(densityLegend, legendXAxis);
+mapUtils.initDensityLegend(densityLegendBox, densityLegend, legendXAxis);
 
 // INITIALIZATION PHASE - SLIDER
 // Slider dimension and year limits definition
@@ -292,10 +292,7 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 		}
 
 		legendXAxis.domain(labelArray);
-		densityLegend.select('.x-axis').remove();
-		densityLegend.append('g')
-			.attr('class', 'x-axis')
-			.attr('transform', 'translate(-63, 80)')
+		d3.select('.map-box').selectAll('.x-axis')
 			.style('font-size', _ => {
 				if (maxProvincePeopleNo >= 1000) return '8px';
 				else return '10px';
@@ -303,7 +300,11 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 			.call(d3.axisBottom(legendXAxis).tickSize(0))
 			.select('.domain').remove();
 
-		legendNotes.text('(m: maschio, f: femmina, max popolazione per provincia: ' + maxProvincePeopleNo + ')');
+		d3.select('.map-box').selectAll('.notes')
+			.text((_, i) => {
+				if (i == 0) return '(m: maschio, f: femmina, max popolazione per provincia: ' + maxProvincePeopleNo + ')';
+				else return '(max popolazione per provincia: ' + maxProvincePeopleNo + ')';
+			});
 		
 		// Associate event handlers to page elements
 		svgMap.call(d3.zoom().on('zoom', _ => map.attr('transform', d3.event.transform)));
@@ -329,9 +330,21 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 				switch (nodes[i].value) {
 					case 'dotmap':
 						visualizationFilterValue = VisualizationMode.DOTMAP;
+						d3.selectAll('.legend').style('display', 'none')
 						break;
 					case 'density':
 						visualizationFilterValue = VisualizationMode.DENSITY;
+						switch (genderFilterValue) {
+							case Gender.ALL:
+								d3.select('#all').style('display', 'block');
+								break;
+							case Gender.MALE:
+								d3.select('#male').style('display', 'block');
+								break;
+							case Gender.FEMALE:
+								d3.select('#female').style('display', 'block');
+								break;
+						}
 						break;
 					default: ;
 				}
@@ -342,15 +355,23 @@ Promise.all(provinceDataRequest).then(function(provinceData) {
 		d3.select('#gender-sel')
 			.selectAll('input')
 			.on('change', (_, i, nodes) => {
+				if (visualizationFilterValue == VisualizationMode.DENSITY)
+					d3.selectAll('.legend').style('display', 'none');
 				switch (nodes[i].value) {
 					case 'all':
 						genderFilterValue = Gender.ALL;
+						if (visualizationFilterValue == VisualizationMode.DENSITY)
+							d3.select('#all').style('display', 'block')
 						break;
 					case 'maschio':
 						genderFilterValue = Gender.MALE;
+						if (visualizationFilterValue == VisualizationMode.DENSITY)
+							d3.select('#male').style('display', 'block')
 						break;
 					case 'femmina':
 						genderFilterValue = Gender.FEMALE;
+						if (visualizationFilterValue == VisualizationMode.DENSITY)
+							d3.select('#female').style('display', 'block')
 						break;
 					default: ;
 				}
@@ -441,8 +462,7 @@ let updateVisualizedPoints = elems => {
 		selected.attr('display', 'block');
 		map.selectAll('image').attr('display', 'none');
 		map.selectAll('.province').style('fill', '#FFF');
-		d3.selectAll('.person').attr('r', circleRadius.radius)
-		densityLegendBox.style('display', 'none');
+		d3.selectAll('.person').attr('r', circleRadius.radius);
 
 		var pointGroupsElement = mapUtils.getDerivatedCoords(indexList, elems, circleRadius);
 
@@ -457,7 +477,6 @@ let updateVisualizedPoints = elems => {
 		simulation.alpha(1).restart();
 	} else if (visualizationFilterValue == VisualizationMode.DENSITY) {
 		map.selectAll('image').attr('display', 'none');
-		densityLegendBox.style('display', 'block');
 
 		// Generate color density
 		var maxProvincePeopleNo = 0;
@@ -497,10 +516,7 @@ let updateVisualizedPoints = elems => {
 		}
 
 		legendXAxis.domain(labelArray);
-		densityLegend.select('.x-axis').remove();
-		densityLegend.append('g')
-			.attr('class', 'x-axis')
-			.attr('transform', 'translate(-63, 80)')
+		d3.select('.map-box').selectAll('.x-axis')
 			.style('font-size', _ => {
 				if (maxProvincePeopleNo >= 1000) return '8px';
 				else return '10px';
@@ -508,7 +524,11 @@ let updateVisualizedPoints = elems => {
 			.call(d3.axisBottom(legendXAxis).tickSize(0))
 			.select('.domain').remove();
 
-		legendNotes.text('(m: maschio, f: femmina, max popolazione per provincia: ' + maxProvincePeopleNo + ')');
+		d3.select('.map-box').selectAll('.notes')
+			.text((_, i) => {
+				if (i == 0) return '(m: maschio, f: femmina, max popolazione per provincia: ' + maxProvincePeopleNo + ')';
+				else return '(max popolazione per provincia: ' + maxProvincePeopleNo + ')';
+			});
 	}
 }
 
