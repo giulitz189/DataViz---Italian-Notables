@@ -30,7 +30,7 @@ function fetchLivingPeople(queryDispatcher) {
 	var result = { post_records: [] };
 	
 	for (var age_min = 0; age_min < 100; age_min += 25) {
-		var age_max = (age_min + 25 < 100) ? (age_min + 25 - 1) : 110;
+		var age_max = (age_min + 25 < 100) ? (age_min + 25) : 110;
 		var query_string = 'SELECT ?persona ?personaLabel ?genderLabel ?occupazioneLabel (YEAR(?dob) AS ?anno) ?pobLabel ?coord WITH {\
 			SELECT DISTINCT ?persona ?dob WHERE {\
 				?persona wdt:P27 wd:Q38;\
@@ -41,7 +41,7 @@ function fetchLivingPeople(queryDispatcher) {
 				FILTER (SUBSTR(str(?articolo), 16, 5) = "pedia").\
 				?persona wdt:P569 ?dob.\
 				BIND(YEAR(now()) - YEAR(?dob) as ?age)\
-				FILTER(?age > ' + age_min + ' && ?age <= ' + age_max + ').\
+				FILTER(?age >= ' + age_min + ' && ?age < ' + age_max + ').\
 			}\
 		} AS %i WHERE {\
 			include %i\
